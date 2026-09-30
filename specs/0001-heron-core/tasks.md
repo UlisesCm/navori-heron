@@ -62,7 +62,7 @@ Lotes de 1–3 tareas. Cada test lleva `// Covers: R<n>`. El patrón de todas la
 
 ## Lote 3 — Persistencia
 
-- [ ] **T7** (R10, R12) — Store atómico con lock, staging y rutas seguras.
+- [x] **T7** (R10, R12) — Store atómico con lock, staging y rutas seguras.
   - **Archivos:** `src/core/store/fs-port.ts`, `src/core/store/paths.ts`, `src/core/store/hash.ts`, `src/core/store/atomic.ts`, `src/core/store/lock.ts`, `src/core/store/file-store.ts`, `tests/helpers/faulty-fs.ts`, `tests/unit/store.test.ts`
   - **Interfaces:** FsPort; writeAtomic; acquireLock; openFileStore; FileStore; StoreTransaction; withFaultInjection
   - **Patrón:** specs/0001-heron-core/design.md
@@ -96,6 +96,7 @@ Lotes de 1–3 tareas. Cada test lleva `// Covers: R<n>`. El patrón de todas la
 - [ ] **T10** (R1, R2, R3, R4, R5, R6, R7, R10, R12) — `heron init` y `heron status` de punta a punta, con fixtures.
   - **Archivos:** `src/app/context.ts`, `src/app/version.ts`, `src/app/result.ts`, `src/app/init.ts`, `src/app/status.ts`, `src/cli/main.ts`, `src/cli/args.ts`, `src/cli/io.ts`, `src/cli/envelope.ts`, `src/cli/render.ts`, `src/cli/commands/init.ts`, `src/cli/commands/status.ts`, `bin/heron.ts`, `fixtures/README.md`, `fixtures/membership-product/`, `fixtures/no-ux/`, `fixtures/ux-only-md/`, `fixtures/ux-only-json/`, `fixtures/ux-invalid/`, `fixtures/closed-stage/`, `tests/helpers/fixtures.ts`, `tests/helpers/cli.ts`, `tests/unit/cli-args.test.ts`, `tests/e2e/init.test.ts`, `tests/e2e/status.test.ts`
   - **Interfaces:** runInit; runStatus; handleInit; handleStatus; runCli; parseCliArgs; copyFixture; hashTree; runCliCaptured; fixedContext; describeModeBlock
+  - **Nota:** el test de segundo escritor de `tests/unit/store.test.ts` usa temporalmente `tests/helpers/lock-child.ts`; al existir `bin/heron.ts`, repuntarlo a `bun bin/heron.ts init` como fija design.md (revisión del lote 3).
   - **Nota:** al renderizar un rechazo `MODE_BLOCKED` de `canTransition`, la capa de app agrega el sufijo `({describeModeBlock(decision)})` (design.md › Mensajes de findings; revisión del lote 2, MEDIO-1).
   - **Patrón:** specs/0001-heron-core/design.md
   - **Lectura:** `specs/0001-heron-core/design.md` (§Contracts › `src/app/*`, `src/cli/*` y `bin/heron.ts`, Superficie de la CLI, Salida exacta de `init`, Mensajes de findings, Salida de `status`, Fixtures), `specs/_master/01-heron/context/md/PLAN.md` (sección "Resultado esperado")
