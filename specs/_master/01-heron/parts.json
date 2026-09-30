@@ -106,7 +106,13 @@
         {
           "id": "A4",
           "description": "Con `ux-invalid`, el modo es `reference-only` y el finding `UX_CONTRACT_INVALID` lista la ruta JSON de cada issue",
-          "evidence": null,
+          "evidence": {
+            "kind": "run",
+            "command": "bun test tests/e2e/init.test.ts -t \"treats a schema-invalid ux.json as reference-only and lists the issues\"",
+            "result": "exit 0; 1pass, 0fail",
+            "commit": "59c33f67db94c8d1807e6db82ddda6751d408063",
+            "date": "2026-09-30"
+          },
           "method": "test",
           "test": {
             "file": "tests/e2e/init.test.ts",
