@@ -122,7 +122,13 @@
         {
           "id": "A5",
           "description": "`--stage` con una etapa cerrada da exit 0 y la muestra; `--stage 99-x` sale con código 2 y lista las disponibles; sin etapa activa usa la última cerrada y lo dice en la salida",
-          "evidence": null,
+          "evidence": {
+            "kind": "run",
+            "command": "bun test tests/e2e/init.test.ts -t \"selects stages explicitly or falls back to the last closed stage with a notice\"",
+            "result": "exit 0; 1pass, 0fail",
+            "commit": "b865542408cbcc0a8a38ae5591a36f84babc036b",
+            "date": "2026-09-30"
+          },
           "method": "test",
           "test": {
             "file": "tests/e2e/init.test.ts",
