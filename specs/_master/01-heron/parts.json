@@ -138,7 +138,13 @@
         {
           "id": "A9",
           "description": "Un `schemaVersion` mayor desconocido falla con un mensaje que nombra la versión soportada",
-          "evidence": null,
+          "evidence": {
+            "kind": "run",
+            "command": "bun test tests/unit/contracts.test.ts",
+            "result": "exit 0; 11 pass (rejects an unknown schemaVersion naming the supported one)",
+            "commit": "d9cfcbd17d951912e210f05e06b52985276379db",
+            "date": "2026-09-30"
+          },
           "method": "test",
           "test": {
             "file": "tests/unit/contracts.test.ts",
