@@ -4,7 +4,7 @@ Lotes de 1–3 tareas. Cada test lleva `// Covers: R<n>`. El patrón de todas la
 
 ## Lote 1 — Tooling y contratos
 
-- [ ] **T1** (R14, R16) — Scaffold del paquete único y CI.
+- [x] **T1** (R14, R16) — Scaffold del paquete único y CI.
   - **Archivos:** `package.json`, `bun.lock`, `bunfig.toml`, `tsconfig.json`, `.oxlintrc.json`, `.oxfmtrc.json`, `.gitignore` (agrega `node_modules/`, `coverage/`, `.DS_Store`, `/.heron/` a `progress/`), `.github/workflows/ci.yml`, `tests/repo/ci.test.ts`
   - **Interfaces:** bunfig.toml; tsconfig.json; .oxlintrc.json; .oxfmtrc.json; .github/workflows/ci.yml
   - **Patrón:** specs/0001-heron-core/design.md
@@ -13,7 +13,7 @@ Lotes de 1–3 tareas. Cada test lleva `// Covers: R<n>`. El patrón de todas la
   - **Done:** comando `bun install --frozen-lockfile && bun test tests/repo/ci.test.ts`, esperado exit 0; casos de test "ci workflow runs the quality gate on pull requests and main"; cubre P1.A16.
   - **Fuera de alcance:** scripts `check` y `check-coverage` completos (T14); cualquier archivo de `src/`.
 
-- [ ] **T2** (R11, R15) — Contratos Zod versionados, JSON canónico y gate de versión.
+- [x] **T2** (R11, R15) — Contratos Zod versionados, JSON canónico y gate de versión.
   - **Archivos:** `src/core/contracts/common.ts`, `src/core/contracts/canonical-json.ts`, `src/core/contracts/version.ts`, `src/core/contracts/heron-project.ts`, `src/core/contracts/heron-state.ts`, `src/core/contracts/mode-decision.ts`, `src/core/contracts/cli-envelope.ts`, `src/core/contracts/index.ts`, `tests/unit/contracts.test.ts`
   - **Interfaces:** FINDING_CODES; ExitCode; canonicalJson; DocumentSpec; parseVersionedDocument; HeronProjectSchema; HeronStateSchema; TransitionSchema; GateDecisionSchema; DetectionReportSchema; ModeDecisionSchema; CliEnvelopeSchema; CONTRACT_DOCUMENTS
   - **Patrón:** specs/0001-heron-core/design.md
@@ -22,7 +22,7 @@ Lotes de 1–3 tareas. Cada test lleva `// Covers: R<n>`. El patrón de todas la
   - **Done:** comando `bun test tests/unit/contracts.test.ts`, esperado exit 0; casos de test "rejects an unknown schemaVersion naming the supported one"; cubre P1.A9.
   - **Fuera de alcance:** lógica que use los schemas (T4–T11); `UxContractSchema` (T8).
 
-- [ ] **T3** (R15) — Generación de JSON Schemas sin deriva.
+- [x] **T3** (R15) — Generación de JSON Schemas sin deriva.
   - **Archivos:** `scripts/gen-schemas.ts`, `schemas/heron-project.v1.schema.json`, `schemas/heron-state.v1.schema.json`, `schemas/mode-decision.v1.schema.json`, `schemas/cli-envelope.v1.schema.json`, `tests/repo/schemas.test.ts`
   - **Interfaces:** generateSchemas; CONTRACT_DOCUMENTS
   - **Patrón:** specs/0001-heron-core/design.md

@@ -1,0 +1,108 @@
+{
+  "$id": "heron-project.v1.schema.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": {},
+  "properties": {
+    "kind": {
+      "const": "HeronProject",
+      "type": "string"
+    },
+    "penpot": {
+      "additionalProperties": {},
+      "properties": {
+        "enabled": {
+          "type": "boolean"
+        },
+        "fileId": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "url": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "version": {
+          "type": [
+            "string",
+            "null"
+          ]
+        }
+      },
+      "required": [
+        "enabled",
+        "url",
+        "fileId",
+        "version"
+      ],
+      "type": "object"
+    },
+    "schemaVersion": {
+      "const": 1,
+      "type": "number"
+    },
+    "source": {
+      "additionalProperties": {},
+      "properties": {
+        "adapter": {
+          "enum": [
+            "navori-master",
+            "filesystem"
+          ],
+          "type": "string"
+        },
+        "specsDir": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "stage": {
+          "anyOf": [
+            {
+              "additionalProperties": {},
+              "properties": {
+                "dir": {
+                  "type": "string"
+                },
+                "selection": {
+                  "enum": [
+                    "explicit",
+                    "active",
+                    "last-closed"
+                  ],
+                  "type": "string"
+                }
+              },
+              "required": [
+                "dir",
+                "selection"
+              ],
+              "type": "object"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        }
+      },
+      "required": [
+        "adapter",
+        "specsDir",
+        "stage"
+      ],
+      "type": "object"
+    }
+  },
+  "required": [
+    "kind",
+    "schemaVersion",
+    "source",
+    "penpot"
+  ],
+  "title": "HeronProject",
+  "type": "object"
+}
