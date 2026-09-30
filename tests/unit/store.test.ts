@@ -183,21 +183,24 @@ describe("store", () => {
       expect(readState(root)?.mode).toBe("reference-only");
     }
 
-    // Second writer: a real process exits 6 within 1 s while the lock is held.
+    // Second writer: a real `bun bin/heron.ts init` exits 6 within 1 s while the lock is held.
     const root = tmp();
     const dir = heronDirIn(root);
     const { handle } = acquireLock(nodeFs, dir, ownerOf({ pid: process.pid }), lockOptions());
     const started = performance.now();
-    const child = Bun.spawn([process.execPath, "tests/helpers/lock-child.ts", dir], {
-      stdout: "ignore",
-      stderr: "ignore",
-    });
+    const child = Bun.spawn(
+      [process.execPath, join(import.meta.dir, "..", "..", "bin", "heron.ts"), "init", root],
+      {
+        stdout: "ignore",
+        stderr: "ignore",
+      },
+    );
     const code = await child.exited;
     expect(performance.now() - started).toBeLessThan(1000);
     expect(code).toBe(ExitCode.LockBusy);
     handle.release();
     expect(existsSync(join(dir, ".lock"))).toBe(false);
-  });
+  }, 30_000); // bound by real fsync calls in the fault-injection loop (~2·K inits + spawned CLI): observed 5–7 s vs Bun's 5 s default
 
   test("reclaims a lock whose pid is dead on the same host", () => {
     const dir = heronDirIn(tmp());
