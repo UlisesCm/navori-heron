@@ -74,7 +74,13 @@
         {
           "id": "A2",
           "description": "Con `no-ux`, la salida contiene `UX.md:  missing`, `ux.json: missing`, `REFERENCE ONLY`, `Full product generation disabled.` y `Visual research is available.`, con exit 0",
-          "evidence": null,
+          "evidence": {
+            "kind": "run",
+            "command": "bun test tests/e2e/init.test.ts -t \"reports REFERENCE ONLY for the no-ux fixture\"",
+            "result": "exit 0; 1pass, 0fail",
+            "commit": "822572be2844679b9fe65aa187e44340ed7f3fc2",
+            "date": "2026-09-30"
+          },
           "method": "test",
           "test": {
             "file": "tests/e2e/init.test.ts",
