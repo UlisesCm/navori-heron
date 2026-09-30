@@ -234,7 +234,13 @@
         {
           "id": "A12",
           "description": "`init` y `status` sobre `membership-product` tienen p95 ≤ 2 000 ms en 20 ejecuciones",
-          "evidence": null,
+          "evidence": {
+            "kind": "run",
+            "command": "bun test tests/perf/init.perf.test.ts -t \"init and status p95 under 2000 ms on membership-product\"",
+            "result": "exit 0; 1pass, 0fail",
+            "commit": "54e6480cd0017be4ed5a4ced615ebfb1b5b4bcd1",
+            "date": "2026-09-30"
+          },
           "method": "test",
           "test": {
             "file": "tests/perf/init.perf.test.ts",
