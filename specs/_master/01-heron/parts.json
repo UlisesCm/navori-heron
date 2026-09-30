@@ -170,7 +170,13 @@
         {
           "id": "A8",
           "description": "Un fallo inyectado en cada punto de escritura deja `state.json` válido y ningún artefacto referenciado faltante; un segundo escritor recibe el código 6 en ≤ 1 s",
-          "evidence": null,
+          "evidence": {
+            "kind": "run",
+            "command": "bun test tests/unit/store.test.ts -t \"keeps a consistent state on injected failures and rejects a second writer\"",
+            "result": "exit 0; 1pass, 0fail",
+            "commit": "f5cef03c48501d1883bb93eda7591e5191cc7250",
+            "date": "2026-09-30"
+          },
           "method": "test",
           "test": {
             "file": "tests/unit/store.test.ts",
