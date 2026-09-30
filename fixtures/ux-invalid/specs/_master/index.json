@@ -1,0 +1,14 @@
+{
+  "version": 1,
+  "stages": [
+    {
+      "number": 1,
+      "slug": "mvp",
+      "dir": "01-mvp",
+      "state": "activa",
+      "openedAt": "2026-09-01",
+      "closedAt": null,
+      "spec": null
+    }
+  ]
+}

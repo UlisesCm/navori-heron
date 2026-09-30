@@ -93,7 +93,7 @@ Lotes de 1–3 tareas. Cada test lleva `// Covers: R<n>`. El patrón de todas la
 
 ## Lote 5 — Casos de uso y CLI
 
-- [ ] **T10** (R1, R2, R3, R4, R5, R6, R7, R10, R12) — `heron init` y `heron status` de punta a punta, con fixtures.
+- [x] **T10** (R1, R2, R3, R4, R5, R6, R7, R10, R12) — `heron init` y `heron status` de punta a punta, con fixtures.
   - **Archivos:** `src/app/context.ts`, `src/app/version.ts`, `src/app/result.ts`, `src/app/init.ts`, `src/app/status.ts`, `src/cli/main.ts`, `src/cli/args.ts`, `src/cli/io.ts`, `src/cli/envelope.ts`, `src/cli/render.ts`, `src/cli/commands/init.ts`, `src/cli/commands/status.ts`, `bin/heron.ts`, `fixtures/README.md`, `fixtures/membership-product/`, `fixtures/no-ux/`, `fixtures/ux-only-md/`, `fixtures/ux-only-json/`, `fixtures/ux-invalid/`, `fixtures/closed-stage/`, `tests/helpers/fixtures.ts`, `tests/helpers/cli.ts`, `tests/unit/cli-args.test.ts`, `tests/e2e/init.test.ts`, `tests/e2e/status.test.ts`
   - **Interfaces:** runInit; runStatus; handleInit; handleStatus; runCli; parseCliArgs; copyFixture; hashTree; runCliCaptured; fixedContext; describeModeBlock
   - **Nota:** el test de segundo escritor de `tests/unit/store.test.ts` usa temporalmente `tests/helpers/lock-child.ts`; al existir `bin/heron.ts`, repuntarlo a `bun bin/heron.ts init` como fija design.md (revisión del lote 3).
@@ -107,6 +107,7 @@ Lotes de 1–3 tareas. Cada test lleva `// Covers: R<n>`. El patrón de todas la
 - [ ] **T11** (R8, R9, R10, R11) — `heron doctor` y `heron gate`.
   - **Archivos:** `src/app/doctor.ts`, `src/app/gate.ts`, `src/cli/commands/doctor.ts`, `src/cli/commands/gate.ts`, `tests/e2e/doctor.test.ts`, `tests/e2e/gate.test.ts`
   - **Interfaces:** runDoctor; runGate; handleDoctor; handleGate; collectTransitionFacts; describeModeBlock
+  - **Nota:** quitar el `TODO(T11)` de `src/cli/main.ts` (hoy `doctor`/`gate` responden exit 2 "not available yet") y conectar los handlers reales (revisión de T10).
   - **Nota:** `collectTransitionFacts` siempre provee `invalidatedGates` (la guarda de aprobaciones falla cerrada si falta) y el rechazo `MODE_BLOCKED` se renderiza con `describeModeBlock` (revisión del lote 2).
   - **Patrón:** specs/0001-heron-core/design.md
   - **Lectura:** `specs/0001-heron-core/design.md` (§Contracts › `src/app/*`, Salida de `status`, `doctor` y `gate`; §Decisions DP10), `src/core/state/gates.ts`
