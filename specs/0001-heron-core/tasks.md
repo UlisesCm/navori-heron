@@ -146,7 +146,7 @@ Lotes de 1–3 tareas. Cada test lleva `// Covers: R<n>`. El patrón de todas la
 
 ## Lote 7 — Documentación e instalación
 
-- [ ] **T15** (R17, R8, R10) — README, arquitectura y ADR de persistencia.
+- [x] **T15** (R17, R8, R10) — README, arquitectura y ADR de persistencia.
   - **Archivos:** `README.md`, `docs/architecture.md`, `docs/adr/0001-state-persistence.md`
   - **Interfaces:** runCli; TRANSITIONS
   - **Patrón:** specs/0001-heron-core/design.md
