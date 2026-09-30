@@ -1,0 +1,32 @@
+{
+  "version": 1,
+  "stages": [
+    {
+      "number": 1,
+      "slug": "alpha",
+      "dir": "01-alpha",
+      "state": "cerrada",
+      "openedAt": "2026-09-01",
+      "closedAt": "2026-09-10",
+      "spec": null
+    },
+    {
+      "number": 2,
+      "slug": "beta",
+      "dir": "02-beta",
+      "state": "cerrada",
+      "openedAt": "2026-09-01",
+      "closedAt": "2026-09-20",
+      "spec": null
+    },
+    {
+      "number": 3,
+      "slug": "gamma",
+      "dir": "03-gamma",
+      "state": "abandonada",
+      "openedAt": "2026-09-01",
+      "closedAt": "2026-09-25",
+      "spec": null
+    }
+  ]
+}

@@ -1,0 +1,566 @@
+{
+  "$id": "mode-decision.v1.schema.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": {},
+  "properties": {
+    "detection": {
+      "additionalProperties": {},
+      "properties": {
+        "adapter": {
+          "enum": [
+            "navori-master",
+            "filesystem"
+          ],
+          "type": "string"
+        },
+        "artifacts": {
+          "items": {
+            "additionalProperties": {},
+            "properties": {
+              "name": {
+                "enum": [
+                  "MASTER.md",
+                  "DECISIONS.md",
+                  "parts.json",
+                  "UX.md",
+                  "ux.json",
+                  "DIGEST.md",
+                  "CODEBASE.md"
+                ],
+                "type": "string"
+              },
+              "path": {
+                "type": "string"
+              },
+              "present": {
+                "type": "boolean"
+              },
+              "sha256": {
+                "anyOf": [
+                  {
+                    "pattern": "^[0-9a-f]{64}$",
+                    "type": "string"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              }
+            },
+            "required": [
+              "name",
+              "path",
+              "present",
+              "sha256"
+            ],
+            "type": "object"
+          },
+          "type": "array"
+        },
+        "findings": {
+          "items": {
+            "additionalProperties": {},
+            "properties": {
+              "code": {
+                "enum": [
+                  "UX_INCONSISTENT",
+                  "UX_CONTRACT_INVALID",
+                  "UX_DECLARATION_MISMATCH",
+                  "UX_DECLARED_MD_ONLY",
+                  "MODE_BLOCKED",
+                  "TRANSITION_NOT_ALLOWED",
+                  "PRECONDITION_UNMET",
+                  "GATE_APPROVAL_INVALIDATED",
+                  "INPUTS_CHANGED",
+                  "SCHEMA_VERSION_UNSUPPORTED",
+                  "DOCUMENT_INVALID",
+                  "NOT_INITIALIZED",
+                  "HARNESS_UNREADABLE",
+                  "HARNESS_VERSION_UNSUPPORTED",
+                  "HARNESS_UNKNOWN_VALUE",
+                  "NO_STAGE",
+                  "STAGE_FALLBACK_LAST_CLOSED",
+                  "STAGE_NOT_FOUND",
+                  "NO_SELECTABLE_STAGE",
+                  "INVALID_STAGE",
+                  "UNSAFE_PATH",
+                  "INPUT_TOO_LARGE",
+                  "PATH_NOT_FOUND",
+                  "LOCK_BUSY",
+                  "LOCK_RECLAIMED",
+                  "STAGING_RECOVERED",
+                  "CONFIRMATION_REQUIRED",
+                  "IDENTITY_REQUIRED",
+                  "REASON_REQUIRED",
+                  "USAGE",
+                  "UNEXPECTED_ERROR",
+                  "PENPOT_REQUIRED_FOR_DIRECTION"
+                ],
+                "type": "string"
+              },
+              "issues": {
+                "items": {
+                  "additionalProperties": {},
+                  "properties": {
+                    "message": {
+                      "type": "string"
+                    },
+                    "pointer": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "pointer",
+                    "message"
+                  ],
+                  "type": "object"
+                },
+                "type": "array"
+              },
+              "message": {
+                "type": "string"
+              },
+              "paths": {
+                "items": {
+                  "type": "string"
+                },
+                "type": "array"
+              },
+              "severity": {
+                "enum": [
+                  "info",
+                  "warning",
+                  "error"
+                ],
+                "type": "string"
+              }
+            },
+            "required": [
+              "code",
+              "severity",
+              "message",
+              "paths",
+              "issues"
+            ],
+            "type": "object"
+          },
+          "type": "array"
+        },
+        "harness": {
+          "anyOf": [
+            {
+              "additionalProperties": {},
+              "properties": {
+                "mode": {
+                  "type": [
+                    "string",
+                    "null"
+                  ]
+                },
+                "phase": {
+                  "type": [
+                    "string",
+                    "null"
+                  ]
+                },
+                "ux": {
+                  "type": [
+                    "string",
+                    "null"
+                  ]
+                }
+              },
+              "required": [
+                "phase",
+                "mode",
+                "ux"
+              ],
+              "type": "object"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "navoriMaster": {
+          "type": "boolean"
+        },
+        "specsDir": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "stage": {
+          "anyOf": [
+            {
+              "additionalProperties": {},
+              "properties": {
+                "dir": {
+                  "type": "string"
+                },
+                "number": {
+                  "maximum": 9007199254740991,
+                  "minimum": -9007199254740991,
+                  "type": "integer"
+                },
+                "selection": {
+                  "enum": [
+                    "explicit",
+                    "active",
+                    "last-closed"
+                  ],
+                  "type": "string"
+                },
+                "slug": {
+                  "type": "string"
+                },
+                "state": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "number",
+                "slug",
+                "dir",
+                "state",
+                "selection"
+              ],
+              "type": "object"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "stageNotice": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "stageStatus": {
+          "enum": [
+            "selected",
+            "none",
+            "unknown",
+            "not-applicable"
+          ],
+          "type": "string"
+        },
+        "uxJson": {
+          "additionalProperties": {},
+          "properties": {
+            "issues": {
+              "items": {
+                "additionalProperties": {},
+                "properties": {
+                  "message": {
+                    "type": "string"
+                  },
+                  "pointer": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "pointer",
+                  "message"
+                ],
+                "type": "object"
+              },
+              "type": "array"
+            },
+            "path": {
+              "type": "string"
+            },
+            "present": {
+              "type": "boolean"
+            },
+            "reader": {
+              "const": "provisional-1",
+              "type": "string"
+            },
+            "sha256": {
+              "anyOf": [
+                {
+                  "pattern": "^[0-9a-f]{64}$",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "summary": {
+              "anyOf": [
+                {
+                  "additionalProperties": {},
+                  "properties": {
+                    "flows": {
+                      "maximum": 9007199254740991,
+                      "minimum": 0,
+                      "type": "integer"
+                    },
+                    "patterns": {
+                      "maximum": 9007199254740991,
+                      "minimum": 0,
+                      "type": "integer"
+                    },
+                    "screens": {
+                      "maximum": 9007199254740991,
+                      "minimum": 0,
+                      "type": "integer"
+                    },
+                    "surfaces": {
+                      "items": {
+                        "type": "string"
+                      },
+                      "type": "array"
+                    }
+                  },
+                  "required": [
+                    "surfaces",
+                    "screens",
+                    "flows",
+                    "patterns"
+                  ],
+                  "type": "object"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "valid": {
+              "type": [
+                "boolean",
+                "null"
+              ]
+            }
+          },
+          "required": [
+            "path",
+            "present",
+            "valid",
+            "sha256",
+            "issues",
+            "reader",
+            "summary"
+          ],
+          "type": "object"
+        },
+        "uxMarkdown": {
+          "additionalProperties": {},
+          "properties": {
+            "issues": {
+              "items": {
+                "additionalProperties": {},
+                "properties": {
+                  "message": {
+                    "type": "string"
+                  },
+                  "pointer": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "pointer",
+                  "message"
+                ],
+                "type": "object"
+              },
+              "type": "array"
+            },
+            "path": {
+              "type": "string"
+            },
+            "present": {
+              "type": "boolean"
+            },
+            "sha256": {
+              "anyOf": [
+                {
+                  "pattern": "^[0-9a-f]{64}$",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "valid": {
+              "type": [
+                "boolean",
+                "null"
+              ]
+            }
+          },
+          "required": [
+            "path",
+            "present",
+            "valid",
+            "sha256",
+            "issues"
+          ],
+          "type": "object"
+        }
+      },
+      "required": [
+        "adapter",
+        "navoriMaster",
+        "specsDir",
+        "stage",
+        "stageStatus",
+        "stageNotice",
+        "harness",
+        "artifacts",
+        "uxMarkdown",
+        "uxJson",
+        "findings"
+      ],
+      "type": "object"
+    },
+    "findings": {
+      "items": {
+        "additionalProperties": {},
+        "properties": {
+          "code": {
+            "enum": [
+              "UX_INCONSISTENT",
+              "UX_CONTRACT_INVALID",
+              "UX_DECLARATION_MISMATCH",
+              "UX_DECLARED_MD_ONLY",
+              "MODE_BLOCKED",
+              "TRANSITION_NOT_ALLOWED",
+              "PRECONDITION_UNMET",
+              "GATE_APPROVAL_INVALIDATED",
+              "INPUTS_CHANGED",
+              "SCHEMA_VERSION_UNSUPPORTED",
+              "DOCUMENT_INVALID",
+              "NOT_INITIALIZED",
+              "HARNESS_UNREADABLE",
+              "HARNESS_VERSION_UNSUPPORTED",
+              "HARNESS_UNKNOWN_VALUE",
+              "NO_STAGE",
+              "STAGE_FALLBACK_LAST_CLOSED",
+              "STAGE_NOT_FOUND",
+              "NO_SELECTABLE_STAGE",
+              "INVALID_STAGE",
+              "UNSAFE_PATH",
+              "INPUT_TOO_LARGE",
+              "PATH_NOT_FOUND",
+              "LOCK_BUSY",
+              "LOCK_RECLAIMED",
+              "STAGING_RECOVERED",
+              "CONFIRMATION_REQUIRED",
+              "IDENTITY_REQUIRED",
+              "REASON_REQUIRED",
+              "USAGE",
+              "UNEXPECTED_ERROR",
+              "PENPOT_REQUIRED_FOR_DIRECTION"
+            ],
+            "type": "string"
+          },
+          "issues": {
+            "items": {
+              "additionalProperties": {},
+              "properties": {
+                "message": {
+                  "type": "string"
+                },
+                "pointer": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "pointer",
+                "message"
+              ],
+              "type": "object"
+            },
+            "type": "array"
+          },
+          "message": {
+            "type": "string"
+          },
+          "paths": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          },
+          "severity": {
+            "enum": [
+              "info",
+              "warning",
+              "error"
+            ],
+            "type": "string"
+          }
+        },
+        "required": [
+          "code",
+          "severity",
+          "message",
+          "paths",
+          "issues"
+        ],
+        "type": "object"
+      },
+      "type": "array"
+    },
+    "kind": {
+      "const": "ModeDecision",
+      "type": "string"
+    },
+    "mode": {
+      "enum": [
+        "full",
+        "reference-only"
+      ],
+      "type": "string"
+    },
+    "reasons": {
+      "items": {
+        "additionalProperties": {},
+        "properties": {
+          "code": {
+            "enum": [
+              "UX_COMPLETE",
+              "UX_FILES_MISSING",
+              "UX_INCONSISTENT",
+              "UX_CONTRACT_INVALID",
+              "UX_DECLARED_MD_ONLY",
+              "UX_DECLARATION_MISMATCH",
+              "STAGE_UNAVAILABLE"
+            ],
+            "type": "string"
+          },
+          "message": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "code",
+          "message"
+        ],
+        "type": "object"
+      },
+      "type": "array"
+    },
+    "schemaVersion": {
+      "const": 1,
+      "type": "number"
+    }
+  },
+  "required": [
+    "kind",
+    "schemaVersion",
+    "mode",
+    "reasons",
+    "findings",
+    "detection"
+  ],
+  "title": "ModeDecision",
+  "type": "object"
+}

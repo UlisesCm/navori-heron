@@ -1,12 +1,12 @@
 # Estado de etapa 01-heron
 
 Fase: executing
-Parte activa: P1
+Parte activa: P2
 Cerrable: no
 
 | Parte | Estado | Tareas | Spec | Issue |
 |---|---|---|---|---|
-| P1 | parcial | 0/15 | specs/0001-heron-core | — |
+| P1 | hecho | 15/15 | specs/0001-heron-core | — |
 | P2 | pendiente | 0/0 | — | — |
 | P3 | pendiente | 0/0 | — | — |
 | P4 | pendiente | 0/0 | — | — |
@@ -21,23 +21,23 @@ Cerrable: no
 
 ## Evidencia
 
-- P1.A1 (test): sin evidencia
-- P1.A2 (test): sin evidencia
-- P1.A3 (test): sin evidencia
-- P1.A4 (test): sin evidencia
-- P1.A5 (test): sin evidencia
-- P1.A6 (test): sin evidencia
-- P1.A7 (test): sin evidencia
-- P1.A8 (test): sin evidencia
-- P1.A9 (test): sin evidencia
-- P1.A10 (test): sin evidencia
-- P1.A11 (test): sin evidencia
-- P1.A12 (test): sin evidencia
-- P1.A13 (test): sin evidencia
-- P1.A14 (comando): sin evidencia
-- P1.A15 (comando): sin evidencia
-- P1.A16 (test): sin evidencia
-- P1.A17 (manual): sin evidencia
+- P1.A1 (test): verificado · commitsBehind=13
+- P1.A2 (test): verificado · commitsBehind=12
+- P1.A3 (test): verificado · commitsBehind=11
+- P1.A4 (test): verificado · commitsBehind=10
+- P1.A5 (test): verificado · commitsBehind=9
+- P1.A6 (test): verificado · commitsBehind=8
+- P1.A7 (test): verificado · commitsBehind=7
+- P1.A8 (test): verificado · commitsBehind=6
+- P1.A9 (test): verificado · commitsBehind=29
+- P1.A10 (test): verificado · commitsBehind=5
+- P1.A11 (test): verificado · commitsBehind=4
+- P1.A12 (test): verificado · commitsBehind=3
+- P1.A13 (test): verificado · commitsBehind=2
+- P1.A14 (comando): verificado · commitsBehind=28
+- P1.A15 (comando): verificado · commitsBehind=1
+- P1.A16 (test): verificado · commitsBehind=30
+- P1.A17 (manual): verificado
 - P2.A1 (test): sin evidencia
 - P2.A2 (test): sin evidencia
 - P2.A3 (test): sin evidencia
@@ -66,7 +66,8 @@ Cerrable: no
 - P4.A5 (test): sin evidencia
 - P4.A6 (test): sin evidencia
 - P4.A7 (comando): sin evidencia
-- P4.A8 (manual): sin evidencia
+- P4.A8 (test): sin evidencia
+- P4.A9 (manual): sin evidencia
 - P5.A1 (test): sin evidencia
 - P5.A2 (test): sin evidencia
 - P5.A3 (test): sin evidencia
@@ -124,28 +125,10 @@ Cerrable: no
 
 ## Discrepancias
 
-- P1: declarado pendiente, efectivo parcial
+- P1: declarado pendiente, efectivo hecho
 
 ## Bloqueos
 
-- P1: parcial
-- P1.A1: sin evidencia
-- P1.A2: sin evidencia
-- P1.A3: sin evidencia
-- P1.A4: sin evidencia
-- P1.A5: sin evidencia
-- P1.A6: sin evidencia
-- P1.A7: sin evidencia
-- P1.A8: sin evidencia
-- P1.A9: sin evidencia
-- P1.A10: sin evidencia
-- P1.A11: sin evidencia
-- P1.A12: sin evidencia
-- P1.A13: sin evidencia
-- P1.A14: sin evidencia
-- P1.A15: sin evidencia
-- P1.A16: sin evidencia
-- P1.A17: sin evidencia
 - P2: pendiente
 - P3: pendiente
 - P4: pendiente

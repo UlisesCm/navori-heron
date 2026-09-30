@@ -1,2 +1,5 @@
 progress/
 .DS_Store
+node_modules/
+coverage/
+/.heron/

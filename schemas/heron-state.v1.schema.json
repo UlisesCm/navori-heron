@@ -1,0 +1,418 @@
+{
+  "$id": "heron-state.v1.schema.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": {},
+  "properties": {
+    "artifacts": {
+      "items": {
+        "additionalProperties": {},
+        "properties": {
+          "path": {
+            "maxLength": 512,
+            "type": "string"
+          },
+          "sha256": {
+            "pattern": "^[0-9a-f]{64}$",
+            "type": "string"
+          }
+        },
+        "required": [
+          "path",
+          "sha256"
+        ],
+        "type": "object"
+      },
+      "type": "array"
+    },
+    "designRevision": {
+      "maximum": 9007199254740991,
+      "minimum": 0,
+      "type": "integer"
+    },
+    "gates": {
+      "items": {
+        "oneOf": [
+          {
+            "additionalProperties": {},
+            "properties": {
+              "artifacts": {
+                "items": {
+                  "additionalProperties": {},
+                  "properties": {
+                    "path": {
+                      "maxLength": 512,
+                      "type": "string"
+                    },
+                    "sha256": {
+                      "pattern": "^[0-9a-f]{64}$",
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "path",
+                    "sha256"
+                  ],
+                  "type": "object"
+                },
+                "type": "array"
+              },
+              "decidedAt": {
+                "pattern": "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}\\.\\d{3}Z$",
+                "type": "string"
+              },
+              "decidedBy": {
+                "minLength": 1,
+                "type": "string"
+              },
+              "decision": {
+                "const": "approved",
+                "type": "string"
+              },
+              "gate": {
+                "enum": [
+                  "intake",
+                  "research",
+                  "direction",
+                  "foundations",
+                  "representative-screens",
+                  "visual-review"
+                ],
+                "type": "string"
+              },
+              "note": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "runId": {
+                "pattern": "^run-\\d{8}T\\d{6}Z-[0-9a-f]{8}$",
+                "type": "string"
+              },
+              "stateRevision": {
+                "maximum": 9007199254740991,
+                "minimum": 1,
+                "type": "integer"
+              }
+            },
+            "required": [
+              "gate",
+              "decidedBy",
+              "decidedAt",
+              "artifacts",
+              "stateRevision",
+              "runId",
+              "decision",
+              "note"
+            ],
+            "type": "object"
+          },
+          {
+            "additionalProperties": {},
+            "properties": {
+              "artifacts": {
+                "items": {
+                  "additionalProperties": {},
+                  "properties": {
+                    "path": {
+                      "maxLength": 512,
+                      "type": "string"
+                    },
+                    "sha256": {
+                      "pattern": "^[0-9a-f]{64}$",
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "path",
+                    "sha256"
+                  ],
+                  "type": "object"
+                },
+                "type": "array"
+              },
+              "decidedAt": {
+                "pattern": "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}\\.\\d{3}Z$",
+                "type": "string"
+              },
+              "decidedBy": {
+                "minLength": 1,
+                "type": "string"
+              },
+              "decision": {
+                "const": "rejected",
+                "type": "string"
+              },
+              "gate": {
+                "enum": [
+                  "intake",
+                  "research",
+                  "direction",
+                  "foundations",
+                  "representative-screens",
+                  "visual-review"
+                ],
+                "type": "string"
+              },
+              "reason": {
+                "minLength": 1,
+                "type": "string"
+              },
+              "runId": {
+                "pattern": "^run-\\d{8}T\\d{6}Z-[0-9a-f]{8}$",
+                "type": "string"
+              },
+              "stateRevision": {
+                "maximum": 9007199254740991,
+                "minimum": 1,
+                "type": "integer"
+              }
+            },
+            "required": [
+              "gate",
+              "decidedBy",
+              "decidedAt",
+              "artifacts",
+              "stateRevision",
+              "runId",
+              "decision",
+              "reason"
+            ],
+            "type": "object"
+          }
+        ]
+      },
+      "type": "array"
+    },
+    "history": {
+      "items": {
+        "additionalProperties": {},
+        "properties": {
+          "at": {
+            "pattern": "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}\\.\\d{3}Z$",
+            "type": "string"
+          },
+          "command": {
+            "minLength": 1,
+            "type": "string"
+          },
+          "heronVersion": {
+            "type": "string"
+          },
+          "mode": {
+            "enum": [
+              "full",
+              "reference-only"
+            ],
+            "type": "string"
+          },
+          "runId": {
+            "pattern": "^run-\\d{8}T\\d{6}Z-[0-9a-f]{8}$",
+            "type": "string"
+          },
+          "stateRevision": {
+            "maximum": 9007199254740991,
+            "minimum": 1,
+            "type": "integer"
+          },
+          "transition": {
+            "anyOf": [
+              {
+                "additionalProperties": {},
+                "properties": {
+                  "event": {
+                    "anyOf": [
+                      {
+                        "enum": [
+                          "reference-added",
+                          "directions-proposed",
+                          "system-completed",
+                          "screens-completed",
+                          "validation-passed",
+                          "export-written"
+                        ],
+                        "type": "string"
+                      },
+                      {
+                        "pattern": "^approve-gate:(intake|research|direction|foundations|representative-screens|visual-review)$",
+                        "type": "string"
+                      },
+                      {
+                        "pattern": "^reject-gate:(intake|research|direction|foundations|representative-screens|visual-review)$",
+                        "type": "string"
+                      },
+                      {
+                        "pattern": "^revise:(initialized|intake-ready|researching|research-ready|directions-ready|direction-selected|foundations-ready|representative-screens-ready|system-ready|screens-ready|penpot-synced|validated|exported)$",
+                        "type": "string"
+                      }
+                    ]
+                  },
+                  "from": {
+                    "enum": [
+                      "initialized",
+                      "intake-ready",
+                      "researching",
+                      "research-ready",
+                      "directions-ready",
+                      "direction-selected",
+                      "foundations-ready",
+                      "representative-screens-ready",
+                      "system-ready",
+                      "screens-ready",
+                      "penpot-synced",
+                      "validated",
+                      "exported"
+                    ],
+                    "type": "string"
+                  },
+                  "precondition": {
+                    "enum": [
+                      "intake-context-valid",
+                      "reference-has-provenance",
+                      "research-minimum-references",
+                      "three-valid-directions",
+                      "direction-selectable",
+                      "foundations-complete",
+                      "representative-screens-cover-categories",
+                      "system-consistent",
+                      "all-screens-designed",
+                      "penpot-sync-clean",
+                      "validation-clean-penpot-disabled",
+                      "validation-clean",
+                      "export-verified",
+                      "gate-rejectable",
+                      "revise-scope-declared",
+                      "approvals-valid"
+                    ],
+                    "type": "string"
+                  },
+                  "production": {
+                    "type": "boolean"
+                  },
+                  "to": {
+                    "enum": [
+                      "initialized",
+                      "intake-ready",
+                      "researching",
+                      "research-ready",
+                      "directions-ready",
+                      "direction-selected",
+                      "foundations-ready",
+                      "representative-screens-ready",
+                      "system-ready",
+                      "screens-ready",
+                      "penpot-synced",
+                      "validated",
+                      "exported"
+                    ],
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "from",
+                  "event",
+                  "to",
+                  "precondition",
+                  "production"
+                ],
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "required": [
+          "stateRevision",
+          "runId",
+          "command",
+          "heronVersion",
+          "at",
+          "mode",
+          "transition"
+        ],
+        "type": "object"
+      },
+      "type": "array"
+    },
+    "kind": {
+      "const": "HeronState",
+      "type": "string"
+    },
+    "mode": {
+      "enum": [
+        "full",
+        "reference-only"
+      ],
+      "type": "string"
+    },
+    "phase": {
+      "enum": [
+        "initialized",
+        "intake-ready",
+        "researching",
+        "research-ready",
+        "directions-ready",
+        "direction-selected",
+        "foundations-ready",
+        "representative-screens-ready",
+        "system-ready",
+        "screens-ready",
+        "penpot-synced",
+        "validated",
+        "exported"
+      ],
+      "type": "string"
+    },
+    "schemaVersion": {
+      "const": 1,
+      "type": "number"
+    },
+    "stale": {
+      "items": {
+        "additionalProperties": {},
+        "properties": {
+          "path": {
+            "maxLength": 512,
+            "type": "string"
+          },
+          "reason": {
+            "type": "string"
+          },
+          "since": {
+            "maximum": 9007199254740991,
+            "minimum": 1,
+            "type": "integer"
+          }
+        },
+        "required": [
+          "path",
+          "reason",
+          "since"
+        ],
+        "type": "object"
+      },
+      "type": "array"
+    },
+    "stateRevision": {
+      "maximum": 9007199254740991,
+      "minimum": 1,
+      "type": "integer"
+    }
+  },
+  "required": [
+    "kind",
+    "schemaVersion",
+    "stateRevision",
+    "mode",
+    "phase",
+    "designRevision",
+    "artifacts",
+    "gates",
+    "stale",
+    "history"
+  ],
+  "title": "HeronState",
+  "type": "object"
+}

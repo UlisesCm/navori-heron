@@ -58,7 +58,13 @@
         {
           "id": "A1",
           "description": "Con `membership-product`, la salida contiene en orden `Project detected`, `Navori Master: yes`, `Stage: 01-mvp`, `UX.md:  ✓`, `ux.json: ✓`, `FULL PRODUCT`, surfaces, `Screens:`/`Flows:`/`Patterns:` iguales a los conteos del `ux.json` del fixture y `Ready for research.`, con exit 0",
-          "evidence": null,
+          "evidence": {
+            "kind": "run",
+            "command": "bun test tests/e2e/init.test.ts -t \"reports FULL PRODUCT for the membership-product fixture\"",
+            "result": "exit 0; 1pass, 0fail",
+            "commit": "3ab057ae634cb806832913786b41d6f9abef8ba8",
+            "date": "2026-09-30"
+          },
           "method": "test",
           "test": {
             "file": "tests/e2e/init.test.ts",
@@ -68,7 +74,13 @@
         {
           "id": "A2",
           "description": "Con `no-ux`, la salida contiene `UX.md:  missing`, `ux.json: missing`, `REFERENCE ONLY`, `Full product generation disabled.` y `Visual research is available.`, con exit 0",
-          "evidence": null,
+          "evidence": {
+            "kind": "run",
+            "command": "bun test tests/e2e/init.test.ts -t \"reports REFERENCE ONLY for the no-ux fixture\"",
+            "result": "exit 0; 1pass, 0fail",
+            "commit": "822572be2844679b9fe65aa187e44340ed7f3fc2",
+            "date": "2026-09-30"
+          },
           "method": "test",
           "test": {
             "file": "tests/e2e/init.test.ts",
@@ -78,7 +90,13 @@
         {
           "id": "A3",
           "description": "Con `ux-only-md` y con `ux-only-json`, la salida nombra el archivo faltante, `state.json.mode = reference-only`, aparece el finding `UX_INCONSISTENT` y no se crea ningún archivo UX",
-          "evidence": null,
+          "evidence": {
+            "kind": "run",
+            "command": "bun test tests/e2e/init.test.ts -t \"falls back to reference-only without inferring the missing UX file\"",
+            "result": "exit 0; 1pass, 0fail",
+            "commit": "106e0267fce05010757cb65dc41c83d45bfd5a98",
+            "date": "2026-09-30"
+          },
           "method": "test",
           "test": {
             "file": "tests/e2e/init.test.ts",
@@ -88,7 +106,13 @@
         {
           "id": "A4",
           "description": "Con `ux-invalid`, el modo es `reference-only` y el finding `UX_CONTRACT_INVALID` lista la ruta JSON de cada issue",
-          "evidence": null,
+          "evidence": {
+            "kind": "run",
+            "command": "bun test tests/e2e/init.test.ts -t \"treats a schema-invalid ux.json as reference-only and lists the issues\"",
+            "result": "exit 0; 1pass, 0fail",
+            "commit": "59c33f67db94c8d1807e6db82ddda6751d408063",
+            "date": "2026-09-30"
+          },
           "method": "test",
           "test": {
             "file": "tests/e2e/init.test.ts",
@@ -98,7 +122,13 @@
         {
           "id": "A5",
           "description": "`--stage` con una etapa cerrada da exit 0 y la muestra; `--stage 99-x` sale con código 2 y lista las disponibles; sin etapa activa usa la última cerrada y lo dice en la salida",
-          "evidence": null,
+          "evidence": {
+            "kind": "run",
+            "command": "bun test tests/e2e/init.test.ts -t \"selects stages explicitly or falls back to the last closed stage with a notice\"",
+            "result": "exit 0; 1pass, 0fail",
+            "commit": "b865542408cbcc0a8a38ae5591a36f84babc036b",
+            "date": "2026-09-30"
+          },
           "method": "test",
           "test": {
             "file": "tests/e2e/init.test.ts",
@@ -108,7 +138,13 @@
         {
           "id": "A6",
           "description": "En `reference-only` toda transición de producción devuelve `MODE_BLOCKED`, ningún par (fase, evento) fuera de la tabla se acepta y cada transición declara una precondición verificable",
-          "evidence": null,
+          "evidence": {
+            "kind": "run",
+            "command": "bun test tests/unit/state-machine.test.ts -t \"blocks production transitions in reference-only and rejects pairs outside the table\"",
+            "result": "exit 0; 1pass, 0fail",
+            "commit": "1075abbb32e4836b479bfbc470bcd45ddf1ea520",
+            "date": "2026-09-30"
+          },
           "method": "test",
           "test": {
             "file": "tests/unit/state-machine.test.ts",
@@ -118,7 +154,13 @@
         {
           "id": "A7",
           "description": "Una aprobación de gate se invalida cuando cambia el hash de cualquier artefacto atado",
-          "evidence": null,
+          "evidence": {
+            "kind": "run",
+            "command": "bun test tests/unit/gates.test.ts -t \"invalidates an approval when a bound artifact hash changes\"",
+            "result": "exit 0; 1pass, 0fail",
+            "commit": "aac833d5c657316c785a4f9bbd2b82cf96acd432",
+            "date": "2026-09-30"
+          },
           "method": "test",
           "test": {
             "file": "tests/unit/gates.test.ts",
@@ -128,7 +170,13 @@
         {
           "id": "A8",
           "description": "Un fallo inyectado en cada punto de escritura deja `state.json` válido y ningún artefacto referenciado faltante; un segundo escritor recibe el código 6 en ≤ 1 s",
-          "evidence": null,
+          "evidence": {
+            "kind": "run",
+            "command": "bun test tests/unit/store.test.ts -t \"keeps a consistent state on injected failures and rejects a second writer\"",
+            "result": "exit 0; 1pass, 0fail",
+            "commit": "f5cef03c48501d1883bb93eda7591e5191cc7250",
+            "date": "2026-09-30"
+          },
           "method": "test",
           "test": {
             "file": "tests/unit/store.test.ts",
@@ -138,7 +186,13 @@
         {
           "id": "A9",
           "description": "Un `schemaVersion` mayor desconocido falla con un mensaje que nombra la versión soportada",
-          "evidence": null,
+          "evidence": {
+            "kind": "run",
+            "command": "bun test tests/unit/contracts.test.ts",
+            "result": "exit 0; 11 pass (rejects an unknown schemaVersion naming the supported one)",
+            "commit": "d9cfcbd17d951912e210f05e06b52985276379db",
+            "date": "2026-09-30"
+          },
           "method": "test",
           "test": {
             "file": "tests/unit/contracts.test.ts",
@@ -148,7 +202,13 @@
         {
           "id": "A10",
           "description": "Después de `init` y `status`, el sha256 de todo archivo del repo destino fuera de `.heron/` es idéntico al previo",
-          "evidence": null,
+          "evidence": {
+            "kind": "run",
+            "command": "bun test tests/e2e/init.test.ts -t \"never writes outside .heron/ in the product repo\"",
+            "result": "exit 0; 1pass, 0fail",
+            "commit": "d3960c38978e6d3d7e5d17a919f01797cc439dc1",
+            "date": "2026-09-30"
+          },
           "method": "test",
           "test": {
             "file": "tests/e2e/init.test.ts",
@@ -158,7 +218,13 @@
         {
           "id": "A11",
           "description": "Con `state.json.ux = md` la salida muestra la declaración del harness y el modo es `reference-only` con mensaje explicativo (D6); con `ux: md-json` sin `ux.json` aparece `UX_DECLARATION_MISMATCH`; fases o modos desconocidos no hacen fallar al adapter",
-          "evidence": null,
+          "evidence": {
+            "kind": "run",
+            "command": "bun test tests/e2e/init.test.ts -t \"reports the harness UX declaration and tolerates unknown phases and modes\"",
+            "result": "exit 0; 1pass, 0fail",
+            "commit": "51119259838e48f1ad27f324f71859b1cd7a9c22",
+            "date": "2026-09-30"
+          },
           "method": "test",
           "test": {
             "file": "tests/e2e/init.test.ts",
@@ -168,7 +234,13 @@
         {
           "id": "A12",
           "description": "`init` y `status` sobre `membership-product` tienen p95 ≤ 2 000 ms en 20 ejecuciones",
-          "evidence": null,
+          "evidence": {
+            "kind": "run",
+            "command": "bun test tests/perf/init.perf.test.ts -t \"init and status p95 under 2000 ms on membership-product\"",
+            "result": "exit 0; 1pass, 0fail",
+            "commit": "54e6480cd0017be4ed5a4ced615ebfb1b5b4bcd1",
+            "date": "2026-09-30"
+          },
           "method": "test",
           "test": {
             "file": "tests/perf/init.perf.test.ts",
@@ -178,7 +250,13 @@
         {
           "id": "A13",
           "description": "Ningún módulo importa `navori` ni `@navori/*`, los adapters no se importan entre sí y `core/contracts` no importa nada interno",
-          "evidence": null,
+          "evidence": {
+            "kind": "run",
+            "command": "bun test tests/repo/boundaries.test.ts -t \"enforces module boundaries and no navori imports\"",
+            "result": "exit 0; 1pass, 0fail",
+            "commit": "7989512b033f13b4f715d0fc0472b91041ed82a8",
+            "date": "2026-09-30"
+          },
           "method": "test",
           "test": {
             "file": "tests/repo/boundaries.test.ts",
@@ -188,7 +266,13 @@
         {
           "id": "A14",
           "description": "Los JSON Schemas versionados están sincronizados con Zod",
-          "evidence": null,
+          "evidence": {
+            "kind": "run",
+            "command": "bun run gen:schemas && git diff --exit-code schemas/",
+            "result": "exit 0 sin diff sobre schemas commiteados (62d3a9c)",
+            "commit": "73738bb5847c0fdb59e7d835e9ee28ac166d3c04",
+            "date": "2026-09-30"
+          },
           "method": "comando",
           "command": {
             "run": "bun run gen:schemas && git diff --exit-code schemas/",
@@ -198,7 +282,13 @@
         {
           "id": "A15",
           "description": "El quality gate pasa completo",
-          "evidence": null,
+          "evidence": {
+            "kind": "run",
+            "command": "bun run check",
+            "result": "exit 0; 113pass (format, lint, typecheck, tests con cobertura y umbrales por ruta)",
+            "commit": "5fc5c1da17b22f4cf4fbc66e0ad2530d1f38b685",
+            "date": "2026-09-30"
+          },
           "method": "comando",
           "command": {
             "run": "bun run check",
@@ -208,7 +298,13 @@
         {
           "id": "A16",
           "description": "El workflow de CI existe y ejecuta `bun install --frozen-lockfile` y `bun run check` en PR y en `main`",
-          "evidence": null,
+          "evidence": {
+            "kind": "run",
+            "command": "bun test tests/repo/ci.test.ts",
+            "result": "exit 0; 1 pass (ci workflow runs the quality gate on pull requests and main)",
+            "commit": "62d3a9cc22119f284f965ad01cd8bd1972eb888f",
+            "date": "2026-09-30"
+          },
           "method": "test",
           "test": {
             "file": "tests/repo/ci.test.ts",
@@ -218,7 +314,11 @@
         {
           "id": "A17",
           "description": "Recorrido real de instalación y detección",
-          "evidence": null,
+          "evidence": {
+            "kind": "approval",
+            "approvedBy": "user",
+            "date": "2026-09-30"
+          },
           "method": "manual",
           "manual": {
             "check": "Siguiendo `README.md` desde un clon limpio (instalación con `bun link`) la primera salida llega en ≤ 10 min; `heron init` sobre `monorepo-fullstack` muestra `Navori Master: no` y `REFERENCE ONLY`, y sobre `navori-heron` muestra `Stage: 01-heron` y `REFERENCE ONLY`",
@@ -548,7 +648,8 @@
         "Adapters `markdown` y `manual`",
         "Precedencia RN-7 y detector determinista de `CONFLICT` (IDs, actores, roles, permisos); `conflicts list|ack`; gate `intake` bloqueado por conflictos sin reconocer",
         "Fixture `membership-product` completo y fixture `conflict` (SYNTHETIC)",
-        "ADR de canonical data model; `docs/contracts.md`; `docs/integrations/navori-harness.md`"
+        "ADR de canonical data model; `docs/contracts.md`; `docs/integrations/navori-harness.md`",
+        "Test e2e del camino de aprobación de gates con datos reales (pendiente de la revisión de P1/T11): `heron gate intake approve` con ProductContext válido registra `approvedBy` y hashes de artefactos y commitea solo `state.json`"
       ],
       "outOfScope": [
         "Conflictos semánticos con IA",
@@ -642,6 +743,16 @@
         },
         {
           "id": "A8",
+          "description": "Con un ProductContext válido y 0 conflictos, `heron gate intake approve --yes` sale con 0, registra `approvedBy`, fecha y sha256 de los artefactos atados, avanza a `intake-ready` y solo cambia `state.json` dentro de `.heron/`",
+          "evidence": null,
+          "method": "test",
+          "test": {
+            "file": "tests/e2e/gate.test.ts",
+            "case": "approves intake with valid context, recording approvedBy, artifact hashes, and committing only state.json"
+          }
+        },
+        {
+          "id": "A9",
           "description": "Contrato de integración con el harness",
           "evidence": null,
           "method": "manual",
