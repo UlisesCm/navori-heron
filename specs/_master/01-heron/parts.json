@@ -194,7 +194,13 @@
         {
           "id": "A14",
           "description": "Los JSON Schemas versionados están sincronizados con Zod",
-          "evidence": null,
+          "evidence": {
+            "kind": "run",
+            "command": "bun run gen:schemas && git diff --exit-code schemas/",
+            "result": "exit 0 sin diff sobre schemas commiteados (62d3a9c)",
+            "commit": "73738bb5847c0fdb59e7d835e9ee28ac166d3c04",
+            "date": "2026-09-30"
+          },
           "method": "comando",
           "command": {
             "run": "bun run gen:schemas && git diff --exit-code schemas/",

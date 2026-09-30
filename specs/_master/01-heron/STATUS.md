@@ -29,14 +29,14 @@ Cerrable: no
 - P1.A6 (test): sin evidencia
 - P1.A7 (test): sin evidencia
 - P1.A8 (test): sin evidencia
-- P1.A9 (test): verificado · commitsBehind=0
+- P1.A9 (test): verificado · commitsBehind=1
 - P1.A10 (test): sin evidencia
 - P1.A11 (test): sin evidencia
 - P1.A12 (test): sin evidencia
 - P1.A13 (test): sin evidencia
-- P1.A14 (comando): sin evidencia
+- P1.A14 (comando): verificado · commitsBehind=0
 - P1.A15 (comando): sin evidencia
-- P1.A16 (test): verificado · commitsBehind=1
+- P1.A16 (test): verificado · commitsBehind=2
 - P1.A17 (manual): sin evidencia
 - P2.A1 (test): sin evidencia
 - P2.A2 (test): sin evidencia
@@ -141,7 +141,6 @@ Cerrable: no
 - P1.A11: sin evidencia
 - P1.A12: sin evidencia
 - P1.A13: sin evidencia
-- P1.A14: sin evidencia
 - P1.A15: sin evidencia
 - P1.A17: sin evidencia
 - P2: pendiente
