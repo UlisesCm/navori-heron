@@ -73,7 +73,7 @@ Lotes de 1–3 tareas. Cada test lleva `// Covers: R<n>`. El patrón de todas la
 
 ## Lote 4 — Intake
 
-- [ ] **T8** (R1, R5, R12) — Puerto de adapters, sondeo de archivos y lector UX provisional.
+- [x] **T8** (R1, R5, R12) — Puerto de adapters, sondeo de archivos y lector UX provisional.
   - **Archivos:** `src/intake/ports.ts`, `src/intake/probe.ts`, `src/intake/ux-contract.ts`, `tests/unit/ux-contract.test.ts`
   - **Interfaces:** ProductContextAdapter; probeFile; UxContractSchema; readUxContract; readUxMarkdown; checkUxFiles
   - **Patrón:** specs/0001-heron-core/design.md
@@ -82,7 +82,7 @@ Lotes de 1–3 tareas. Cada test lleva `// Covers: R<n>`. El patrón de todas la
   - **Done:** comando `bun test tests/unit/ux-contract.test.ts`, esperado exit 0; casos de test "rejects broken relations and preserves unknown fields"; cubre P1.A4.
   - **Fuera de alcance:** conmutar al schema fijado del harness (P11).
 
-- [ ] **T9** (R1, R4, R6, R7, R12) — Lectores tolerantes del harness, selección de etapa y adapters.
+- [x] **T9** (R1, R4, R6, R7, R12) — Lectores tolerantes del harness, selección de etapa y adapters.
   - **Archivos:** `src/intake/adapters/navori-master/harness.ts`, `src/intake/adapters/navori-master/stage.ts`, `src/intake/adapters/navori-master/index.ts`, `src/intake/adapters/filesystem/index.ts`, `src/intake/detect.ts`, `tests/unit/harness-readers.test.ts`, `tests/unit/stage-selection.test.ts`
   - **Interfaces:** readNavoriConfig; readMasterIndex; readStageState; selectStage; STAGE_DIR_PATTERN; navoriMasterAdapter; filesystemAdapter; detectProject
   - **Patrón:** specs/0001-heron-core/design.md
