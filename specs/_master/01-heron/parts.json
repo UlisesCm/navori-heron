@@ -250,7 +250,13 @@
         {
           "id": "A13",
           "description": "Ningún módulo importa `navori` ni `@navori/*`, los adapters no se importan entre sí y `core/contracts` no importa nada interno",
-          "evidence": null,
+          "evidence": {
+            "kind": "run",
+            "command": "bun test tests/repo/boundaries.test.ts -t \"enforces module boundaries and no navori imports\"",
+            "result": "exit 0; 1pass, 0fail",
+            "commit": "7989512b033f13b4f715d0fc0472b91041ed82a8",
+            "date": "2026-09-30"
+          },
           "method": "test",
           "test": {
             "file": "tests/repo/boundaries.test.ts",
