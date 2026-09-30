@@ -375,7 +375,7 @@ Grafo: P2 ← P1 · P3 ← P2 · P12 ← P3 · P4 ← P1 · P5 ← P3 + P4 + P12
 
 Desviaciones frente a context/md/PLAN.md §77: las fases 1–3 (research, propuesta de arquitectura, ADRs) quedan cubiertas por este plan maestro y los ADRs se escriben en la parte que toma cada decisión; los contratos se definen justo a tiempo por parte; la seguridad de ingesta llega en P2 y la de agentes en P3, no en el hardening final; Penpot va antes de generalizar para ver el slice en el canvas. (plan1)
 
-<!-- navori:master-parts hash="c45a0351" -->
+<!-- navori:master-parts hash="234436aa" -->
 ### P1 — Núcleo, heron init y detección de modo
 
 Objetivo: El usuario corre `heron init <repo>` y en ≤ 2 s sabe qué modo aplica y por qué, con estado persistido, gates atados a hashes y guard de producción probado (primer slice de context/md/PLAN.md §80).
@@ -441,7 +441,7 @@ Requisitos semilla: RF-4, RF-11, RF-12, RN-13, RN-16, RN-33, RN-34, RN-35, RN-36
 ### P4 — Contrato UX y ProductContext
 
 Objetivo: Heron entiende un master-plan completo como `ProductContext` v1, aplica la precedencia de fuentes y registra `CONFLICT` sin elegir en silencio; queda listo el insumo del modo full.
-Alcance: Schema `ProductContext` v1 con los 19 bloques de §5 y `sourceRef` por elemento; `UxContract` provisional (D5) aislado en el adapter, con el camino de conmutación a la copia fijada del schema del harness; Adapter `navori-master` completo: MASTER.md, DECISIONS.md, parts.json, ux.json, UX.md, DIGEST.md, CODEBASE.md y contexto convertido; Adapters `markdown` y `manual`; Precedencia RN-7 y detector determinista de `CONFLICT` (IDs, actores, roles, permisos); `conflicts list|ack`; gate `intake` bloqueado por conflictos sin reconocer; Fixture `membership-product` completo y fixture `conflict` (SYNTHETIC); ADR de canonical data model; `docs/contracts.md`; `docs/integrations/navori-harness.md`
+Alcance: Schema `ProductContext` v1 con los 19 bloques de §5 y `sourceRef` por elemento; `UxContract` provisional (D5) aislado en el adapter, con el camino de conmutación a la copia fijada del schema del harness; Adapter `navori-master` completo: MASTER.md, DECISIONS.md, parts.json, ux.json, UX.md, DIGEST.md, CODEBASE.md y contexto convertido; Adapters `markdown` y `manual`; Precedencia RN-7 y detector determinista de `CONFLICT` (IDs, actores, roles, permisos); `conflicts list|ack`; gate `intake` bloqueado por conflictos sin reconocer; Fixture `membership-product` completo y fixture `conflict` (SYNTHETIC); ADR de canonical data model; `docs/contracts.md`; `docs/integrations/navori-harness.md`; Test e2e del camino de aprobación de gates con datos reales (pendiente de la revisión de P1/T11): `heron gate intake approve` con ProductContext válido registra `approvedBy` y hashes de artefactos y commitea solo `state.json`
 Fuera de alcance: Conflictos semánticos con IA; Adapters Jira, Notion o Linear; Definir o modificar el contrato UX del harness (D2)
 Dependencias: P1
 Requisitos semilla: RF-5, RN-6, RN-7, RN-8, RN-9, RN-38, RN-46, RNF-13, RNF-16
@@ -452,7 +452,8 @@ Requisitos semilla: RF-5, RN-6, RN-7, RN-8, RN-9, RN-38, RN-46, RNF-13, RNF-16
 - P4.A5 (test): Los campos desconocidos de `ux.json` se preservan byte a byte y los IDs no cambian — tests/contracts/ux-contract.test.ts#preserves unknown ux.json fields and stable ids
 - P4.A6 (test): Los JSON Schemas emitidos validan todos los fixtures con ajv 2020-12 y todo archivo de datos de `fixtures/` declara SYNTHETIC — tests/contracts/json-schema.test.ts#emitted JSON Schemas validate every fixture and fixtures are marked SYNTHETIC
 - P4.A7 (comando): Intake sobre el fixture completo — bun run heron intake --json fixtures/membership-product
-- P4.A8 (manual): Contrato de integración con el harness — `docs/contracts.md` y `docs/integrations/navori-harness.md` mapean archivo → campo, el subconjunto provisional exigido de `ux.json` y la conmutación a la copia fijada, sin redefinir el contrato UX del harness
+- P4.A8 (test): Con un ProductContext válido y 0 conflictos, `heron gate intake approve --yes` sale con 0, registra `approvedBy`, fecha y sha256 de los artefactos atados, avanza a `intake-ready` y solo cambia `state.json` dentro de `.heron/` — tests/e2e/gate.test.ts#approves intake with valid context, recording approvedBy, artifact hashes, and committing only state.json
+- P4.A9 (manual): Contrato de integración con el harness — `docs/contracts.md` y `docs/integrations/navori-harness.md` mapean archivo → campo, el subconjunto provisional exigido de `ux.json` y la conmutación a la copia fijada, sin redefinir el contrato UX del harness
 
 ### P5 — Slice vertical full: un flow y 2–3 pantallas hasta el export neutral
 

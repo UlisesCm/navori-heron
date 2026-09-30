@@ -566,7 +566,8 @@
         "Adapters `markdown` y `manual`",
         "Precedencia RN-7 y detector determinista de `CONFLICT` (IDs, actores, roles, permisos); `conflicts list|ack`; gate `intake` bloqueado por conflictos sin reconocer",
         "Fixture `membership-product` completo y fixture `conflict` (SYNTHETIC)",
-        "ADR de canonical data model; `docs/contracts.md`; `docs/integrations/navori-harness.md`"
+        "ADR de canonical data model; `docs/contracts.md`; `docs/integrations/navori-harness.md`",
+        "Test e2e del camino de aprobación de gates con datos reales (pendiente de la revisión de P1/T11): `heron gate intake approve` con ProductContext válido registra `approvedBy` y hashes de artefactos y commitea solo `state.json`"
       ],
       "outOfScope": [
         "Conflictos semánticos con IA",
@@ -660,6 +661,16 @@
         },
         {
           "id": "A8",
+          "method": "test",
+          "description": "Con un ProductContext válido y 0 conflictos, `heron gate intake approve --yes` sale con 0, registra `approvedBy`, fecha y sha256 de los artefactos atados, avanza a `intake-ready` y solo cambia `state.json` dentro de `.heron/`",
+          "test": {
+            "file": "tests/e2e/gate.test.ts",
+            "case": "approves intake with valid context, recording approvedBy, artifact hashes, and committing only state.json"
+          },
+          "evidence": null
+        },
+        {
+          "id": "A9",
           "description": "Contrato de integración con el harness",
           "evidence": null,
           "method": "manual",
