@@ -117,7 +117,7 @@ Lotes de 1–3 tareas. Cada test lleva `// Covers: R<n>`. El patrón de todas la
 
 ## Lote 6 — Calidad
 
-- [ ] **T12** (R13) — Latencia de `init` y `status`.
+- [x] **T12** (R13) — Latencia de `init` y `status`.
   - **Archivos:** `tests/perf/init.perf.test.ts`
   - **Interfaces:** runCliCaptured; copyFixture
   - **Patrón:** specs/0001-heron-core/design.md
@@ -126,7 +126,7 @@ Lotes de 1–3 tareas. Cada test lleva `// Covers: R<n>`. El patrón de todas la
   - **Done:** comando `bun test tests/perf/init.perf.test.ts`, esperado exit 0; casos de test "init and status p95 under 2000 ms on membership-product"; cubre P1.A12.
   - **Fuera de alcance:** optimizaciones sin medición que las justifique.
 
-- [ ] **T13** (R14) — Fronteras entre módulos y `any` justificado.
+- [x] **T13** (R14) — Fronteras entre módulos y `any` justificado.
   - **Archivos:** `tests/repo/boundaries.test.ts`
   - **Interfaces:** ProductContextAdapter; FsPort
   - **Patrón:** specs/0001-heron-core/design.md
@@ -135,7 +135,7 @@ Lotes de 1–3 tareas. Cada test lleva `// Covers: R<n>`. El patrón de todas la
   - **Done:** comando `bun test tests/repo/boundaries.test.ts`, esperado exit 0; casos de test "enforces module boundaries and no navori imports", "allows any only with a justification"; cubre P1.A13.
   - **Fuera de alcance:** mover código entre módulos para cumplir (si falla, se corrige en la tarea dueña del archivo).
 
-- [ ] **T14** (R16) — Quality gate completo con umbrales de cobertura por ruta.
+- [x] **T14** (R16) — Quality gate completo con umbrales de cobertura por ruta.
   - **Archivos:** `scripts/check-coverage.ts`, `tests/repo/coverage-rules.test.ts`, `package.json` (script `check`)
   - **Interfaces:** evaluateCoverage
   - **Patrón:** specs/0001-heron-core/design.md

@@ -14,7 +14,7 @@
     "lint": "bun --bun oxlint --deny-warnings --report-unused-disable-directives",
     "typecheck": "bun --bun tsc --noEmit -p tsconfig.json",
     "test": "bun test",
-    "test:coverage": "bun test --coverage",
+    "test:coverage": "bun test --coverage && bun scripts/check-coverage.ts",
     "check": "bun run format:check && bun run lint && bun run typecheck && bun run test:coverage"
   },
   "dependencies": {
