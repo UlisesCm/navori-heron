@@ -1,0 +1,1529 @@
+{
+  "version": 1,
+  "parts": [
+    {
+      "id": "P1",
+      "title": "Núcleo, heron init y detección de modo",
+      "objective": "El usuario corre `heron init <repo>` y en ≤ 2 s sabe qué modo aplica y por qué, con estado persistido, gates atados a hashes y guard de producción probado (primer slice de context/md/PLAN.md §80).",
+      "scope": [
+        "Scaffold de un solo paquete (D4): Bun 1.4.2, TS 7.0.2 strict, Zod 4.6.5, oxlint 1.86.0, oxfmt 0.71.0, `bun test --coverage` con umbrales, `bun run check` y test de fronteras entre módulos",
+        "Workflow de GitHub Actions con `bun install --frozen-lockfile && bun run check` (D21)",
+        "`core/contracts`: HeronProject, HeronState, ModeDecision, CliEnvelope; gate de versión; `gen:schemas` con prueba de deriva",
+        "`core/store`: escritura atómica, staging, lock con reclamo de lock vencido, sha256, rutas seguras",
+        "`core/state`: tabla completa de estados y transiciones, gates atados a hashes (RN-28), guard de modo, propagación de `stale`",
+        "Adapter `navori-master` en modo detección: `sdd.specsDir`, `index.json` v1, etapa activa, `--stage`, última cerrada con aviso (D22), presencia de los 7 artefactos, lectura tolerante de `state.json.ux` (D6, RN-46)",
+        "Lector provisional `UxContract` (D5) y adapter `filesystem`",
+        "Comandos `init` (con `--dry-run`), `status`, `doctor` base y `gate approve|reject`, salida en inglés (D14) y `--json`",
+        "Fixtures SYNTHETIC: `no-ux`, `ux-only-md`, `ux-only-json`, `ux-invalid`, `closed-stage`, `membership-product` mínimo",
+        "`README.md` con instalación por `bun link` (D20), `docs/architecture.md` y ADR de persistencia de estado"
+      ],
+      "outOfScope": [
+        "ProductContext completo, precedencia y CONFLICT (P4)",
+        "Research (P2)",
+        "Agentes (P3)",
+        "Web UI",
+        "Docker"
+      ],
+      "dependsOn": [],
+      "seedRequirements": [
+        "RF-1",
+        "RF-2",
+        "RF-3",
+        "RF-4",
+        "RF-6",
+        "RF-7",
+        "RN-1",
+        "RN-2",
+        "RN-3",
+        "RN-4",
+        "RN-5",
+        "RN-6",
+        "RN-27",
+        "RN-28",
+        "RN-29",
+        "RN-30",
+        "RN-31",
+        "RN-42",
+        "RN-46",
+        "RNF-1",
+        "RNF-3",
+        "RNF-4",
+        "RNF-8",
+        "RNF-13",
+        "RNF-14",
+        "RNF-19",
+        "RNF-20"
+      ],
+      "acceptance": [
+        {
+          "id": "A1",
+          "description": "Con `membership-product`, la salida contiene en orden `Project detected`, `Navori Master: yes`, `Stage: 01-mvp`, `UX.md:  ✓`, `ux.json: ✓`, `FULL PRODUCT`, surfaces, `Screens:`/`Flows:`/`Patterns:` iguales a los conteos del `ux.json` del fixture y `Ready for research.`, con exit 0",
+          "evidence": null,
+          "method": "test",
+          "test": {
+            "file": "tests/e2e/init.test.ts",
+            "case": "reports FULL PRODUCT for the membership-product fixture"
+          }
+        },
+        {
+          "id": "A2",
+          "description": "Con `no-ux`, la salida contiene `UX.md:  missing`, `ux.json: missing`, `REFERENCE ONLY`, `Full product generation disabled.` y `Visual research is available.`, con exit 0",
+          "evidence": null,
+          "method": "test",
+          "test": {
+            "file": "tests/e2e/init.test.ts",
+            "case": "reports REFERENCE ONLY for the no-ux fixture"
+          }
+        },
+        {
+          "id": "A3",
+          "description": "Con `ux-only-md` y con `ux-only-json`, la salida nombra el archivo faltante, `state.json.mode = reference-only`, aparece el finding `UX_INCONSISTENT` y no se crea ningún archivo UX",
+          "evidence": null,
+          "method": "test",
+          "test": {
+            "file": "tests/e2e/init.test.ts",
+            "case": "falls back to reference-only without inferring the missing UX file"
+          }
+        },
+        {
+          "id": "A4",
+          "description": "Con `ux-invalid`, el modo es `reference-only` y el finding `UX_CONTRACT_INVALID` lista la ruta JSON de cada issue",
+          "evidence": null,
+          "method": "test",
+          "test": {
+            "file": "tests/e2e/init.test.ts",
+            "case": "treats a schema-invalid ux.json as reference-only and lists the issues"
+          }
+        },
+        {
+          "id": "A5",
+          "description": "`--stage` con una etapa cerrada da exit 0 y la muestra; `--stage 99-x` sale con código 2 y lista las disponibles; sin etapa activa usa la última cerrada y lo dice en la salida",
+          "evidence": null,
+          "method": "test",
+          "test": {
+            "file": "tests/e2e/init.test.ts",
+            "case": "selects stages explicitly or falls back to the last closed stage with a notice"
+          }
+        },
+        {
+          "id": "A6",
+          "description": "En `reference-only` toda transición de producción devuelve `MODE_BLOCKED`, ningún par (fase, evento) fuera de la tabla se acepta y cada transición declara una precondición verificable",
+          "evidence": null,
+          "method": "test",
+          "test": {
+            "file": "tests/unit/state-machine.test.ts",
+            "case": "blocks production transitions in reference-only and rejects pairs outside the table"
+          }
+        },
+        {
+          "id": "A7",
+          "description": "Una aprobación de gate se invalida cuando cambia el hash de cualquier artefacto atado",
+          "evidence": null,
+          "method": "test",
+          "test": {
+            "file": "tests/unit/gates.test.ts",
+            "case": "invalidates an approval when a bound artifact hash changes"
+          }
+        },
+        {
+          "id": "A8",
+          "description": "Un fallo inyectado en cada punto de escritura deja `state.json` válido y ningún artefacto referenciado faltante; un segundo escritor recibe el código 6 en ≤ 1 s",
+          "evidence": null,
+          "method": "test",
+          "test": {
+            "file": "tests/unit/store.test.ts",
+            "case": "keeps a consistent state on injected failures and rejects a second writer"
+          }
+        },
+        {
+          "id": "A9",
+          "description": "Un `schemaVersion` mayor desconocido falla con un mensaje que nombra la versión soportada",
+          "evidence": null,
+          "method": "test",
+          "test": {
+            "file": "tests/unit/contracts.test.ts",
+            "case": "rejects an unknown schemaVersion naming the supported one"
+          }
+        },
+        {
+          "id": "A10",
+          "description": "Después de `init` y `status`, el sha256 de todo archivo del repo destino fuera de `.heron/` es idéntico al previo",
+          "evidence": null,
+          "method": "test",
+          "test": {
+            "file": "tests/e2e/init.test.ts",
+            "case": "never writes outside .heron/ in the product repo"
+          }
+        },
+        {
+          "id": "A11",
+          "description": "Con `state.json.ux = md` la salida muestra la declaración del harness y el modo es `reference-only` con mensaje explicativo (D6); con `ux: md-json` sin `ux.json` aparece `UX_DECLARATION_MISMATCH`; fases o modos desconocidos no hacen fallar al adapter",
+          "evidence": null,
+          "method": "test",
+          "test": {
+            "file": "tests/e2e/init.test.ts",
+            "case": "reports the harness UX declaration and tolerates unknown phases and modes"
+          }
+        },
+        {
+          "id": "A12",
+          "description": "`init` y `status` sobre `membership-product` tienen p95 ≤ 2 000 ms en 20 ejecuciones",
+          "evidence": null,
+          "method": "test",
+          "test": {
+            "file": "tests/perf/init.perf.test.ts",
+            "case": "init and status p95 under 2000 ms on membership-product"
+          }
+        },
+        {
+          "id": "A13",
+          "description": "Ningún módulo importa `navori` ni `@navori/*`, los adapters no se importan entre sí y `core/contracts` no importa nada interno",
+          "evidence": null,
+          "method": "test",
+          "test": {
+            "file": "tests/repo/boundaries.test.ts",
+            "case": "enforces module boundaries and no navori imports"
+          }
+        },
+        {
+          "id": "A14",
+          "description": "Los JSON Schemas versionados están sincronizados con Zod",
+          "evidence": null,
+          "method": "comando",
+          "command": {
+            "run": "bun run gen:schemas && git diff --exit-code schemas/",
+            "expected": "exit 0 sin diff"
+          }
+        },
+        {
+          "id": "A15",
+          "description": "El quality gate pasa completo",
+          "evidence": null,
+          "method": "comando",
+          "command": {
+            "run": "bun run check",
+            "expected": "exit 0"
+          }
+        },
+        {
+          "id": "A16",
+          "description": "El workflow de CI existe y ejecuta `bun install --frozen-lockfile` y `bun run check` en PR y en `main`",
+          "evidence": null,
+          "method": "test",
+          "test": {
+            "file": "tests/repo/ci.test.ts",
+            "case": "ci workflow runs the quality gate on pull requests and main"
+          }
+        },
+        {
+          "id": "A17",
+          "description": "Recorrido real de instalación y detección",
+          "evidence": null,
+          "method": "manual",
+          "manual": {
+            "check": "Siguiendo `README.md` desde un clon limpio (instalación con `bun link`) la primera salida llega en ≤ 10 min; `heron init` sobre `monorepo-fullstack` muestra `Navori Master: no` y `REFERENCE ONLY`, y sobre `navori-heron` muestra `Stage: 01-heron` y `REFERENCE ONLY`",
+            "how": "El usuario cronometra la instalación, corre ambos `heron init` en la terminal y responde \"Aprobado\""
+          }
+        }
+      ],
+      "inheritedFrom": null,
+      "state": "pendiente",
+      "reason": null,
+      "spec": "specs/0001-heron-core",
+      "issue": null
+    },
+    {
+      "id": "P2",
+      "title": "Research reference-only determinista y seguro",
+      "objective": "El diseñador registra y revisa referencias y marca con provenance completa, sin IA, en un workspace versionable y seguro frente a contenido externo; el research de `monorepo-fullstack` queda en `.heron/research/` con un moodboard revisable en el navegador.",
+      "scope": [
+        "Puerto `ResearchSource` y fuentes `manual`, `url`, `image` (local o screenshot) y `design-md`",
+        "`references add|list|show|compare|remove`, importación por lote JSON y crops con nota",
+        "`brand add` con origen por dato",
+        "Safe fetch anti-SSRF (DNS validado, conexión a IP validada con SNI, redirects revalidados, límites), saneo de imágenes con sharp a WebP sin metadata y dedupe por sha256 (D15), rutas seguras, detector de contenido sospechoso",
+        "`research render`: `REFERENCES.md` derivado de JSON, `references.json`, `provenance.json`, moodboard HTML estático con CSP",
+        "Estados `researching`/`research-ready` (≥ 5 referencias, D16) y gate `research`",
+        "ADR de research source boundary; `docs/research.md`; sección SSRF de `docs/security.md`"
+      ],
+      "outOfScope": [
+        "Interpretación con IA (P3)",
+        "Refero (P10)",
+        "Fuente Penpot (P6)",
+        "Web UI (P8)"
+      ],
+      "dependsOn": [
+        "P1"
+      ],
+      "seedRequirements": [
+        "RF-8",
+        "RF-9",
+        "RF-10",
+        "RF-7",
+        "RN-5",
+        "RN-11",
+        "RN-12",
+        "RN-14",
+        "RN-36",
+        "RN-37",
+        "RN-38",
+        "RN-40",
+        "RNF-7",
+        "RNF-10",
+        "RNF-11"
+      ],
+      "acceptance": [
+        {
+          "id": "A1",
+          "description": "`references add --source manual` guarda `source`, `origin`, `capturedAt` ISO-8601, `reason`, `studies[]`, `doNotCopy[]`, `influences[]` y `mode`",
+          "evidence": null,
+          "method": "test",
+          "test": {
+            "file": "tests/e2e/references.test.ts",
+            "case": "adds a manual reference with complete provenance"
+          }
+        },
+        {
+          "id": "A2",
+          "description": "Una referencia sin alguno de los campos de provenance sale con código 2, nombra los faltantes y no escribe nada",
+          "evidence": null,
+          "method": "test",
+          "test": {
+            "file": "tests/e2e/references.test.ts",
+            "case": "rejects a reference missing any provenance field"
+          }
+        },
+        {
+          "id": "A3",
+          "description": "El 100 % del corpus SSRF queda bloqueado con `SSRF_BLOCKED` (loopback v4/v6, 10/8, 172.16/12, 192.168/16, 100.64/10, 169.254.169.254, fc00::/7, fe80::/10, IPv4-mapped, formas decimal/octal/hex, `file:`, `ftp:`, `gopher:`, `data:`, redirect a IP privada, rebinding); `--allow-local` permite un destino local y queda en la provenance",
+          "evidence": null,
+          "method": "test",
+          "test": {
+            "file": "tests/security/ssrf.test.ts",
+            "case": "blocks every vector of the SSRF corpus and records explicit local allowances"
+          }
+        },
+        {
+          "id": "A4",
+          "description": "Rutas de imagen con `..`, rutas absolutas fuera de la raíz y symlinks que escapan se rechazan",
+          "evidence": null,
+          "method": "test",
+          "test": {
+            "file": "tests/security/paths.test.ts",
+            "case": "rejects image paths and symlinks escaping the allowed roots"
+          }
+        },
+        {
+          "id": "A5",
+          "description": "Un JPEG con GPS queda con 0 etiquetas EXIF/GPS/XMP y en WebP; magic bytes distintos de PNG/JPEG/WebP se rechazan; una imagen > 20 MB o > 50 MP se rechaza; dos imports del mismo archivo producen un solo asset",
+          "evidence": null,
+          "method": "test",
+          "test": {
+            "file": "tests/security/images.test.ts",
+            "case": "sanitizes, bounds and deduplicates imported images"
+          }
+        },
+        {
+          "id": "A6",
+          "description": "Un DESIGN.md externo con \"ignore previous instructions\" se guarda como dato `untrusted` con `securityFindings` (frase y offset) y ningún comando cambia de comportamiento",
+          "evidence": null,
+          "method": "test",
+          "test": {
+            "file": "tests/security/untrusted-content.test.ts",
+            "case": "records suspicious instructions in external DESIGN.md without acting on them"
+          }
+        },
+        {
+          "id": "A7",
+          "description": "`research render` produce las 4 salidas y cada una declara `reference-only`; el moodboard escapa `<script>` inyectado y trae CSP",
+          "evidence": null,
+          "method": "test",
+          "test": {
+            "file": "tests/e2e/research-render.test.ts",
+            "case": "renders reference-only outputs with escaped text and CSP"
+          }
+        },
+        {
+          "id": "A8",
+          "description": "Todo brand input exige un `origin` válido; sin él sale con código 2",
+          "evidence": null,
+          "method": "test",
+          "test": {
+            "file": "tests/e2e/brand.test.ts",
+            "case": "requires an origin for every brand input"
+          }
+        },
+        {
+          "id": "A9",
+          "description": "Research real de monorepo-fullstack",
+          "evidence": null,
+          "method": "manual",
+          "manual": {
+            "check": "Con ≥ 5 referencias reales (≥ 1 screenshot con crop, ≥ 1 URL, ≥ 1 DESIGN.md externo), cada tarjeta del moodboard muestra fuente, razón, qué se estudia, qué no copiar y el crop resaltado",
+            "how": "El usuario registra las referencias, abre `.heron/research/moodboards/index.html` en el navegador y responde \"Aprobado\""
+          }
+        }
+      ],
+      "inheritedFrom": null,
+      "state": "pendiente",
+      "reason": null,
+      "spec": null,
+      "issue": null
+    },
+    {
+      "id": "P3",
+      "title": "Agentes y direcciones visuales reference-only",
+      "objective": "Heron usa Claude Code y Codex CLI ya autenticados (D18) para formular el research por trabajo de interfaz, interpretar referencias y proponer 3 direcciones exploratorias, cada una con los datos de su propuesta visual (D23); el modo reference-only de §76 queda completo sobre un repo real.",
+      "scope": [
+        "Puerto `AgentProvider` con adapters `claude-code`, `codex-cli` y `fake`",
+        "Invocación en `cwd` temporal vacío, sin herramientas, `--strict-mcp-config`, sin persistencia de sesión, salida por JSON Schema, sin `--bare`; entorno filtrado sin `HERON_*`/`PENPOT_*`",
+        "Roles y proveedores en configuración (creator Claude, reviewer Codex por default, intercambiables)",
+        "Plantillas de prompt versionadas en `prompts/` con sha256; context packs por tarea con presupuesto de 120 000 caracteres",
+        "Validación Zod con ≤ 2 reintentos de reparación; `AgentRun` con los campos de RN-41",
+        "`research brief`, `research analyze`, `direction propose`, `direction select` (registra `preferred` en reference-only, D12)",
+        "Datos de propuesta visual por dirección (D23): paleta provisional con contraste calculado, escala tipográfica, hoja de componentes básicos y una composición genérica marcada SYNTHETIC, validados por schema y por contraste determinista; su render en Penpot llega en P12",
+        "Checks de agentes en `doctor` y sonda `doctor --deep`",
+        "Verificación y registro de los términos de uso programático de las suscripciones (D18)",
+        "ADR de AI provider boundary; `docs/agent-providers.md`"
+      ],
+      "outOfScope": [
+        "Direcciones en modo full con contexto UX (P5)",
+        "Loop creator → reviewer sobre pantallas (P7)",
+        "Proveedores por API directa"
+      ],
+      "dependsOn": [
+        "P2"
+      ],
+      "seedRequirements": [
+        "RF-4",
+        "RF-11",
+        "RF-12",
+        "RN-13",
+        "RN-16",
+        "RN-33",
+        "RN-34",
+        "RN-35",
+        "RN-36",
+        "RN-41",
+        "RNF-6",
+        "RNF-7",
+        "RNF-12",
+        "RNF-14"
+      ],
+      "acceptance": [
+        {
+          "id": "A1",
+          "description": "El binario falso `claude` recibe `-p`, `--tools \"\"`, `--strict-mcp-config`, `--output-format json`, `--json-schema` y `--no-session-persistence`, con cwd en un directorio temporal vacío y sin `--bare`; el falso `codex` recibe `exec --sandbox read-only --ephemeral --skip-git-repo-check --output-schema`",
+          "evidence": null,
+          "method": "test",
+          "test": {
+            "file": "tests/unit/agents/argv.test.ts",
+            "case": "invokes agent CLIs isolated, tool-less and schema-bound"
+          }
+        },
+        {
+          "id": "A2",
+          "description": "Una salida que no cumple el schema se repara como máximo 2 veces y luego el run queda `invalid-output` sin cambiar el estado de Heron",
+          "evidence": null,
+          "method": "test",
+          "test": {
+            "file": "tests/unit/agents/invoke.test.ts",
+            "case": "retries invalid output at most twice and keeps Heron state"
+          }
+        },
+        {
+          "id": "A3",
+          "description": "Con timeout configurado de 2 s, un agente colgado termina y el run queda `timeout` en ≤ 7 s",
+          "evidence": null,
+          "method": "test",
+          "test": {
+            "file": "tests/unit/agents/timeout.test.ts",
+            "case": "kills a hung agent at the configured timeout"
+          }
+        },
+        {
+          "id": "A4",
+          "description": "El context pack contiene solo los tipos de artefacto de la tarea, respeta el presupuesto con recorte determinista y marca `untrusted` el contenido externo",
+          "evidence": null,
+          "method": "test",
+          "test": {
+            "file": "tests/unit/agents/context-pack.test.ts",
+            "case": "builds task-scoped packs within budget and tags untrusted items"
+          }
+        },
+        {
+          "id": "A5",
+          "description": "El `AgentRun` registra proveedor, modelo, versión de CLI, plantilla@versión+sha256, hashes de entrada y salida, duración y costo si existe, con 0 secretos canario y entorno del hijo sin `HERON_*`/`PENPOT_*`",
+          "evidence": null,
+          "method": "test",
+          "test": {
+            "file": "tests/unit/agents/run-record.test.ts",
+            "case": "records reproducibility fields and never leaks secrets"
+          }
+        },
+        {
+          "id": "A6",
+          "description": "El proveedor de cada rol sale solo de la configuración: intercambiar creator y reviewer no toca código",
+          "evidence": null,
+          "method": "test",
+          "test": {
+            "file": "tests/unit/agents/roles.test.ts",
+            "case": "resolves role providers from configuration"
+          }
+        },
+        {
+          "id": "A7",
+          "description": "Con el proveedor `fake` se producen 3 direcciones con los 13 atributos de §11, marcadas `reference-only` y citando solo `REF-*` existentes; `direction select` registra `preferred` y el estado nunca llega a `direction-selected`",
+          "evidence": null,
+          "method": "test",
+          "test": {
+            "file": "tests/e2e/directions.test.ts",
+            "case": "proposes three reference-only directions and records a preferred one"
+          }
+        },
+        {
+          "id": "A8",
+          "description": "Una consulta de research sin faceta de trabajo de interfaz (p. ej. \"beautiful UI\") se rechaza",
+          "evidence": null,
+          "method": "test",
+          "test": {
+            "file": "tests/unit/research/brief.test.ts",
+            "case": "rejects research queries without an interface-job facet"
+          }
+        },
+        {
+          "id": "A9",
+          "description": "`doctor` reporta disponibilidad, versión mínima y sesión de cada agente solo por exit codes, sin leer archivos de credenciales",
+          "evidence": null,
+          "method": "test",
+          "test": {
+            "file": "tests/e2e/doctor.test.ts",
+            "case": "reports agent availability from exit codes without reading credentials"
+          }
+        },
+        {
+          "id": "A10",
+          "description": "Cada una de las 3 direcciones trae su propuesta visual completa (paleta, escala tipográfica, hoja de componentes, composición SYNTHETIC); cada par texto/fondo de la paleta trae su contraste calculado de forma determinista y una propuesta sin esos datos se rechaza",
+          "evidence": null,
+          "method": "test",
+          "test": {
+            "file": "tests/e2e/directions.test.ts",
+            "case": "each direction carries a complete visual proposal with deterministic contrast"
+          }
+        },
+        {
+          "id": "A11",
+          "description": "Términos de uso de las suscripciones",
+          "evidence": null,
+          "method": "manual",
+          "manual": {
+            "check": "`docs/agent-providers.md` registra, con URL y fecha, qué dicen los términos de Claude Max y de ChatGPT/Codex sobre invocación programática y la conclusión para Heron",
+            "how": "El usuario lee la sección y responde \"Aprobado\""
+          }
+        },
+        {
+          "id": "A12",
+          "description": "Research y direcciones reales",
+          "evidence": null,
+          "method": "manual",
+          "manual": {
+            "check": "Con Claude Code y Codex reales sobre `monorepo-fullstack`, el brief formula preguntas por faceta de §8, cada dirección tiene los 13 atributos, cita ≥ 2 referencias y dice qué no copiar, y las notas del agente aparecen con origen `inferred`",
+            "how": "El usuario corre `research brief`, `research analyze` y `direction propose`, revisa las salidas y responde \"Aprobado\""
+          }
+        }
+      ],
+      "inheritedFrom": null,
+      "state": "pendiente",
+      "reason": null,
+      "spec": null,
+      "issue": null
+    },
+    {
+      "id": "P4",
+      "title": "Contrato UX y ProductContext",
+      "objective": "Heron entiende un master-plan completo como `ProductContext` v1, aplica la precedencia de fuentes y registra `CONFLICT` sin elegir en silencio; queda listo el insumo del modo full.",
+      "scope": [
+        "Schema `ProductContext` v1 con los 19 bloques de §5 y `sourceRef` por elemento",
+        "`UxContract` provisional (D5) aislado en el adapter, con el camino de conmutación a la copia fijada del schema del harness",
+        "Adapter `navori-master` completo: MASTER.md, DECISIONS.md, parts.json, ux.json, UX.md, DIGEST.md, CODEBASE.md y contexto convertido",
+        "Adapters `markdown` y `manual`",
+        "Precedencia RN-7 y detector determinista de `CONFLICT` (IDs, actores, roles, permisos); `conflicts list|ack`; gate `intake` bloqueado por conflictos sin reconocer",
+        "Fixture `membership-product` completo y fixture `conflict` (SYNTHETIC)",
+        "ADR de canonical data model; `docs/contracts.md`; `docs/integrations/navori-harness.md`"
+      ],
+      "outOfScope": [
+        "Conflictos semánticos con IA",
+        "Adapters Jira, Notion o Linear",
+        "Definir o modificar el contrato UX del harness (D2)"
+      ],
+      "dependsOn": [
+        "P1"
+      ],
+      "seedRequirements": [
+        "RF-5",
+        "RN-6",
+        "RN-7",
+        "RN-8",
+        "RN-9",
+        "RN-38",
+        "RN-46",
+        "RNF-13",
+        "RNF-16"
+      ],
+      "acceptance": [
+        {
+          "id": "A1",
+          "description": "`membership-product` produce un ProductContext v1 válido con los 19 bloques y `sourceRef` en cada elemento",
+          "evidence": null,
+          "method": "test",
+          "test": {
+            "file": "tests/contracts/product-context.test.ts",
+            "case": "maps membership-product into ProductContext v1 with its nineteen sections"
+          }
+        },
+        {
+          "id": "A2",
+          "description": "Con el mismo dato en varias fuentes gana la de mayor precedencia de RN-7 y se registra la fuente ganadora",
+          "evidence": null,
+          "method": "test",
+          "test": {
+            "file": "tests/unit/intake/precedence.test.ts",
+            "case": "applies source precedence and records the winning source"
+          }
+        },
+        {
+          "id": "A3",
+          "description": "Si un actor de `ux.json` contradice MASTER.md se crea `CONFLICT-001` con archivos, valores e impacto, sin elegir en silencio, y el gate `intake` no se aprueba hasta el `ack`",
+          "evidence": null,
+          "method": "test",
+          "test": {
+            "file": "tests/unit/intake/precedence.test.ts",
+            "case": "records a CONFLICT and blocks the intake gate until acknowledged"
+          }
+        },
+        {
+          "id": "A4",
+          "description": "`filesystem` llega a full solo con UX.md y ux.json válidos; `markdown` y `manual` quedan en reference-only",
+          "evidence": null,
+          "method": "test",
+          "test": {
+            "file": "tests/unit/intake/adapters.test.ts",
+            "case": "only the filesystem and navori-master adapters can reach full"
+          }
+        },
+        {
+          "id": "A5",
+          "description": "Los campos desconocidos de `ux.json` se preservan byte a byte y los IDs no cambian",
+          "evidence": null,
+          "method": "test",
+          "test": {
+            "file": "tests/contracts/ux-contract.test.ts",
+            "case": "preserves unknown ux.json fields and stable ids"
+          }
+        },
+        {
+          "id": "A6",
+          "description": "Los JSON Schemas emitidos validan todos los fixtures con ajv 2020-12 y todo archivo de datos de `fixtures/` declara SYNTHETIC",
+          "evidence": null,
+          "method": "test",
+          "test": {
+            "file": "tests/contracts/json-schema.test.ts",
+            "case": "emitted JSON Schemas validate every fixture and fixtures are marked SYNTHETIC"
+          }
+        },
+        {
+          "id": "A7",
+          "description": "Intake sobre el fixture completo",
+          "evidence": null,
+          "method": "comando",
+          "command": {
+            "run": "bun run heron intake --json fixtures/membership-product",
+            "expected": "exit 0 y JSON con `data.mode = \"full\"`, `data.conflicts = []` y conteos iguales a los de `ux.json`"
+          }
+        },
+        {
+          "id": "A8",
+          "description": "Contrato de integración con el harness",
+          "evidence": null,
+          "method": "manual",
+          "manual": {
+            "check": "`docs/contracts.md` y `docs/integrations/navori-harness.md` mapean archivo → campo, el subconjunto provisional exigido de `ux.json` y la conmutación a la copia fijada, sin redefinir el contrato UX del harness",
+            "how": "El usuario lee ambos documentos y responde \"Aprobado\""
+          }
+        }
+      ],
+      "inheritedFrom": null,
+      "state": "pendiente",
+      "reason": null,
+      "spec": null,
+      "issue": null
+    },
+    {
+      "id": "P5",
+      "title": "Slice vertical full: un flow y 2–3 pantallas hasta el export neutral",
+      "objective": "Probar el pipeline full de punta a punta con un flow y 3 pantallas del fixture antes de generalizar; primer `dist/` neutral, validado, portable y revisable como HTML estático sin Penpot.",
+      "scope": [
+        "Direcciones en full con contexto UX: cada propuesta suma 2 pantallas representativas de `ux.json` con sus tokens provisionales, escritas en su página de Penpot (D23, D24); gate `direction` que exige Penpot (D26)",
+        "Foundations de 14 áreas; color con colorjs.io (escalas OKLCH, neutrals, roles, light/dark, variantes de marca con Δhue ≤ 10° y decisión registrada)",
+        "Tokens DTCG 2025.10 en capas + Resolver + light/dark pre-resueltos, validados con @terrazzo/parser",
+        "`DESIGN.md` con las 14 secciones de §20 en el idioma del producto (D14) y anti-patterns con justificación",
+        "Componentes y patterns del slice; `ScreenDesign` con `layout` neutral, estados y `.md`",
+        "Los 14 validadores de §28 acotados al slice y categorías de §68",
+        "Preview HTML estático de foundations y pantallas",
+        "`export` con manifest, checksums, schemas y `SOURCE_DATE_EPOCH`; export sin sync completo del sistema permitido y registrado, solo si la dirección se eligió en Penpot (D8 limitado por D26)",
+        "Gates `foundations` y `representative-screens`",
+        "ADR de neutral export; `docs/workflow.md`; `docs/export-format.md`"
+      ],
+      "outOfScope": [
+        "Resto de pantallas (P7)",
+        "Penpot (P6)",
+        "`revise` (P7)"
+      ],
+      "dependsOn": [
+        "P3",
+        "P4",
+        "P12"
+      ],
+      "seedRequirements": [
+        "RF-12",
+        "RF-13",
+        "RF-14",
+        "RF-15",
+        "RF-16",
+        "RF-17",
+        "RN-15",
+        "RN-16",
+        "RN-17",
+        "RN-18",
+        "RN-19",
+        "RN-20",
+        "RN-21",
+        "RN-22",
+        "RN-32",
+        "RN-35",
+        "RN-38",
+        "RN-44",
+        "RNF-2",
+        "RNF-9",
+        "RNF-16"
+      ],
+      "acceptance": [
+        {
+          "id": "A1",
+          "description": "Con el proveedor `fake`, un flow y 3 pantallas de `membership-product` llegan a `exported` y `state.json` registra los gates intake, research, direction, foundations y representative-screens",
+          "evidence": null,
+          "method": "test",
+          "test": {
+            "file": "tests/e2e/full-slice.test.ts",
+            "case": "runs one flow and three screens from init to export through every gate"
+          }
+        },
+        {
+          "id": "A2",
+          "description": "El validador DTCG detecta tipo inválido, alias roto, ciclo, duplicado y nombre inválido con JSON Pointer como evidencia, y acepta los tokens del slice",
+          "evidence": null,
+          "method": "test",
+          "test": {
+            "file": "tests/unit/tokens/dtcg.test.ts",
+            "case": "validates DTCG 2025.10 types, aliases, cycles, duplicates and names"
+          }
+        },
+        {
+          "id": "A3",
+          "description": "El contraste da 21.00 para #000000 sobre #FFFFFF y 4.54 para #767676 sobre #FFFFFF (±0.01); todo par semántico cumple RNF-9 en light y dark o produce FAIL con par, razón y umbral",
+          "evidence": null,
+          "method": "test",
+          "test": {
+            "file": "tests/unit/tokens/contrast.test.ts",
+            "case": "matches WCAG reference ratios and reports failing pairs with evidence"
+          }
+        },
+        {
+          "id": "A4",
+          "description": "Un color de marca con contraste < 4.5:1 en su función produce una variante ≥ 4.5:1 con Δhue OKLCH ≤ 10° y una decisión con valores original y nuevo; el original se conserva en primitives",
+          "evidence": null,
+          "method": "test",
+          "test": {
+            "file": "tests/unit/tokens/brand-color.test.ts",
+            "case": "derives a usable variant for a failing brand color and records the decision"
+          }
+        },
+        {
+          "id": "A5",
+          "description": "Si falta un token en dark, la paridad light/dark da FAIL nombrando la ruta",
+          "evidence": null,
+          "method": "test",
+          "test": {
+            "file": "tests/unit/tokens/parity.test.ts",
+            "case": "reports missing dark tokens with their path"
+          }
+        },
+        {
+          "id": "A6",
+          "description": "Cada uno de los 14 validadores de §28 da FAIL sobre una entrada rota fabricada para él y PASS sobre el slice",
+          "evidence": null,
+          "method": "test",
+          "test": {
+            "file": "tests/unit/validation/validators.test.ts",
+            "case": "each validator fails on broken input and passes on the slice"
+          }
+        },
+        {
+          "id": "A7",
+          "description": "Dos exports con el mismo `SOURCE_DATE_EPOCH` son idénticos byte a byte y el manifest contiene los campos de §46 con sha256 verificables",
+          "evidence": null,
+          "method": "test",
+          "test": {
+            "file": "tests/e2e/export.test.ts",
+            "case": "produces byte-identical dist and a complete manifest"
+          }
+        },
+        {
+          "id": "A8",
+          "description": "`export` sale con código 3 en reference-only y con código 4 si hay algún FAIL; con la dirección elegida en Penpot y `penpot.enabled = false` para el sync del sistema, exporta, el manifest dice `penpot: disabled` y la categoría Penpot sync da WARNING",
+          "evidence": null,
+          "method": "test",
+          "test": {
+            "file": "tests/e2e/export.test.ts",
+            "case": "blocks export in reference-only or with FAIL and records disabled Penpot"
+          }
+        },
+        {
+          "id": "A9",
+          "description": "`dist/` valida contra sus propios JSON Schemas con ajv sin importar código de Heron y no contiene archivos ni claves de Mantine, Unistyles, Tailwind, React ni React Native",
+          "evidence": null,
+          "method": "test",
+          "test": {
+            "file": "tests/contracts/export-portability.test.ts",
+            "case": "dist is self-describing and framework-neutral"
+          }
+        },
+        {
+          "id": "A10",
+          "description": "Todo dato de preview fuera de `ux.json` lleva SYNTHETIC, PLACEHOLDER o DEMO, y cada anti-pattern detectado sin justificación produce WARNING",
+          "evidence": null,
+          "method": "test",
+          "test": {
+            "file": "tests/unit/design/no-invented-data.test.ts",
+            "case": "marks sample data and requires anti-pattern justifications"
+          }
+        },
+        {
+          "id": "A11",
+          "description": "En full, cada una de las 3 propuestas incluye 2 pantallas representativas de `ux.json` renderizadas con sus tokens provisionales en su página de Penpot (MCP falso)",
+          "evidence": null,
+          "method": "test",
+          "test": {
+            "file": "tests/e2e/full-slice.test.ts",
+            "case": "renders two representative screens per direction proposal"
+          }
+        },
+        {
+          "id": "A12",
+          "description": "Sin Penpot configurado o con `doctor` de Penpot en FAIL, `heron gate direction approve` en full sale con código 3 y `PENPOT_REQUIRED_FOR_DIRECTION`",
+          "evidence": null,
+          "method": "test",
+          "test": {
+            "file": "tests/e2e/full-slice.test.ts",
+            "case": "direction gate requires Penpot in full mode"
+          }
+        },
+        {
+          "id": "A13",
+          "description": "Revisión humana del slice",
+          "evidence": null,
+          "method": "manual",
+          "manual": {
+            "check": "`DESIGN.md`, el preview de foundations (swatches, contraste, escala tipográfica) y las 3 pantallas con sus estados son coherentes con la dirección elegida; todo dato de ejemplo está marcado y cada anti-pattern tiene justificación",
+            "how": "El usuario abre `.heron/design/DESIGN.md` y los previews HTML, aprueba con `heron gate foundations approve` y responde \"Aprobado\""
+          }
+        }
+      ],
+      "inheritedFrom": null,
+      "state": "pendiente",
+      "reason": null,
+      "spec": null,
+      "issue": null
+    },
+    {
+      "id": "P6",
+      "title": "Penpot: sistema completo",
+      "objective": "Sincronizar a Penpot el sistema del slice (tokens, componentes con variantes y pantallas) de forma determinista e idempotente sobre la base de P12, sin que Penpot sea la fuente.",
+      "scope": [
+        "Compilación y sync de tokens (API de tokens o importación DTCG nativa verificada por lectura), componentes con variantes y pantallas del slice, con marcas `heron` y `sync --dry-run`",
+        "Verificación de `penpot.fileId` antes de escribir, detección de drift sin importar ediciones",
+        "Fuente de research `penpot` (frames exportados con `export_shape`)",
+        "Gate `visual-review`"
+      ],
+      "outOfScope": [
+        "Instalación, doctor y propuestas por dirección (P12)",
+        "Todas las pantallas (P7)",
+        "Fork, DB o formato `.penpot`",
+        "Importar ediciones de Penpot (solo drift)"
+      ],
+      "dependsOn": [
+        "P5",
+        "P12"
+      ],
+      "seedRequirements": [
+        "RF-20",
+        "RN-23",
+        "RN-24",
+        "RN-25",
+        "RN-35",
+        "RN-40",
+        "RN-45",
+        "RNF-5",
+        "RNF-7",
+        "RNF-18"
+      ],
+      "acceptance": [
+        {
+          "id": "A1",
+          "description": "`inspect` hace 0 escrituras; un segundo `sync` sin cambios hace 0 escrituras; `sync` se niega a escribir si el archivo conectado no es `penpot.fileId`; una forma `heron` editada se reporta como drift y no se importa",
+          "evidence": null,
+          "method": "test",
+          "test": {
+            "file": "tests/unit/penpot/sync.test.ts",
+            "case": "inspect is read-only and sync is idempotent, file-bound and drift-aware"
+          }
+        },
+        {
+          "id": "A2",
+          "description": "En reference-only `penpot sync` sale con código 3, salvo la página References",
+          "evidence": null,
+          "method": "test",
+          "test": {
+            "file": "tests/unit/penpot/mode-guard.test.ts",
+            "case": "blocks production sync in reference-only except the References page"
+          }
+        },
+        {
+          "id": "A3",
+          "description": "Un frame de un archivo Penpot existente se importa como referencia con provenance completa",
+          "evidence": null,
+          "method": "test",
+          "test": {
+            "file": "tests/unit/research/penpot-source.test.ts",
+            "case": "imports an existing Penpot frame as a reference with provenance"
+          }
+        },
+        {
+          "id": "A4",
+          "description": "Slice en el canvas",
+          "evidence": null,
+          "method": "manual",
+          "manual": {
+            "check": "Con Penpot self-hosted según `docs/penpot.md`, `heron doctor` da PASS en Penpot y `heron penpot sync` crea la página del slice, el set de tokens, ≥ 1 componente con variantes y las 3 pantallas con tokens aplicados; un segundo sync no duplica nada",
+            "how": "El usuario revisa el archivo en Penpot, aprueba con `heron gate visual-review approve` y responde \"Aprobado\""
+          }
+        }
+      ],
+      "inheritedFrom": null,
+      "state": "pendiente",
+      "reason": null,
+      "spec": null,
+      "issue": null
+    },
+    {
+      "id": "P7",
+      "title": "Producto completo, revisiones y creator → reviewer",
+      "objective": "Generalizar el slice a todas las pantallas de `ux.json` con coverage completo, revisiones trazables y revisión cruzada entre proveedores; V1 funcional según §76 sobre `membership-product`.",
+      "scope": [
+        "Progresión representativas → resto por lotes con packs que incluyen pantallas vecinas; reanudación por hash de entrada",
+        "Sistema completo de componentes y patterns ligados a pantallas",
+        "Validadores y coverage completos (§28, §29) y quality gates de las 11 categorías",
+        "Loop creator → reviewer configurable (1 ronda) en direcciones, foundations y pantallas representativas",
+        "`revise` con alcance por matriz de dependencias, preservación verificada, retroceso de fase e invalidación de gates",
+        "`UX-PROPOSAL` con el umbral de D16 y `proposals list|accept|reject`",
+        "`run` que se detiene en cada gate (`--auto` solo por configuración, Could)",
+        "Sync de Penpot del producto completo"
+      ],
+      "outOfScope": [
+        "Web UI (P8)",
+        "Proveedores por API directa"
+      ],
+      "dependsOn": [
+        "P5",
+        "P6"
+      ],
+      "seedRequirements": [
+        "RF-14",
+        "RF-15",
+        "RF-16",
+        "RF-18",
+        "RF-19",
+        "RN-9",
+        "RN-10",
+        "RN-21",
+        "RN-22",
+        "RN-26",
+        "RN-33",
+        "RN-39",
+        "RNF-6",
+        "RNF-12"
+      ],
+      "acceptance": [
+        {
+          "id": "A1",
+          "description": "Tras el gate `representative-screens`, el 100 % de las pantallas de `ux.json` de `membership-product` tiene `ScreenDesign` válido y las 6 preguntas de §29 se responden con listas de IDs",
+          "evidence": null,
+          "method": "test",
+          "test": {
+            "file": "tests/e2e/full-product.test.ts",
+            "case": "designs every ux.json screen and answers the coverage questions"
+          }
+        },
+        {
+          "id": "A2",
+          "description": "Un run cortado tras la pantalla k regenera solo las pendientes (conteo de invocaciones)",
+          "evidence": null,
+          "method": "test",
+          "test": {
+            "file": "tests/e2e/resume.test.ts",
+            "case": "resumes regenerating only pending screens"
+          }
+        },
+        {
+          "id": "A3",
+          "description": "`revise \"make the dashboard denser\"` cambia solo el alcance declarado, el sha256 del resto no cambia y la Revision registra valores previos y nuevos; una revisión de foundations regresa la fase y invalida gates posteriores",
+          "evidence": null,
+          "method": "test",
+          "test": {
+            "file": "tests/e2e/revise.test.ts",
+            "case": "revise preserves everything outside scope and rolls back phases"
+          }
+        },
+        {
+          "id": "A4",
+          "description": "Consolidar dos pantallas produce `UXP-001` con los 5 campos y el `ux.json` fuente conserva su sha256",
+          "evidence": null,
+          "method": "test",
+          "test": {
+            "file": "tests/unit/design/ux-proposal.test.ts",
+            "case": "significant ux.json changes become UX-PROPOSAL and never mutate the source"
+          }
+        },
+        {
+          "id": "A5",
+          "description": "Con reviewer configurado, la salida del creator pasa por él (1 ronda) antes del gate",
+          "evidence": null,
+          "method": "test",
+          "test": {
+            "file": "tests/unit/agents/review-loop.test.ts",
+            "case": "sends creator output to the configured reviewer before the gate"
+          }
+        },
+        {
+          "id": "A6",
+          "description": "`run` se detiene en cada gate humano y nunca aprueba; `--auto` sale con código 3 si la configuración no lo habilita",
+          "evidence": null,
+          "method": "test",
+          "test": {
+            "file": "tests/e2e/run.test.ts",
+            "case": "run stops at every human gate and rejects --auto unless enabled"
+          }
+        },
+        {
+          "id": "A7",
+          "description": "En `no-ux`, `foundations`, `system`, `screens`, `export`, `penpot sync` y `revise` de producción salen con código 3 sin escribir",
+          "evidence": null,
+          "method": "test",
+          "test": {
+            "file": "tests/e2e/no-ux.test.ts",
+            "case": "blocks every production command in reference-only"
+          }
+        },
+        {
+          "id": "A8",
+          "description": "Las 11 categorías de §68 se reportan sin score numérico",
+          "evidence": null,
+          "method": "comando",
+          "command": {
+            "run": "bun run heron validate --json fixtures/membership-product",
+            "expected": "exit 0, JSON con 11 categorías con estado y evidencia y ninguna clave `score`"
+          }
+        },
+        {
+          "id": "A9",
+          "description": "Revisión del producto completo",
+          "evidence": null,
+          "method": "manual",
+          "manual": {
+            "check": "Con `membership-product` sincronizado en Penpot, el reporte de coverage muestra 100 % de pantallas, flows y patterns, y 5 pantallas al azar (incluidos sus estados empty y error) son consistentes con las representativas",
+            "how": "El usuario revisa `validation/REPORT.md` y las pantallas en Penpot y responde \"Aprobado\""
+          }
+        }
+      ],
+      "inheritedFrom": null,
+      "state": "pendiente",
+      "reason": null,
+      "spec": null,
+      "issue": null
+    },
+    {
+      "id": "P8",
+      "title": "Web UI control plane",
+      "objective": "Un espacio de research y revisión en el navegador que no replica Penpot: comparar referencias, marcar crops, seleccionar dirección y aprobar gates sin terminal.",
+      "scope": [
+        "Servidor Hono 4.13.12 con JSX SSR sobre Bun.serve e islas mínimas de TS (D9)",
+        "API `/api/v1` validada con Zod que llama a los mismos casos de uso que la CLI y comparte el lock",
+        "Vistas de §39 y comparación de §40; exploradores de color y tipografía desde tokens",
+        "Tokens nombrados con sha256, cookie firmada `HttpOnly; Secure; SameSite=Strict`, `approvedBy` con el nombre del token (D11)",
+        "Escucha en 127.0.0.1 por default y se niega a exponerse sin tokens; CSRF por `Origin`; CSP; render saneado",
+        "Uploads por el saneo de P2; copy en inglés (D14)"
+      ],
+      "outOfScope": [
+        "Canvas o edición visual",
+        "Gestión de usuarios y multi-tenant",
+        "Ejecución de pasos de IA desde el servidor (D10)"
+      ],
+      "dependsOn": [
+        "P5"
+      ],
+      "seedRequirements": [
+        "RF-21",
+        "RN-26",
+        "RN-43",
+        "RNF-7"
+      ],
+      "acceptance": [
+        {
+          "id": "A1",
+          "description": "Todas las rutas GET de las vistas mínimas responden 200 con token válido sobre `membership-product`",
+          "evidence": null,
+          "method": "test",
+          "test": {
+            "file": "tests/web/routes.test.ts",
+            "case": "serves every minimum view"
+          }
+        },
+        {
+          "id": "A2",
+          "description": "Toda ruta salvo `/healthz` responde 401 sin token; el servidor no arranca en una interfaz no loopback sin tokens; un POST con `Origin` ajeno recibe 403",
+          "evidence": null,
+          "method": "test",
+          "test": {
+            "file": "tests/web/auth.test.ts",
+            "case": "enforces named tokens, loopback default and CSRF"
+          }
+        },
+        {
+          "id": "A3",
+          "description": "Aprobar un gate desde la web produce el mismo `state.json` que la CLI, con el nombre del token en `approvedBy`",
+          "evidence": null,
+          "method": "test",
+          "test": {
+            "file": "tests/web/gates.test.ts",
+            "case": "a gate approved from the web equals the CLI decision record"
+          }
+        },
+        {
+          "id": "A4",
+          "description": "Una nota de referencia con `<script>` y enlaces `javascript:` se renderiza inerte y toda respuesta HTML lleva CSP",
+          "evidence": null,
+          "method": "test",
+          "test": {
+            "file": "tests/web/security.test.ts",
+            "case": "renders untrusted text inert under CSP"
+          }
+        },
+        {
+          "id": "A5",
+          "description": "Las vistas responden con p95 ≤ 300 ms sobre `membership-product`",
+          "evidence": null,
+          "method": "test",
+          "test": {
+            "file": "tests/web/perf.test.ts",
+            "case": "views respond under 300 ms p95 on membership-product"
+          }
+        },
+        {
+          "id": "A6",
+          "description": "Revisión desde el navegador",
+          "evidence": null,
+          "method": "manual",
+          "manual": {
+            "check": "El usuario compara ≥ 3 referencias lado a lado (preview, fuente, por qué, influencia, propiedades visuales, pantallas o patterns influenciados, provenance), marca un crop que queda en `references.json`, selecciona una dirección y aprueba un gate con su nombre visible",
+            "how": "El usuario hace el recorrido en el navegador y responde \"Aprobado\""
+          }
+        }
+      ],
+      "inheritedFrom": null,
+      "state": "pendiente",
+      "reason": null,
+      "spec": null,
+      "issue": null
+    },
+    {
+      "id": "P9",
+      "title": "Self-host de Heron y hardening",
+      "objective": "Heron corre reproducible en Docker, separado de Penpot, con la documentación de §74 y listo para producción de un equipo pequeño; la IA sigue en el host (D10).",
+      "scope": [
+        "`infra/docker/Dockerfile` sobre `oven/bun:1.4.2-slim` por digest, usuario no root, healthcheck `/healthz`; `compose.yaml` solo de Heron",
+        "Revisión de seguridad (DNS rebinding, redacción, dependencias) y pruebas de recovery",
+        "Los 11 documentos de §74, incluidos requisitos de hardware de Penpot tomados de su doc oficial",
+        "Procedimientos de backup y upgrade",
+        "ADR de self-host topology",
+        "`docs/deployment/railway.md` (Could, C2)"
+      ],
+      "outOfScope": [
+        "Kubernetes",
+        "Imagen publicada en un registry",
+        "Multi-tenant",
+        "Agentes CLI dentro del contenedor (D10)"
+      ],
+      "dependsOn": [
+        "P6",
+        "P8"
+      ],
+      "seedRequirements": [
+        "RF-22",
+        "RN-30",
+        "RN-40",
+        "RN-43",
+        "RNF-15",
+        "RNF-17"
+      ],
+      "acceptance": [
+        {
+          "id": "A1",
+          "description": "Heron queda sano desde un clon limpio con la imagen construida",
+          "evidence": null,
+          "method": "comando",
+          "command": {
+            "run": "docker compose -f infra/docker/compose.yaml up -d --wait && curl -fsS 127.0.0.1:${HERON_PORT}/healthz",
+            "expected": "`{\"status\":\"ok\"}` y exit 0 en ≤ 120 s"
+          }
+        },
+        {
+          "id": "A2",
+          "description": "El contenedor no corre como root",
+          "evidence": null,
+          "method": "comando",
+          "command": {
+            "run": "docker compose -f infra/docker/compose.yaml exec heron id -u",
+            "expected": "un valor distinto de `0`"
+          }
+        },
+        {
+          "id": "A3",
+          "description": "El compose de Heron no declara servicios, volúmenes ni DB de Penpot y publica puertos solo en 127.0.0.1",
+          "evidence": null,
+          "method": "test",
+          "test": {
+            "file": "tests/infra/compose.test.ts",
+            "case": "Heron compose has no Penpot services and binds to loopback"
+          }
+        },
+        {
+          "id": "A4",
+          "description": "Tras matar un comando a mitad de una escritura, el siguiente detecta el lock huérfano, lo libera y opera sobre el último estado válido",
+          "evidence": null,
+          "method": "test",
+          "test": {
+            "file": "tests/e2e/recovery.test.ts",
+            "case": "recovers from an interrupted command with the last valid state"
+          }
+        },
+        {
+          "id": "A5",
+          "description": "Los 11 documentos de §74 existen, no están vacíos y cada comando de la CLI aparece en `docs/workflow.md`",
+          "evidence": null,
+          "method": "test",
+          "test": {
+            "file": "tests/docs.test.ts",
+            "case": "the eleven minimum documents exist and document every command"
+          }
+        },
+        {
+          "id": "A6",
+          "description": "Las dependencias de producción coinciden con la lista aprobada en MASTER.md",
+          "evidence": null,
+          "method": "test",
+          "test": {
+            "file": "tests/repo/dependencies.test.ts",
+            "case": "production dependencies match the approved list"
+          }
+        },
+        {
+          "id": "A7",
+          "description": "Ensayo de operación",
+          "evidence": null,
+          "method": "manual",
+          "manual": {
+            "check": "Siguiendo `docs/self-host.md` en un host Docker limpio: Heron y Penpot en composes separados, backup y restore de `.heron/` y de los volúmenes de Penpot, y upgrade de Penpot a la siguiente versión menor",
+            "how": "El operador ejecuta el runbook y responde \"Aprobado\""
+          }
+        }
+      ],
+      "inheritedFrom": null,
+      "state": "pendiente",
+      "reason": null,
+      "spec": null,
+      "issue": null
+    },
+    {
+      "id": "P10",
+      "title": "Refero como fuente opcional",
+      "objective": "Enriquecer el research con Refero y Refero Styles cuando el usuario tenga plan, sin que Heron dependa de él (D13).",
+      "scope": [
+        "Verificación previa de los términos de uso automatizado de Refero y Refero Styles",
+        "Fuente `refero` sobre el MCP oficial con token por variable de entorno y consultas por faceta de §8",
+        "Styles importados como DESIGN.md `untrusted`",
+        "`doNotCopy` por default (branding, iconos propietarios, layout exacto)",
+        "Contador de tool calls con tope configurable por run y por mes",
+        "Check de Refero en `doctor`"
+      ],
+      "outOfScope": [
+        "Scraping de refero.design o styles.refero.design",
+        "MCPs no oficiales",
+        "Guardar capturas de Refero en Git sin términos confirmados"
+      ],
+      "dependsOn": [
+        "P3"
+      ],
+      "seedRequirements": [
+        "RF-23",
+        "RN-11",
+        "RN-12",
+        "RN-13",
+        "RN-23",
+        "RNF-7"
+      ],
+      "acceptance": [
+        {
+          "id": "A1",
+          "description": "Contra un MCP falso, un screen de Refero se importa con provenance completa y el `doNotCopy` por default",
+          "evidence": null,
+          "method": "test",
+          "test": {
+            "file": "tests/unit/research/refero.test.ts",
+            "case": "imports a Refero screen with provenance and default do-not-copy items"
+          }
+        },
+        {
+          "id": "A2",
+          "description": "Sin token, la fuente aparece `unavailable` (WARNING) en `doctor` y el resto del research funciona",
+          "evidence": null,
+          "method": "test",
+          "test": {
+            "file": "tests/unit/research/refero.test.ts",
+            "case": "Heron works with Refero disabled"
+          }
+        },
+        {
+          "id": "A3",
+          "description": "El bearer nunca aparece en logs ni en run records, y al llegar al tope de tool calls el run se detiene con código 5",
+          "evidence": null,
+          "method": "test",
+          "test": {
+            "file": "tests/unit/research/refero.test.ts",
+            "case": "never logs the bearer and stops at the tool-call budget"
+          }
+        },
+        {
+          "id": "A4",
+          "description": "Términos y research real",
+          "evidence": null,
+          "method": "manual",
+          "manual": {
+            "check": "`docs/research.md` registra con URL y fecha los términos de Refero; con plan activo, ≥ 5 referencias de Refero para `monorepo-fullstack` tienen provenance completa",
+            "how": "El usuario lee la sección, revisa las referencias y responde \"Aprobado\""
+          }
+        }
+      ],
+      "inheritedFrom": null,
+      "state": "pendiente",
+      "reason": null,
+      "spec": null,
+      "issue": null
+    },
+    {
+      "id": "P11",
+      "title": "Validación full con producto real",
+      "objective": "Recorrer el modo full sobre `monorepo-fullstack` hasta el export con su master-plan real con UX (D17, D19).",
+      "scope": [
+        "Dependencia externa: la rama `feat/master-plan-ux-contract` de navori-harness llega a `main` y emite UX.md + ux.json",
+        "Master-plan con UX de `monorepo-fullstack` generado en ese repo con navori (trabajo fuera del código de Heron)",
+        "Conmutación del lector provisional a la copia fijada del schema publicado por el harness (D5)",
+        "Recorrido `init` → full → research → direction → foundations → screens → validate → export sobre el monorepo"
+      ],
+      "outOfScope": [
+        "Adapters de implementación para Mantine o Unistyles (§47)",
+        "Cambios al código de `monorepo-fullstack`"
+      ],
+      "dependsOn": [
+        "P7"
+      ],
+      "seedRequirements": [
+        "RF-1",
+        "RF-17",
+        "RN-2",
+        "RN-6",
+        "RN-46"
+      ],
+      "acceptance": [
+        {
+          "id": "A1",
+          "description": "El adapter valida `ux.json` contra la copia fijada del schema del harness con su sha256 registrado y ya no usa el lector provisional",
+          "evidence": null,
+          "method": "test",
+          "test": {
+            "file": "tests/contracts/ux-contract.test.ts",
+            "case": "validates ux.json against the pinned harness schema"
+          }
+        },
+        {
+          "id": "A2",
+          "description": "Detección real del monorepo",
+          "evidence": null,
+          "method": "comando",
+          "command": {
+            "run": "bun run heron init ../monorepo-fullstack --dry-run --json",
+            "expected": "exit 0 y JSON con `data.mode = \"full\"` y conteos iguales a los de su `ux.json`"
+          }
+        },
+        {
+          "id": "A3",
+          "description": "Recorrido full real",
+          "evidence": null,
+          "method": "manual",
+          "manual": {
+            "check": "Heron recorre full sobre `monorepo-fullstack` hasta `dist/` con 0 FAIL y el contrato exportado es utilizable para su `packages/tokens`",
+            "how": "El usuario revisa `dist/`, `DESIGN.md` y las pantallas en Penpot y responde \"Aprobado\""
+          }
+        }
+      ],
+      "inheritedFrom": null,
+      "state": "pendiente",
+      "reason": null,
+      "spec": null,
+      "issue": null
+    },
+    {
+      "id": "P12",
+      "title": "Penpot base y propuestas visuales",
+      "objective": "Levantar Penpot 2.17.2 (D7) con su compose oficial y conectarlo por MCP para que las 3 propuestas visuales de dirección se revisen y comparen en Penpot antes de generar el sistema (D23–D25).",
+      "scope": [
+        "`infra/penpot/`: `fetch-compose` del tag fijado con sha256, `compose.override.yaml` (secretos, flags de producción, `enable-mcp`, sin `mailcatch`), `.env.example` con `PENPOT_VERSION=2.17.2`",
+        "`docs/penpot.md`: compose, persistencia, HTTPS con websocket `/mcp/ws`, public URI, MCP, secretos, backups y upgrade",
+        "`PenpotGateway` sobre @modelcontextprotocol/sdk 1.31.0 (Streamable HTTP), MCP key solo por variable de entorno y redactada",
+        "`penpot doctor` (URL, handshake, plugin conectado con timeout 10 s, `fileId`, versión) y `penpot inspect` solo lectura",
+        "Compilador determinista base: scripts de la Plugin API con datos solo como literal JSON, marcas `heron`, idempotencia",
+        "Una página por dirección con su propuesta visual (specimen de P3; en full, más 2 pantallas representativas vía P5) y página References; marcadas `reference-only` cuando aplica",
+        "Sonda de 2.18.x contra el bug #12003 (D7)",
+        "ADR de Penpot boundary"
+      ],
+      "outOfScope": [
+        "Sync de tokens, componentes y pantallas del sistema (P6)",
+        "Fork, DB o formato `.penpot`",
+        "Importar ediciones de Penpot"
+      ],
+      "dependsOn": [
+        "P3"
+      ],
+      "seedRequirements": [
+        "RF-12",
+        "RF-20",
+        "RN-16",
+        "RN-23",
+        "RN-24",
+        "RN-25",
+        "RN-35",
+        "RN-40",
+        "RN-45",
+        "RN-49",
+        "RNF-5",
+        "RNF-7",
+        "RNF-18"
+      ],
+      "acceptance": [
+        {
+          "id": "A1",
+          "description": "El YAML fusionado (upstream + override) fija `2.17.2` en las imágenes de Penpot, no usa `latest`, incluye `enable-mcp` y no contiene `change-this-insecure-key` ni `disable-secure-session-cookies`",
+          "evidence": null,
+          "method": "test",
+          "test": {
+            "file": "tests/infra/penpot-compose.test.ts",
+            "case": "override pins the version, keeps MCP and removes insecure defaults"
+          }
+        },
+        {
+          "id": "A2",
+          "description": "El compose oficial descargado coincide con su sha256 registrado",
+          "evidence": null,
+          "method": "comando",
+          "command": {
+            "run": "PENPOT_VERSION=2.17.2 infra/penpot/fetch-compose && shasum -a 256 -c infra/penpot/docker-compose.yaml.sha256",
+            "expected": "exit 0 con `docker-compose.yaml: OK`"
+          }
+        },
+        {
+          "id": "A3",
+          "description": "Contra un MCP falso: sin plugin conectado `doctor` falla en ≤ 10 s con instrucción; una key ausente o rechazada es FAIL; ninguna línea de log ni `.heron/` contiene el `userToken`",
+          "evidence": null,
+          "method": "test",
+          "test": {
+            "file": "tests/unit/penpot/doctor.test.ts",
+            "case": "fails fast without plugin and never leaks the MCP key"
+          }
+        },
+        {
+          "id": "A4",
+          "description": "Un nombre con `\"); malicious()` llega al script de `execute_code` solo como literal JSON, y el script generado es idéntico byte a byte entre dos corridas",
+          "evidence": null,
+          "method": "test",
+          "test": {
+            "file": "tests/unit/penpot/script.test.ts",
+            "case": "embeds untrusted strings as JSON data in deterministic scripts"
+          }
+        },
+        {
+          "id": "A5",
+          "description": "`penpot sync --proposals` escribe exactamente 3 páginas, una por dirección, con paleta, escala tipográfica, hoja de componentes y composición SYNTHETIC; una segunda corrida sin cambios hace 0 escrituras",
+          "evidence": null,
+          "method": "test",
+          "test": {
+            "file": "tests/unit/penpot/proposals.test.ts",
+            "case": "writes one idempotent page per direction with its visual proposal"
+          }
+        },
+        {
+          "id": "A6",
+          "description": "En reference-only las páginas de propuestas quedan marcadas `reference-only` y no se escribe ningún artefacto de producción",
+          "evidence": null,
+          "method": "test",
+          "test": {
+            "file": "tests/unit/penpot/proposals.test.ts",
+            "case": "marks proposal pages reference-only and writes no production artifacts"
+          }
+        },
+        {
+          "id": "A7",
+          "description": "Sonda de versión",
+          "evidence": null,
+          "method": "manual",
+          "manual": {
+            "check": "`docs/penpot.md` registra con fecha el resultado de probar 2.18.x contra el bug #12003 y la versión que queda fijada",
+            "how": "El usuario lee la sección y responde \"Aprobado\""
+          }
+        },
+        {
+          "id": "A8",
+          "description": "Comparación de las 3 propuestas en Penpot",
+          "evidence": null,
+          "method": "manual",
+          "manual": {
+            "check": "Con Penpot self-hosted según `docs/penpot.md` y `heron doctor` en PASS para Penpot, las 3 páginas de propuestas de `monorepo-fullstack` (reference-only) se comparan lado a lado y cada una refleja los atributos de su dirección",
+            "how": "El usuario abre el archivo en Penpot, revisa las 3 páginas y responde \"Aprobado\""
+          }
+        }
+      ],
+      "inheritedFrom": null,
+      "state": "pendiente",
+      "reason": null,
+      "spec": null,
+      "issue": null
+    }
+  ]
+}

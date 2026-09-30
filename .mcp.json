@@ -1,0 +1,27 @@
+{
+  "$navori": {
+    "managed": true,
+    "version": "0.11.0"
+  },
+  "mcpServers": {
+    "engram": {
+      "command": "engram",
+      "args": [
+        "mcp",
+        "--tools=mem_search,mem_get_observation,mem_context,mem_save,mem_session_summary,mem_update,mem_judge"
+      ]
+    },
+    "codegraph": {
+      "command": "codegraph",
+      "args": [
+        "serve",
+        "--mcp"
+      ],
+      "env": {
+        "CODEGRAPH_MCP_TOOLS": "explore",
+        "CODEGRAPH_EXPLORE_DEDUP": "0"
+      },
+      "alwaysLoad": true
+    }
+  }
+}

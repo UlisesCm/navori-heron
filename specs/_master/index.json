@@ -1,0 +1,14 @@
+{
+  "version": 1,
+  "stages": [
+    {
+      "number": 1,
+      "slug": "heron",
+      "dir": "01-heron",
+      "state": "activa",
+      "openedAt": "2026-09-30",
+      "closedAt": null,
+      "spec": null
+    }
+  ]
+}

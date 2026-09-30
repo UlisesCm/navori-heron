@@ -1,0 +1,44 @@
+{
+  "version": 1,
+  "phase": "executing",
+  "mode": "template",
+  "signal": {
+    "commits": null,
+    "firstCommit": null,
+    "filesChangedSinceFirst": null,
+    "framework": null,
+    "libraries": [],
+    "suggested": "template"
+  },
+  "outcome": null,
+  "history": [
+    {
+      "phase": "context",
+      "at": "2026-09-30"
+    },
+    {
+      "phase": "transcribed",
+      "at": "2026-09-30"
+    },
+    {
+      "phase": "mapped",
+      "at": "2026-09-30"
+    },
+    {
+      "phase": "planned",
+      "at": "2026-09-30"
+    },
+    {
+      "phase": "questioned",
+      "at": "2026-09-30"
+    },
+    {
+      "phase": "mastered",
+      "at": "2026-09-30"
+    },
+    {
+      "phase": "executing",
+      "at": "2026-09-30"
+    }
+  ]
+}

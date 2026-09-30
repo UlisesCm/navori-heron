@@ -1,0 +1,85 @@
+{
+  "$schema": "https://ulisescm.github.io/navori-harness/schema/navori.config.v1.json",
+  "name": "navori-heron",
+  "version": "1.0.0",
+  "engines": [
+    "claude"
+  ],
+  "preset": "custom",
+  "language": "es",
+  "branchBase": "main",
+  "gitignoreHarness": "off",
+  "commits": "conventional-es",
+  "audit": {
+    "mode": "opt-in"
+  },
+  "harness": {
+    "orchestrator": true,
+    "implementer": true,
+    "reviewer": true,
+    "scout": true,
+    "auditor": true,
+    "publisher": true,
+    "scribe": true,
+    "scribeOwnsMarkdown": false,
+    "planTiers": false,
+    "masterPlan": true
+  },
+  "models": {
+    "orchestrator": "opus",
+    "implementer": "sonnet",
+    "reviewer": "sonnet",
+    "scout": "sonnet",
+    "auditor": "sonnet",
+    "publisher": "haiku",
+    "scribe": "haiku",
+    "architect": "opus"
+  },
+  "effort": {
+    "orchestrator": "xhigh",
+    "implementer": "medium",
+    "reviewer": "medium",
+    "scout": "medium",
+    "auditor": "medium",
+    "publisher": "low",
+    "scribe": "low",
+    "architect": "xhigh"
+  },
+  "plugins": {
+    "engram": {
+      "enabled": true
+    },
+    "gh": {
+      "enabled": true
+    },
+    "codegraph": {
+      "enabled": true
+    },
+    "jscpd": {
+      "enabled": true
+    },
+    "semgrep": {
+      "enabled": true
+    },
+    "tgrep": {
+      "enabled": true
+    }
+  },
+  "project": {
+    "legacyPaths": [],
+    "criticalAreas": [
+      "ej: src/auth",
+      "src/billing"
+    ],
+    "criticalPaths": [],
+    "posture": "greenfield",
+    "reviewRigor": "pragmatic",
+    "architectureRule": "ej: axios → service → adapter → component; forms = mantine + zod",
+    "testsForNewCode": "when-applicable",
+    "testsExclude": [],
+    "localSkills": [],
+    "libraries": [],
+    "libraryMigrations": [],
+    "codeLanguage": "unknown"
+  }
+}
