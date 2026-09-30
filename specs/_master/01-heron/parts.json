@@ -58,7 +58,13 @@
         {
           "id": "A1",
           "description": "Con `membership-product`, la salida contiene en orden `Project detected`, `Navori Master: yes`, `Stage: 01-mvp`, `UX.md:  ✓`, `ux.json: ✓`, `FULL PRODUCT`, surfaces, `Screens:`/`Flows:`/`Patterns:` iguales a los conteos del `ux.json` del fixture y `Ready for research.`, con exit 0",
-          "evidence": null,
+          "evidence": {
+            "kind": "run",
+            "command": "bun test tests/e2e/init.test.ts -t \"reports FULL PRODUCT for the membership-product fixture\"",
+            "result": "exit 0; 1pass, 0fail",
+            "commit": "3ab057ae634cb806832913786b41d6f9abef8ba8",
+            "date": "2026-09-30"
+          },
           "method": "test",
           "test": {
             "file": "tests/e2e/init.test.ts",
@@ -661,13 +667,13 @@
         },
         {
           "id": "A8",
-          "method": "test",
           "description": "Con un ProductContext válido y 0 conflictos, `heron gate intake approve --yes` sale con 0, registra `approvedBy`, fecha y sha256 de los artefactos atados, avanza a `intake-ready` y solo cambia `state.json` dentro de `.heron/`",
+          "evidence": null,
+          "method": "test",
           "test": {
             "file": "tests/e2e/gate.test.ts",
             "case": "approves intake with valid context, recording approvedBy, artifact hashes, and committing only state.json"
-          },
-          "evidence": null
+          }
         },
         {
           "id": "A9",
