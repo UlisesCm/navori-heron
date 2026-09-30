@@ -202,7 +202,13 @@
         {
           "id": "A10",
           "description": "Después de `init` y `status`, el sha256 de todo archivo del repo destino fuera de `.heron/` es idéntico al previo",
-          "evidence": null,
+          "evidence": {
+            "kind": "run",
+            "command": "bun test tests/e2e/init.test.ts -t \"never writes outside .heron/ in the product repo\"",
+            "result": "exit 0; 1pass, 0fail",
+            "commit": "d3960c38978e6d3d7e5d17a919f01797cc439dc1",
+            "date": "2026-09-30"
+          },
           "method": "test",
           "test": {
             "file": "tests/e2e/init.test.ts",
