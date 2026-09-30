@@ -282,7 +282,13 @@
         {
           "id": "A15",
           "description": "El quality gate pasa completo",
-          "evidence": null,
+          "evidence": {
+            "kind": "run",
+            "command": "bun run check",
+            "result": "exit 0; 113pass (format, lint, typecheck, tests con cobertura y umbrales por ruta)",
+            "commit": "5fc5c1da17b22f4cf4fbc66e0ad2530d1f38b685",
+            "date": "2026-09-30"
+          },
           "method": "comando",
           "command": {
             "run": "bun run check",
