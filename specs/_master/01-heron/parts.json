@@ -138,7 +138,13 @@
         {
           "id": "A6",
           "description": "En `reference-only` toda transición de producción devuelve `MODE_BLOCKED`, ningún par (fase, evento) fuera de la tabla se acepta y cada transición declara una precondición verificable",
-          "evidence": null,
+          "evidence": {
+            "kind": "run",
+            "command": "bun test tests/unit/state-machine.test.ts -t \"blocks production transitions in reference-only and rejects pairs outside the table\"",
+            "result": "exit 0; 1pass, 0fail",
+            "commit": "1075abbb32e4836b479bfbc470bcd45ddf1ea520",
+            "date": "2026-09-30"
+          },
           "method": "test",
           "test": {
             "file": "tests/unit/state-machine.test.ts",
