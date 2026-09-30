@@ -33,7 +33,7 @@ Lotes de 1–3 tareas. Cada test lleva `// Covers: R<n>`. El patrón de todas la
 
 ## Lote 2 — Dominio puro de estado
 
-- [ ] **T4** (R8) — Tabla de transiciones con guard de modo y de aprobaciones.
+- [x] **T4** (R8) — Tabla de transiciones con guard de modo y de aprobaciones.
   - **Archivos:** `src/core/state/transitions.ts`, `tests/unit/state-machine.test.ts`
   - **Interfaces:** TRANSITIONS; canTransition; applyTransition; TransitionRule; TransitionFacts
   - **Patrón:** specs/0001-heron-core/design.md
@@ -42,7 +42,7 @@ Lotes de 1–3 tareas. Cada test lleva `// Covers: R<n>`. El patrón de todas la
   - **Done:** comando `bun test tests/unit/state-machine.test.ts`, esperado exit 0; casos de test "blocks production transitions in reference-only and rejects pairs outside the table"; cubre P1.A6.
   - **Fuera de alcance:** producir los hechos de Penpot o research (P2, P12, P5); los hechos se inyectan en el test.
 
-- [ ] **T5** (R8, R9, R10) — Gates atados a hashes, propagación de stale y ciclo de vida.
+- [x] **T5** (R8, R9, R10) — Gates atados a hashes, propagación de stale y ciclo de vida.
   - **Archivos:** `src/core/state/gates.ts`, `src/core/state/stale.ts`, `src/core/state/lifecycle.ts`, `tests/unit/gates.test.ts`, `tests/unit/stale.test.ts`
   - **Interfaces:** GATE_BINDINGS; approveGate; rejectGate; isApprovalValid; propagateStale; markStaleAfter; createInitialState; recordInit
   - **Patrón:** specs/0001-heron-core/design.md
@@ -51,7 +51,7 @@ Lotes de 1–3 tareas. Cada test lleva `// Covers: R<n>`. El patrón de todas la
   - **Done:** comando `bun test tests/unit/gates.test.ts tests/unit/stale.test.ts`, esperado exit 0; casos de test "invalidates an approval when a bound artifact hash changes"; cubre P1.A7.
   - **Fuera de alcance:** escribir en disco (T7).
 
-- [ ] **T6** (R2, R3, R4, R5, R7) — Decisión de modo.
+- [x] **T6** (R2, R3, R4, R5, R7) — Decisión de modo.
   - **Archivos:** `src/core/state/mode.ts`, `tests/unit/mode.test.ts`
   - **Interfaces:** detectMode; describeModeBlock
   - **Patrón:** specs/0001-heron-core/design.md
@@ -95,7 +95,8 @@ Lotes de 1–3 tareas. Cada test lleva `// Covers: R<n>`. El patrón de todas la
 
 - [ ] **T10** (R1, R2, R3, R4, R5, R6, R7, R10, R12) — `heron init` y `heron status` de punta a punta, con fixtures.
   - **Archivos:** `src/app/context.ts`, `src/app/version.ts`, `src/app/result.ts`, `src/app/init.ts`, `src/app/status.ts`, `src/cli/main.ts`, `src/cli/args.ts`, `src/cli/io.ts`, `src/cli/envelope.ts`, `src/cli/render.ts`, `src/cli/commands/init.ts`, `src/cli/commands/status.ts`, `bin/heron.ts`, `fixtures/README.md`, `fixtures/membership-product/`, `fixtures/no-ux/`, `fixtures/ux-only-md/`, `fixtures/ux-only-json/`, `fixtures/ux-invalid/`, `fixtures/closed-stage/`, `tests/helpers/fixtures.ts`, `tests/helpers/cli.ts`, `tests/unit/cli-args.test.ts`, `tests/e2e/init.test.ts`, `tests/e2e/status.test.ts`
-  - **Interfaces:** runInit; runStatus; handleInit; handleStatus; runCli; parseCliArgs; copyFixture; hashTree; runCliCaptured; fixedContext
+  - **Interfaces:** runInit; runStatus; handleInit; handleStatus; runCli; parseCliArgs; copyFixture; hashTree; runCliCaptured; fixedContext; describeModeBlock
+  - **Nota:** al renderizar un rechazo `MODE_BLOCKED` de `canTransition`, la capa de app agrega el sufijo `({describeModeBlock(decision)})` (design.md › Mensajes de findings; revisión del lote 2, MEDIO-1).
   - **Patrón:** specs/0001-heron-core/design.md
   - **Lectura:** `specs/0001-heron-core/design.md` (§Contracts › `src/app/*`, `src/cli/*` y `bin/heron.ts`, Superficie de la CLI, Salida exacta de `init`, Mensajes de findings, Salida de `status`, Fixtures), `specs/_master/01-heron/context/md/PLAN.md` (sección "Resultado esperado")
   - **Librerías:** ninguna
@@ -104,7 +105,8 @@ Lotes de 1–3 tareas. Cada test lleva `// Covers: R<n>`. El patrón de todas la
 
 - [ ] **T11** (R8, R9, R10, R11) — `heron doctor` y `heron gate`.
   - **Archivos:** `src/app/doctor.ts`, `src/app/gate.ts`, `src/cli/commands/doctor.ts`, `src/cli/commands/gate.ts`, `tests/e2e/doctor.test.ts`, `tests/e2e/gate.test.ts`
-  - **Interfaces:** runDoctor; runGate; handleDoctor; handleGate; collectTransitionFacts
+  - **Interfaces:** runDoctor; runGate; handleDoctor; handleGate; collectTransitionFacts; describeModeBlock
+  - **Nota:** `collectTransitionFacts` siempre provee `invalidatedGates` (la guarda de aprobaciones falla cerrada si falta) y el rechazo `MODE_BLOCKED` se renderiza con `describeModeBlock` (revisión del lote 2).
   - **Patrón:** specs/0001-heron-core/design.md
   - **Lectura:** `specs/0001-heron-core/design.md` (§Contracts › `src/app/*`, Salida de `status`, `doctor` y `gate`; §Decisions DP10), `src/core/state/gates.ts`
   - **Librerías:** ninguna
