@@ -314,7 +314,11 @@
         {
           "id": "A17",
           "description": "Recorrido real de instalación y detección",
-          "evidence": null,
+          "evidence": {
+            "kind": "approval",
+            "approvedBy": "user",
+            "date": "2026-09-30"
+          },
           "method": "manual",
           "manual": {
             "check": "Siguiendo `README.md` desde un clon limpio (instalación con `bun link`) la primera salida llega en ≤ 10 min; `heron init` sobre `monorepo-fullstack` muestra `Navori Master: no` y `REFERENCE ONLY`, y sobre `navori-heron` muestra `Stage: 01-heron` y `REFERENCE ONLY`",
