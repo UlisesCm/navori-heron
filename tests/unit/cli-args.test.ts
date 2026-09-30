@@ -94,7 +94,5 @@ describe("parseCliArgs", () => {
     const version = await runCliCaptured(["--version"]);
     expect(version.code).toBe(0);
     expect(version.stdout).toMatch(/^\d+\.\d+\.\d+\n$/);
-    const pending = await runCliCaptured(["doctor"]);
-    expect(pending.code).toBe(2);
   });
 });

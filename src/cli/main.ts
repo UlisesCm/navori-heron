@@ -4,6 +4,8 @@ import { failure } from "../app/result.ts";
 import { HERON_VERSION } from "../app/version.ts";
 import { ExitCode, type CliCommand, type Finding } from "../core/contracts/index.ts";
 import { UsageError, USAGE_TEXT, parseCliArgs } from "./args.ts";
+import { handleDoctor } from "./commands/doctor.ts";
+import { handleGate } from "./commands/gate.ts";
 import { handleInit } from "./commands/init.ts";
 import { handleStatus } from "./commands/status.ts";
 import { buildEnvelope } from "./envelope.ts";
@@ -66,17 +68,10 @@ export async function runCli(
         return await handleInit(parsed, scoped, io);
       case "status":
         return await handleStatus(parsed, scoped, io);
-      default: {
-        // TODO(T11): dispatch doctor and gate once their handlers exist.
-        const message = `Command "${parsed.command}" is not available yet.`;
-        return fail(
-          parsed.command,
-          ExitCode.Usage,
-          errorFinding("USAGE", message),
-          message,
-          parsed.json,
-        );
-      }
+      case "doctor":
+        return await handleDoctor(parsed, scoped, io);
+      case "gate":
+        return await handleGate(parsed, scoped, io);
     }
   } catch (error) {
     const detail = error instanceof Error ? error.message : String(error);

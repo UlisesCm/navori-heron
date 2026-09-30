@@ -104,7 +104,7 @@ Lotes de 1–3 tareas. Cada test lleva `// Covers: R<n>`. El patrón de todas la
   - **Done:** comando `bun test tests/e2e/init.test.ts tests/e2e/status.test.ts tests/unit/cli-args.test.ts`, esperado exit 0; casos de test "reports FULL PRODUCT for the membership-product fixture", "reports REFERENCE ONLY for the no-ux fixture", "falls back to reference-only without inferring the missing UX file", "treats a schema-invalid ux.json as reference-only and lists the issues", "selects stages explicitly or falls back to the last closed stage with a notice", "reports the harness UX declaration and tolerates unknown phases and modes", "never writes outside .heron/ in the product repo"; cubre P1.A1, P1.A2, P1.A3, P1.A4, P1.A5, P1.A10, P1.A11.
   - **Fuera de alcance:** `doctor` y `gate` (T11); comandos de research o diseño.
 
-- [ ] **T11** (R8, R9, R10, R11) — `heron doctor` y `heron gate`.
+- [x] **T11** (R8, R9, R10, R11) — `heron doctor` y `heron gate`.
   - **Archivos:** `src/app/doctor.ts`, `src/app/gate.ts`, `src/cli/commands/doctor.ts`, `src/cli/commands/gate.ts`, `tests/e2e/doctor.test.ts`, `tests/e2e/gate.test.ts`
   - **Interfaces:** runDoctor; runGate; handleDoctor; handleGate; collectTransitionFacts; describeModeBlock
   - **Nota:** quitar el `TODO(T11)` de `src/cli/main.ts` (hoy `doctor`/`gate` responden exit 2 "not available yet") y conectar los handlers reales (revisión de T10).

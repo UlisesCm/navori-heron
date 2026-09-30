@@ -1,5 +1,5 @@
-import { afterEach, describe, expect, test } from "bun:test";
-import { readFileSync, rmSync, unlinkSync, writeFileSync } from "node:fs";
+import { describe, expect, test } from "bun:test";
+import { readFileSync, unlinkSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import { rejectionToFinding } from "../../src/app/result.ts";
 import {
@@ -11,18 +11,10 @@ import {
 import { createInitialState } from "../../src/core/state/lifecycle.ts";
 import { canTransition } from "../../src/core/state/transitions.ts";
 import { runCliCaptured } from "../helpers/cli.ts";
-import { copyFixture, hashTree, patchHarnessState, type FixtureName } from "../helpers/fixtures.ts";
+import { e2eSetup } from "../helpers/e2e.ts";
+import { hashTree, patchHarnessState } from "../helpers/fixtures.ts";
 
-const copies: string[] = [];
-async function initialized(name: FixtureName): Promise<string> {
-  const root = copyFixture(name);
-  copies.push(root);
-  expect((await runCliCaptured(["init", root])).code).toBe(ExitCode.Ok);
-  return root;
-}
-afterEach(() => {
-  for (const dir of copies.splice(0)) rmSync(dir, { recursive: true, force: true });
-});
+const { fresh, initialized } = e2eSetup();
 
 const GATES_AT_INITIALIZED = [
   "Gates:",
@@ -124,8 +116,7 @@ describe("heron status", () => {
 
   // Covers: R11, R12
   test("fails with exit 3 when the workspace is missing, corrupt or from a newer Heron", async () => {
-    const empty = copyFixture("no-ux");
-    copies.push(empty);
+    const empty = fresh("no-ux");
     const missing = await runCliCaptured(["status", empty]);
     expect(missing.code).toBe(ExitCode.Blocked);
     expect(missing.stderr).toBe(`.heron/state.json not found. Run: heron init ${empty}\n`);
@@ -160,8 +151,7 @@ describe("heron status", () => {
 
   // Covers: R8
   test("appends the mode-block cause to a MODE_BLOCKED rejection", async () => {
-    const root = copyFixture("no-ux");
-    copies.push(root);
+    const root = fresh("no-ux");
     const run = await runCliCaptured(["init", root, "--json"]);
     const { decision } = (JSON.parse(run.stdout) as CliEnvelope).data as InitData;
     const base = createInitialState({

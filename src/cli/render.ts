@@ -1,5 +1,7 @@
 import type {
+  DoctorData,
   Finding,
+  GateData,
   HarnessArtifactName,
   HeronMode,
   InitData,
@@ -117,4 +119,26 @@ export function renderStatusText(data: StatusData, findings: readonly Finding[])
     ],
     rest.length === 0 ? [] : [renderFindings(rest)],
   ]);
+}
+
+/** One line per check (`STATUS(7) id(18) message`), `        Remedy: ...` when there is one, then the summary. */
+export function renderDoctorText(data: DoctorData): string {
+  const lines = data.checks.flatMap((check) => [
+    `${check.status.padEnd(7)} ${check.id.padEnd(18)} ${check.message}`,
+    ...(check.remedy === null ? [] : [`        Remedy: ${check.remedy}`]),
+  ]);
+  const count = (status: string): number =>
+    data.checks.filter((check) => check.status === status).length;
+  lines.push(`Summary: ${count("PASS")} PASS, ${count("WARNING")} WARNING, ${count("FAIL")} FAIL`);
+  return lines.join("\n");
+}
+
+/** The decider comes from the persisted decision; GateData carries the rest. */
+export function renderGateText(data: GateData, decidedBy: string): string {
+  return [
+    `Gate "${data.gate}" ${data.decision} by ${decidedBy}.`,
+    `Bound artifacts: ${data.artifacts.length}`,
+    `Phase: ${data.from} -> ${data.to}`,
+    `State revision: ${data.stateRevision}`,
+  ].join("\n");
 }
