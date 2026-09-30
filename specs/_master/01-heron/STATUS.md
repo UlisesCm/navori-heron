@@ -6,7 +6,7 @@ Cerrable: no
 
 | Parte | Estado | Tareas | Spec | Issue |
 |---|---|---|---|---|
-| P1 | parcial | 3/15 | specs/0001-heron-core | — |
+| P1 | parcial | 15/15 | specs/0001-heron-core | — |
 | P2 | pendiente | 0/0 | — | — |
 | P3 | pendiente | 0/0 | — | — |
 | P4 | pendiente | 0/0 | — | — |
@@ -29,14 +29,14 @@ Cerrable: no
 - P1.A6 (test): sin evidencia
 - P1.A7 (test): sin evidencia
 - P1.A8 (test): sin evidencia
-- P1.A9 (test): verificado · commitsBehind=1
+- P1.A9 (test): verificado · commitsBehind=15
 - P1.A10 (test): sin evidencia
 - P1.A11 (test): sin evidencia
 - P1.A12 (test): sin evidencia
 - P1.A13 (test): sin evidencia
-- P1.A14 (comando): verificado · commitsBehind=0
+- P1.A14 (comando): verificado · commitsBehind=14
 - P1.A15 (comando): sin evidencia
-- P1.A16 (test): verificado · commitsBehind=2
+- P1.A16 (test): verificado · commitsBehind=16
 - P1.A17 (manual): sin evidencia
 - P2.A1 (test): sin evidencia
 - P2.A2 (test): sin evidencia
@@ -66,7 +66,8 @@ Cerrable: no
 - P4.A5 (test): sin evidencia
 - P4.A6 (test): sin evidencia
 - P4.A7 (comando): sin evidencia
-- P4.A8 (manual): sin evidencia
+- P4.A8 (test): sin evidencia
+- P4.A9 (manual): sin evidencia
 - P5.A1 (test): sin evidencia
 - P5.A2 (test): sin evidencia
 - P5.A3 (test): sin evidencia
