@@ -154,7 +154,13 @@
         {
           "id": "A7",
           "description": "Una aprobación de gate se invalida cuando cambia el hash de cualquier artefacto atado",
-          "evidence": null,
+          "evidence": {
+            "kind": "run",
+            "command": "bun test tests/unit/gates.test.ts -t \"invalidates an approval when a bound artifact hash changes\"",
+            "result": "exit 0; 1pass, 0fail",
+            "commit": "aac833d5c657316c785a4f9bbd2b82cf96acd432",
+            "date": "2026-09-30"
+          },
           "method": "test",
           "test": {
             "file": "tests/unit/gates.test.ts",
