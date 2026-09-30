@@ -208,7 +208,13 @@
         {
           "id": "A16",
           "description": "El workflow de CI existe y ejecuta `bun install --frozen-lockfile` y `bun run check` en PR y en `main`",
-          "evidence": null,
+          "evidence": {
+            "kind": "run",
+            "command": "bun test tests/repo/ci.test.ts",
+            "result": "exit 0; 1 pass (ci workflow runs the quality gate on pull requests and main)",
+            "commit": "62d3a9cc22119f284f965ad01cd8bd1972eb888f",
+            "date": "2026-09-30"
+          },
           "method": "test",
           "test": {
             "file": "tests/repo/ci.test.ts",

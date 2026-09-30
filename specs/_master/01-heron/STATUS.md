@@ -6,7 +6,7 @@ Cerrable: no
 
 | Parte | Estado | Tareas | Spec | Issue |
 |---|---|---|---|---|
-| P1 | parcial | 0/15 | specs/0001-heron-core | — |
+| P1 | parcial | 3/15 | specs/0001-heron-core | — |
 | P2 | pendiente | 0/0 | — | — |
 | P3 | pendiente | 0/0 | — | — |
 | P4 | pendiente | 0/0 | — | — |
@@ -36,7 +36,7 @@ Cerrable: no
 - P1.A13 (test): sin evidencia
 - P1.A14 (comando): sin evidencia
 - P1.A15 (comando): sin evidencia
-- P1.A16 (test): sin evidencia
+- P1.A16 (test): verificado · commitsBehind=0
 - P1.A17 (manual): sin evidencia
 - P2.A1 (test): sin evidencia
 - P2.A2 (test): sin evidencia
@@ -144,7 +144,6 @@ Cerrable: no
 - P1.A13: sin evidencia
 - P1.A14: sin evidencia
 - P1.A15: sin evidencia
-- P1.A16: sin evidencia
 - P1.A17: sin evidencia
 - P2: pendiente
 - P3: pendiente
