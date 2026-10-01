@@ -93,7 +93,7 @@ Toda referencia lleva `source`, `origin`, `reason`, `studies[]`, `doNotCopy[]` e
     assets/{sha256}.webp     imágenes de marca saneadas
 ```
 
-Todo se versiona en Git (D15); `status` avisa con `ASSETS_LARGE` si las imágenes superan 50 MiB. Los originales nunca se copian: de un archivo local solo se guarda el nombre y si venía del repo o de fuera. Cada salida declara el modo: `reference-only` mientras exista una referencia activa capturada en ese modo, aunque el proyecto ya esté en `full`. `research render` en fases de producción solo puede reescribir las vistas; si `references.json` o `provenance.json` cambiaran, sale con exit 3 (`TRANSITION_NOT_ALLOWED`). Desde una fase de producción tampoco se puede `references add|import|remove`: el research queda congelado.
+Todo se versiona en Git (D15); `status` avisa con `ASSETS_LARGE` (warning, exit 0) si las imágenes de `research/assets/` y `brand/assets/` superan 50 MiB, y lista en `Allowed commands` las órdenes de research (`references add|import` solo mientras la fase admita referencias nuevas). Los originales nunca se copian: de un archivo local solo se guarda el nombre y si venía del repo o de fuera. Cada salida declara el modo: `reference-only` mientras exista una referencia activa capturada en ese modo, aunque el proyecto ya esté en `full`. `research render` en fases de producción solo puede reescribir las vistas; si `references.json` o `provenance.json` cambiaran, sale con exit 3 (`TRANSITION_NOT_ALLOWED`). Desde una fase de producción tampoco se puede `references add|import|remove`: el research queda congelado.
 
 ## Códigos de salida
 

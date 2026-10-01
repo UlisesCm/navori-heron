@@ -97,9 +97,9 @@ heron research render [path] [--json]
 ```
 
 - `init`: detecta el contexto, decide el modo y escribe `.heron/`. Con varias etapas y ninguna activa usa la última `cerrada` y lo avisa; `--stage` fuerza una.
-- `status`: modo, etapa, fase, gates y artefactos obsoletos. Solo lectura.
-- `doctor`: revisa Bun, la ruta, `.heron/`, el lock, el `.gitignore` y la detección. Solo lectura.
 - `init --locale` fija el idioma de las salidas de research (tag BCP 47; se conserva entre ejecuciones).
+- `status`: modo, etapa, fase, gates, artefactos obsoletos y las órdenes permitidas (incluye las de research y el aviso `ASSETS_LARGE`). Solo lectura.
+- `doctor`: revisa Bun, la ruta, `.heron/`, el lock, el `.gitignore` y la detección. Solo lectura.
 - `gate`: registra una decisión humana ligada a hashes. Gates: `intake`, `research`, `direction`, `foundations`, `representative-screens`, `visual-review`. Rechazar exige `--reason`; sin TTY hay que pasar `--yes`. Con P2, `research approve` funciona con 5 o más referencias con provenance; los demás gates siguen sin aprobar hasta que una parte posterior produzca sus artefactos (exit 3); `reject` funciona siempre.
 
 - `references`, `brand` y `research render`: research sin IA con provenance completa, defensas SSRF, de rutas y de imágenes, y un moodboard HTML estático. Flujo, formato de lote y recorrido manual en [docs/research.md](docs/research.md); política de seguridad en [docs/security.md](docs/security.md). Con 5 o más referencias con provenance completa, `gate research approve` pasa a `research-ready`.
