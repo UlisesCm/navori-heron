@@ -119,7 +119,7 @@ Lotes de 1–3 tareas, **en serie** (cada tarea declara de qué depende y con qu
 
 ## Lote 6 — Runner, adapters y primera sonda viva
 
-- [ ] **T10** (R1, R4, R20) — Runner de procesos único (grupo, timeouts, drenado acotado, señales) y adapter `claude-code` con sonda de capacidades y máximo de tokens de salida.
+- [x] **T10** (R1, R4, R20) — Runner de procesos único (grupo, timeouts, drenado acotado, señales) y adapter `claude-code` con sonda de capacidades y máximo de tokens de salida.
   - **Archivos:** `src/agents/process/bun-runner.ts`, `src/agents/adapters/claude-code/index.ts`, `tests/helpers/agents.ts`, `tests/unit/agents/argv.test.ts`, `tests/unit/agents/timeout.test.ts`, `tests/repo/boundaries.test.ts`
   - **Interfaces:** bunProcessRunner; claudeCodeProvider; CLAUDE_FIXED_ARGS; CLAUDE_REQUIRED_FLAGS; claudeArgv; writeFakeAgentBin; fakeBinEnv; refusingRunner
   - **Patrón:** src/security/fetch/system.ts
