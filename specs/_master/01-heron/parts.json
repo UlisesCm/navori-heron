@@ -439,7 +439,13 @@
         {
           "id": "A5",
           "description": "Un JPEG con GPS queda con 0 etiquetas EXIF/GPS/XMP y en WebP; magic bytes distintos de PNG/JPEG/WebP se rechazan; una imagen > 20 MB o > 50 MP se rechaza; dos imports del mismo archivo producen un solo asset",
-          "evidence": null,
+          "evidence": {
+            "kind": "run",
+            "command": "bun test tests/security/images.test.ts -t \"sanitizes, bounds and deduplicates imported images\"",
+            "result": "exit 0; 1 pass,0 fail",
+            "commit": "1cc5e9fcddb8958093a836c77c288e81934e291f",
+            "date": "2026-10-01"
+          },
           "method": "test",
           "test": {
             "file": "tests/security/images.test.ts",
