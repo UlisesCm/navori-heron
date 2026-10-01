@@ -375,7 +375,13 @@
         {
           "id": "A1",
           "description": "`references add --source manual` guarda `source`, `origin`, `capturedAt` ISO-8601, `reason`, `studies[]`, `doNotCopy[]`, `influences[]` y `mode`",
-          "evidence": null,
+          "evidence": {
+            "kind": "run",
+            "command": "bun test tests/e2e/references.test.ts -t \"adds a manual reference with complete provenance\"",
+            "result": "exit 0;  1 pass, 0 fail,",
+            "commit": "b8ee0a9268f123445585571c320bc86821162fec",
+            "date": "2026-10-01"
+          },
           "method": "test",
           "test": {
             "file": "tests/e2e/references.test.ts",
