@@ -98,7 +98,7 @@ Lotes de 1–3 tareas. Cada test lleva `// Covers: R<n>` en la primera línea y 
   - **Nota:** la unión de fallos de `AdapterLoadResult` conserva `LOAD_NOT_AVAILABLE` hasta T9 (el adapter `filesystem` aún es stub).
   - **Fuera de alcance:** `filesystem` (T9), `markdown`/`manual` (T10).
 
-- [ ] **T9** (R3, R9) — `load` real de `filesystem`, `adapterFor` y retiro del stub de P1.
+- [x] **T9** (R3, R9) — `load` real de `filesystem`, `adapterFor` y retiro del stub de P1.
   - **Archivos:** `src/intake/adapters/filesystem/index.ts`, `src/intake/detect.ts`, `src/intake/ports.ts`, `tests/unit/intake/adapters.test.ts`
   - **Interfaces:** adapterFor; filesystemAdapter
   - **Patrón:** src/intake/adapters/filesystem/index.ts

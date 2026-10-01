@@ -68,12 +68,12 @@ export type AdapterDetection =
 
 /** `mode` is the effective mode: UX sources (`ux.json`, `UX.md`) contribute only in `full`. */
 export type LoadRequest = DetectRequest & { report: DetectionReport; mode: HeronMode };
-/** T9 retires LOAD_NOT_AVAILABLE with the `filesystem` stub; T10 adds CONTEXT_INPUT_INVALID. */
+/** T10 adds CONTEXT_INPUT_INVALID. */
 export type AdapterLoadResult =
   | { ok: true; draft: ContextDraft }
   | {
       ok: false;
-      code: "LOAD_NOT_AVAILABLE" | "INPUTS_CHANGED";
+      code: "INPUTS_CHANGED";
       message: string;
       findings: Finding[];
     };
@@ -83,14 +83,4 @@ export interface ProductContextAdapter {
   /** Read-only and non-throwing on hostile input: problems become findings in the report. */
   detect(request: DetectRequest): AdapterDetection;
   load(request: LoadRequest): AdapterLoadResult;
-}
-
-/** Shared `load` stub until P4 (ProductContext). */
-export function loadNotAvailable(id: AdapterId): AdapterLoadResult {
-  return {
-    ok: false,
-    code: "LOAD_NOT_AVAILABLE",
-    message: `Adapter "${id}" cannot load a ProductContext yet.`,
-    findings: [],
-  };
 }

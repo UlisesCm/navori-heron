@@ -2,7 +2,6 @@ import type {
   ContextSourceRecord,
   DetectedArtifact,
   DetectionReport,
-  Extension,
   Finding,
   HarnessArtifactName,
   HarnessDeclaration,
@@ -10,21 +9,20 @@ import type {
   SourceKind,
 } from "../../../core/contracts/index.ts";
 import { candidateSink } from "../../candidates.ts";
-import { extractRoleSections, parseMarkdown, type MarkdownDoc } from "../../markdown.ts";
+import { createDraftKit, type Extraction } from "../../draft-kit.ts";
+import { extractRoleSections, type MarkdownDoc } from "../../markdown.ts";
 import {
   type AdapterDetection,
   type AdapterLoadResult,
-  type Candidate,
   type ContextDraft,
   type DetectRequest,
   type LoadRequest,
   type ProductContextAdapter,
 } from "../../ports.ts";
-import { decodeUtf8, probeFile } from "../../probe.ts";
-import { listContextMarkdown, readSource, settleSource } from "../../sources.ts";
-import { ACTIVE_UX_READER, checkUxFiles } from "../../ux-contract.ts";
+import { probeFile } from "../../probe.ts";
+import { listContextMarkdown } from "../../sources.ts";
+import { checkUxFiles } from "../../ux-contract.ts";
 import { extractUxMarkdown } from "../../ux-markdown.ts";
-import { uxCandidates } from "../../ux-model.ts";
 import { parseDecisions } from "./decisions.ts";
 import {
   CONFIG_PATH,
@@ -169,8 +167,6 @@ function detectNavoriMaster(request: DetectRequest): AdapterDetection {
 const role = (path: RelativeArtifactPath, source: SourceKind) => (doc: MarkdownDoc) =>
   extractRoleSections(doc, { source, path });
 
-type Extraction = { candidates: Candidate[]; findings: Finding[] };
-
 /** Reads the sources of the selected stage in draft order (DR3, § Contracts 7) and turns them into
  * candidates; merging, precedence and conflicts belong to `buildProductContext`. A source that cannot be
  * read is reported and skipped, never thrown. `ux.json` and `UX.md` contribute only in `full`
@@ -182,40 +178,15 @@ export function loadNavoriMaster(request: LoadRequest): AdapterLoadResult {
   if (!report.navoriMaster || stage === null || specsDir === null) {
     return {
       ok: false,
-      code: "LOAD_NOT_AVAILABLE",
-      message: "navori-master cannot load without a selected stage.",
+      code: "INPUTS_CHANGED",
+      message: "The detection no longer selects a navori-master stage; run the command again.",
       findings: [],
     };
   }
   const dir = `${specsDir}/_master/${stage.dir}`;
-  const sources: ContextSourceRecord[] = [];
-  const candidates: Candidate[] = [];
-  const findings: Finding[] = [];
-  let uxExtensions: Extension[] = [];
-  let uxReader: ContextDraft["uxReader"] = null;
+  const kit = createDraftKit(request);
+  const { take, markdown, findings } = kit;
   let parts: ContextDraft["parts"];
-
-  const take = (record: ContextSourceRecord, extracted: Extraction | null): void => {
-    const settled = settleSource(record, extracted?.candidates.length ?? 0);
-    sources.push(settled.record);
-    if (extracted !== null) {
-      candidates.push(...extracted.candidates);
-      findings.push(...extracted.findings);
-    }
-    if (settled.finding !== null) findings.push(settled.finding);
-  };
-  const markdown = (
-    path: RelativeArtifactPath,
-    source: SourceKind,
-    extract: (doc: MarkdownDoc) => Extraction,
-    enabled = true,
-  ): void => {
-    const { loaded, finding } = readSource(fs, root, path, source, limits);
-    if (finding !== null) findings.push(finding);
-    if (loaded.text === null) return take(loaded.record, null);
-    if (!enabled) return take({ ...loaded.record, status: "unused" }, null);
-    take(loaded.record, extract(parseMarkdown(loaded.text)));
-  };
   const full = mode === "full";
 
   const decisionsPath = `${dir}/DECISIONS.md`;
@@ -238,53 +209,11 @@ export function loadNavoriMaster(request: LoadRequest): AdapterLoadResult {
     take(...unsettled("parts.json", partsPath, partsRead, findings));
   }
 
-  const uxJsonPath = `${dir}/ux.json`;
-  const uxProbe = probeFile(fs, root, uxJsonPath, limits);
-  if (uxProbe.finding !== null) findings.push(uxProbe.finding);
-  if (full && uxProbe.sha256 !== report.uxJson.sha256) {
-    return {
-      ok: false,
-      code: "INPUTS_CHANGED",
-      message: `${uxJsonPath} changed since it was detected; run the command again.`,
-      findings: [],
-    };
-  }
-  const uxRecord = (status: ContextSourceRecord["status"]): ContextSourceRecord => ({
-    source: "ux.json",
-    path: uxJsonPath,
-    status,
-  });
-  if (uxProbe.finding !== null) {
-    take(uxRecord("unreadable"), null);
-  } else if (uxProbe.bytes === null) {
-    take(uxRecord("absent"), null);
-  } else if (!full) {
-    take(uxRecord("unused"), null);
-  } else {
-    const read = ACTIVE_UX_READER.read(uxProbe.bytes, {
-      expectedStage: stage.dir,
-    });
-    // the reader accepted these bytes, so they decode and parse to an object
-    const raw: unknown = read.ok ? JSON.parse(decodeUtf8(uxProbe.bytes) ?? "null") : null;
-    if (!read.ok || typeof raw !== "object" || raw === null || Array.isArray(raw)) {
-      findings.push({
-        code: "UX_CONTRACT_INVALID",
-        severity: "warning",
-        message: `${uxJsonPath} does not satisfy the UX contract reader; it is ignored.`,
-        paths: [uxJsonPath],
-        issues: read.ok ? [] : read.issues,
-      });
-      take(uxRecord("unreadable"), null);
-    } else {
-      const mapped = uxCandidates(raw as Record<string, unknown>, read.contract, uxJsonPath);
-      uxExtensions = mapped.extensions;
-      uxReader = ACTIVE_UX_READER.id;
-      take(uxRecord("read"), {
-        candidates: mapped.candidates,
-        findings: mapped.findings,
-      });
-    }
-  }
+  const changed = kit.uxJson(
+    { path: `${dir}/ux.json`, expectedStage: stage.dir, detectedSha256: report.uxJson.sha256 },
+    full,
+  );
+  if (changed !== null) return changed;
 
   const uxMarkdownPath = `${dir}/UX.md`;
   markdown(uxMarkdownPath, "UX.md", (doc) => extractUxMarkdown(doc, uxMarkdownPath), full);
@@ -325,17 +254,7 @@ export function loadNavoriMaster(request: LoadRequest): AdapterLoadResult {
     take(...unsettled("navori.config.json", CONFIG_PATH, config, findings));
   }
 
-  return {
-    ok: true,
-    draft: {
-      sources,
-      candidates,
-      uxReader,
-      uxExtensions,
-      findings,
-      ...(parts === undefined ? {} : { parts }),
-    },
-  };
+  return kit.finish(parts);
 }
 
 /** One traceability candidate per seeded requirement, listing the parts that seed it (file order). */
