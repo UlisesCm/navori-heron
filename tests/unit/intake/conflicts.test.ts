@@ -128,7 +128,7 @@ describe("conflict detection", () => {
   });
 
   // Covers: R5
-  test("does not claim unknown part criteria while the criteria sets are empty", () => {
+  test("reports an unknown part criterion against the declared criteria", () => {
     const built = run([
       candidate(
         "traceability",
@@ -144,17 +144,14 @@ describe("conflict detection", () => {
         masterRef("/traceability/1", "ux.json"),
       ),
     ]);
-    const defined = {
-      ...built.defined,
-      parts: new Map([["P1", new Set<string>()]]),
-    };
-    const found = detectConflicts(built.context, built.mismatches, defined);
-    expect(found.some((c) => c.subject === "P1.A2")).toBe(false);
-    const populated = detectConflicts(built.context, built.mismatches, {
-      ...defined,
-      parts: new Map([["P1", new Set(["P1.A1"])]]),
-    });
-    expect(populated.some((c) => c.subject === "P1.A2")).toBe(true);
+    const subjects = (parts: Map<string, Set<string>>) =>
+      detectConflicts(built.context, built.mismatches, {
+        ...built.defined,
+        parts,
+      }).filter((c) => c.subject === "P1.A2");
+    expect(subjects(new Map([["P1", new Set<string>()]]))).toHaveLength(1);
+    expect(subjects(new Map([["P1", new Set(["P1.A1"])]]))).toHaveLength(1);
+    expect(subjects(new Map([["P1", new Set(["P1.A1", "P1.A2"])]]))).toHaveLength(0);
   });
 });
 
