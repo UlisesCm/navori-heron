@@ -106,7 +106,7 @@ Lotes de 1–3 tareas, **en serie** (cada tarea declara de qué depende y con qu
   - **Comparte archivos con:** T2, T6, T10 (`boundaries.test.ts`); T6 (`check-coverage.ts`, `coverage-rules.test.ts`).
   - **Fuera de alcance:** plantillas (T9), runner y adapters (T10, T11).
 
-- [ ] **T9** (R3, R6, R9, R10, R11, R12, R14, R20) — Plantillas versionadas importadas como texto y especificación de las 4 tareas (ítems permitidos y `maxOutputTokens`).
+- [x] **T9** (R3, R6, R9, R10, R11, R12, R14, R20) — Plantillas versionadas importadas como texto y especificación de las 4 tareas (ítems permitidos y `maxOutputTokens`).
   - **Archivos:** `src/agents/text-modules.d.ts`, `src/agents/prompts.ts`, `src/agents/tasks.ts`, `prompts/visual-researcher/research-brief@v1.md`, `prompts/visual-researcher/research-analyze@v1.md`, `prompts/design-director/direction-propose@v1.md`, `prompts/shared/repair@v1.md`, `prompts/shared/probe@v1.md`, `tests/unit/agents/prompts.test.ts`
   - **Interfaces:** PromptTemplate; PROMPT_TEMPLATES; templateFor; REPAIR_TEMPLATE; AgentTaskSpec; AGENT_TASKS
   - **Patrón:** src/research/registry.ts
