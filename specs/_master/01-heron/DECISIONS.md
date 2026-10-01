@@ -188,3 +188,17 @@
 - Elegida: Forzar `reference-only` y emitir `UX_DECLARATION_MISMATCH` hasta que declaración y archivos coincidan (design de P1, DP11)
 - Descartadas: Calcular el modo solo desde los archivos y emitir el desajuste como WARNING
 - Fecha: 2026-09-30
+
+## D28
+
+- Pregunta: ¿De dónde se pueden importar imágenes y DESIGN.md locales en `heron references add` (P2)?
+- Elegida: También de rutas fuera del repo cuando el usuario las pasa explícitamente: se leen una vez, se sanean y se copian a `.heron/research/assets/<sha256>.webp`; la provenance guarda solo el nombre del archivo, nunca la ruta absoluta; symlinks que escapan y `..` siguen rechazados
+- Descartadas: Solo rutas dentro del repo del producto
+- Fecha: 2026-09-30
+
+## D29
+
+- Pregunta: ¿Qué URLs públicas acepta la fuente `url` (P2)?
+- Elegida: `https` en cualquier puerto; sin `http` público; `http` solo para destinos locales con `--allow-local`; el control de SSRF es la validación de IP/DNS
+- Descartadas: Solo `https` en el puerto 443
+- Fecha: 2026-09-30

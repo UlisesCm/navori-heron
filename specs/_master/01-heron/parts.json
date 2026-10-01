@@ -466,7 +466,7 @@
       "inheritedFrom": null,
       "state": "pendiente",
       "reason": null,
-      "spec": null,
+      "spec": "specs/0002-research",
       "issue": null
     },
     {
