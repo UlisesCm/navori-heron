@@ -1,3 +1,4 @@
+import { AGENT_RUN_DOCUMENT, type AgentRun } from "./agents.ts";
 import { CLI_ENVELOPE_DOCUMENT, type CliEnvelope } from "./cli-envelope.ts";
 import {
   INTAKE_CONFLICTS_DOCUMENT,
@@ -7,6 +8,14 @@ import {
   type ManualContext,
   type ProductContext,
 } from "./product-context.ts";
+import {
+  RESEARCH_ANALYSIS_DOCUMENT,
+  RESEARCH_BRIEF_DOCUMENT,
+  VISUAL_DIRECTIONS_DOCUMENT,
+  type ResearchAnalysis,
+  type ResearchBrief,
+  type VisualDirections,
+} from "./directions.ts";
 import { HERON_PROJECT_DOCUMENT, type HeronProject } from "./heron-project.ts";
 import { HERON_STATE_DOCUMENT, type HeronState } from "./heron-state.ts";
 import { MODE_DECISION_DOCUMENT, type StoredModeDecision } from "./mode-decision.ts";
@@ -33,6 +42,9 @@ export * from "./research.ts";
 export * from "./research-data.ts";
 export * from "./product-context.ts";
 export * from "./intake-data.ts";
+export * from "./agents.ts";
+export * from "./directions.ts";
+export * from "./agents-data.ts";
 
 /** Registry consumed by scripts/gen-schemas.ts, in this order. */
 export const CONTRACT_DOCUMENTS: readonly [
@@ -47,6 +59,10 @@ export const CONTRACT_DOCUMENTS: readonly [
   DocumentSpec<ProductContext>,
   DocumentSpec<IntakeConflicts>,
   DocumentSpec<ManualContext>,
+  DocumentSpec<AgentRun>,
+  DocumentSpec<ResearchBrief>,
+  DocumentSpec<ResearchAnalysis>,
+  DocumentSpec<VisualDirections>,
 ] = [
   HERON_PROJECT_DOCUMENT,
   HERON_STATE_DOCUMENT,
@@ -59,4 +75,8 @@ export const CONTRACT_DOCUMENTS: readonly [
   PRODUCT_CONTEXT_DOCUMENT,
   INTAKE_CONFLICTS_DOCUMENT,
   MANUAL_CONTEXT_DOCUMENT,
+  AGENT_RUN_DOCUMENT,
+  RESEARCH_BRIEF_DOCUMENT,
+  RESEARCH_ANALYSIS_DOCUMENT,
+  VISUAL_DIRECTIONS_DOCUMENT,
 ];

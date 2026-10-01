@@ -16,7 +16,7 @@ export interface FsPort {
   readFileSync(path: string): Uint8Array;
   readdirSync(path: string): string[];
   mkdirSync(path: string, options: { recursive: true }): void;
-  openSync(path: string, flags: "r" | "w" | "wx"): number;
+  openSync(path: string, flags: "r" | "w" | "wx" | "a"): number;
   writeSync(fd: number, data: Uint8Array): number;
   fsyncSync(fd: number): void;
   closeSync(fd: number): void;

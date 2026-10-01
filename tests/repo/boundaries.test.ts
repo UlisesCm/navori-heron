@@ -106,7 +106,7 @@ export const LAYERS: readonly LayerRule[] = [
     from: "src/core/store",
     allow: ["src/core/contracts", "src/core/store"],
     typeOnly: [],
-    bare: [/^node:fs$/, /^node:path$/, /^node:crypto$/],
+    bare: [/^node:fs$/, /^node:path$/, /^node:crypto$/, /^node:os$/], // VENDORS narrows node:os to temp-dir.ts
     violates: ex("src/core/store/x.ts", 'import "../state/mode.ts";'),
     passes: ex(
       "src/core/store/x.ts",
@@ -230,10 +230,10 @@ export const VENDORS: readonly VendorRule[] = [
   },
   {
     specifier: /^node:os$/,
-    only: ["src/app/context.ts"],
-    rule: "node:os only in src/app/context.ts",
-    violates: ex("src/app/x.ts", 'import "node:os";'),
-    passes: ex("src/app/context.ts", 'import "node:os";'),
+    only: ["src/app/context.ts", "src/core/store/temp-dir.ts"],
+    rule: "node:os only in src/app/context.ts and src/core/store/temp-dir.ts",
+    violates: ex("src/core/store/x.ts", 'import "node:os";'),
+    passes: ex("src/core/store/temp-dir.ts", 'import "node:os";'),
   },
   {
     specifier: /^(?:node:)?crypto$/,

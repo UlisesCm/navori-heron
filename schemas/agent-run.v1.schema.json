@@ -1,0 +1,572 @@
+{
+  "$id": "agent-run.v1.schema.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": {},
+  "properties": {
+    "cacheKey": {
+      "pattern": "^[0-9a-f]{64}$",
+      "type": "string"
+    },
+    "command": {
+      "minLength": 1,
+      "type": "string"
+    },
+    "heronVersion": {
+      "minLength": 1,
+      "type": "string"
+    },
+    "inputs": {
+      "items": {
+        "additionalProperties": {},
+        "properties": {
+          "path": {
+            "maxLength": 512,
+            "type": "string"
+          },
+          "sha256": {
+            "pattern": "^[0-9a-f]{64}$",
+            "type": "string"
+          }
+        },
+        "required": [
+          "path",
+          "sha256"
+        ],
+        "type": "object"
+      },
+      "type": "array"
+    },
+    "invocations": {
+      "items": {
+        "additionalProperties": {},
+        "properties": {
+          "attempt": {
+            "maximum": 9007199254740991,
+            "minimum": 1,
+            "type": "integer"
+          },
+          "cliVersion": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "durationMs": {
+            "minimum": 0,
+            "type": "number"
+          },
+          "exitCode": {
+            "anyOf": [
+              {
+                "maximum": 9007199254740991,
+                "minimum": -9007199254740991,
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "input": {
+            "additionalProperties": {},
+            "properties": {
+              "chars": {
+                "maximum": 9007199254740991,
+                "minimum": 0,
+                "type": "integer"
+              },
+              "sha256": {
+                "pattern": "^[0-9a-f]{64}$",
+                "type": "string"
+              }
+            },
+            "required": [
+              "sha256",
+              "chars"
+            ],
+            "type": "object"
+          },
+          "issues": {
+            "maximum": 9007199254740991,
+            "minimum": 0,
+            "type": "integer"
+          },
+          "kind": {
+            "enum": [
+              "initial",
+              "repair"
+            ],
+            "type": "string"
+          },
+          "model": {
+            "additionalProperties": {},
+            "properties": {
+              "reported": {
+                "items": {
+                  "type": "string"
+                },
+                "type": "array"
+              },
+              "requested": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              }
+            },
+            "required": [
+              "requested",
+              "reported"
+            ],
+            "type": "object"
+          },
+          "output": {
+            "anyOf": [
+              {
+                "additionalProperties": {},
+                "properties": {
+                  "bytes": {
+                    "maximum": 9007199254740991,
+                    "minimum": 0,
+                    "type": "integer"
+                  },
+                  "sha256": {
+                    "pattern": "^[0-9a-f]{64}$",
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "sha256",
+                  "bytes"
+                ],
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "provider": {
+            "enum": [
+              "claude-code",
+              "codex-cli",
+              "fake"
+            ],
+            "type": "string"
+          },
+          "signal": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "status": {
+            "enum": [
+              "succeeded",
+              "invalid-output",
+              "timeout",
+              "failed",
+              "policy-violation",
+              "unavailable"
+            ],
+            "type": "string"
+          },
+          "template": {
+            "additionalProperties": {},
+            "properties": {
+              "id": {
+                "minLength": 1,
+                "type": "string"
+              },
+              "sha256": {
+                "pattern": "^[0-9a-f]{64}$",
+                "type": "string"
+              },
+              "version": {
+                "maximum": 9007199254740991,
+                "minimum": 1,
+                "type": "integer"
+              }
+            },
+            "required": [
+              "id",
+              "version",
+              "sha256"
+            ],
+            "type": "object"
+          },
+          "usage": {
+            "additionalProperties": {},
+            "properties": {
+              "cachedInputTokens": {
+                "anyOf": [
+                  {
+                    "maximum": 9007199254740991,
+                    "minimum": 0,
+                    "type": "integer"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              },
+              "costIsEstimate": {
+                "type": "boolean"
+              },
+              "costUsd": {
+                "anyOf": [
+                  {
+                    "minimum": 0,
+                    "type": "number"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              },
+              "inputTokens": {
+                "anyOf": [
+                  {
+                    "maximum": 9007199254740991,
+                    "minimum": 0,
+                    "type": "integer"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              },
+              "outputTokens": {
+                "anyOf": [
+                  {
+                    "maximum": 9007199254740991,
+                    "minimum": 0,
+                    "type": "integer"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              }
+            },
+            "required": [
+              "inputTokens",
+              "outputTokens",
+              "cachedInputTokens",
+              "costUsd",
+              "costIsEstimate"
+            ],
+            "type": "object"
+          }
+        },
+        "required": [
+          "attempt",
+          "kind",
+          "provider",
+          "cliVersion",
+          "model",
+          "template",
+          "input",
+          "output",
+          "status",
+          "exitCode",
+          "signal",
+          "durationMs",
+          "usage",
+          "issues"
+        ],
+        "type": "object"
+      },
+      "maxItems": 3,
+      "minItems": 1,
+      "type": "array"
+    },
+    "kind": {
+      "const": "AgentRun",
+      "type": "string"
+    },
+    "mode": {
+      "enum": [
+        "full",
+        "reference-only"
+      ],
+      "type": "string"
+    },
+    "outputSchema": {
+      "additionalProperties": {},
+      "properties": {
+        "dialect": {
+          "enum": [
+            "claude",
+            "openai-strict"
+          ],
+          "type": "string"
+        },
+        "sha256": {
+          "pattern": "^[0-9a-f]{64}$",
+          "type": "string"
+        },
+        "task": {
+          "enum": [
+            "research-brief",
+            "research-analyze",
+            "direction-propose",
+            "probe"
+          ],
+          "type": "string"
+        }
+      },
+      "required": [
+        "task",
+        "dialect",
+        "sha256"
+      ],
+      "type": "object"
+    },
+    "outputs": {
+      "items": {
+        "additionalProperties": {},
+        "properties": {
+          "path": {
+            "maxLength": 512,
+            "type": "string"
+          },
+          "sha256": {
+            "pattern": "^[0-9a-f]{64}$",
+            "type": "string"
+          }
+        },
+        "required": [
+          "path",
+          "sha256"
+        ],
+        "type": "object"
+      },
+      "type": "array"
+    },
+    "pack": {
+      "additionalProperties": {},
+      "properties": {
+        "budget": {
+          "maximum": 9007199254740991,
+          "minimum": 1,
+          "type": "integer"
+        },
+        "chars": {
+          "maximum": 9007199254740991,
+          "minimum": 0,
+          "type": "integer"
+        },
+        "items": {
+          "items": {
+            "additionalProperties": {},
+            "properties": {
+              "chars": {
+                "maximum": 9007199254740991,
+                "minimum": 0,
+                "type": "integer"
+              },
+              "id": {
+                "minLength": 1,
+                "type": "string"
+              },
+              "kind": {
+                "enum": [
+                  "task-input",
+                  "contrast-policy",
+                  "operator-query",
+                  "reference",
+                  "reference-origin",
+                  "brand-input",
+                  "brief-query",
+                  "analysis-note",
+                  "external-text",
+                  "previous-output",
+                  "validation-issues"
+                ],
+                "type": "string"
+              },
+              "sha256": {
+                "pattern": "^[0-9a-f]{64}$",
+                "type": "string"
+              },
+              "trust": {
+                "enum": [
+                  "heron",
+                  "operator",
+                  "untrusted"
+                ],
+                "type": "string"
+              }
+            },
+            "required": [
+              "kind",
+              "id",
+              "trust",
+              "sha256",
+              "chars"
+            ],
+            "type": "object"
+          },
+          "type": "array"
+        },
+        "sha256": {
+          "pattern": "^[0-9a-f]{64}$",
+          "type": "string"
+        },
+        "trimmed": {
+          "items": {
+            "additionalProperties": {},
+            "properties": {
+              "action": {
+                "enum": [
+                  "truncated",
+                  "dropped"
+                ],
+                "type": "string"
+              },
+              "id": {
+                "minLength": 1,
+                "type": "string"
+              },
+              "keptChars": {
+                "maximum": 9007199254740991,
+                "minimum": 0,
+                "type": "integer"
+              },
+              "originalChars": {
+                "maximum": 9007199254740991,
+                "minimum": 0,
+                "type": "integer"
+              }
+            },
+            "required": [
+              "id",
+              "action",
+              "originalChars",
+              "keptChars"
+            ],
+            "type": "object"
+          },
+          "type": "array"
+        }
+      },
+      "required": [
+        "sha256",
+        "chars",
+        "budget",
+        "items",
+        "trimmed"
+      ],
+      "type": "object"
+    },
+    "provider": {
+      "enum": [
+        "claude-code",
+        "codex-cli",
+        "fake"
+      ],
+      "type": "string"
+    },
+    "references": {
+      "items": {
+        "pattern": "^REF-[1-9][0-9]{0,5}$",
+        "type": "string"
+      },
+      "type": "array"
+    },
+    "role": {
+      "enum": [
+        "creator",
+        "reviewer"
+      ],
+      "type": "string"
+    },
+    "runId": {
+      "pattern": "^run-\\d{8}T\\d{6}Z-[0-9a-f]{8}$",
+      "type": "string"
+    },
+    "schemaVersion": {
+      "const": 1,
+      "type": "number"
+    },
+    "schemas": {
+      "items": {
+        "additionalProperties": {},
+        "properties": {
+          "kind": {
+            "enum": [
+              "HeronProject",
+              "HeronState",
+              "ModeDecision",
+              "CliEnvelope",
+              "ResearchReferences",
+              "ResearchProvenance",
+              "BrandInputs",
+              "ReferenceBatch",
+              "ProductContext",
+              "IntakeConflicts",
+              "ManualContext",
+              "AgentRun",
+              "ResearchBrief",
+              "ResearchAnalysis",
+              "VisualDirections"
+            ],
+            "type": "string"
+          },
+          "schemaVersion": {
+            "maximum": 9007199254740991,
+            "minimum": 1,
+            "type": "integer"
+          }
+        },
+        "required": [
+          "kind",
+          "schemaVersion"
+        ],
+        "type": "object"
+      },
+      "type": "array"
+    },
+    "startedAt": {
+      "pattern": "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}\\.\\d{3}Z$",
+      "type": "string"
+    },
+    "status": {
+      "const": "succeeded",
+      "type": "string"
+    },
+    "task": {
+      "enum": [
+        "research-brief",
+        "research-analyze",
+        "direction-propose",
+        "probe"
+      ],
+      "type": "string"
+    }
+  },
+  "required": [
+    "kind",
+    "schemaVersion",
+    "runId",
+    "task",
+    "command",
+    "role",
+    "provider",
+    "cacheKey",
+    "startedAt",
+    "heronVersion",
+    "mode",
+    "outputSchema",
+    "pack",
+    "inputs",
+    "references",
+    "schemas",
+    "outputs",
+    "status",
+    "invocations"
+  ],
+  "title": "AgentRun",
+  "type": "object"
+}

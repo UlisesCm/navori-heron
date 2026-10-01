@@ -137,6 +137,7 @@ function readStatus(
     stale: state.stale,
     inputsChanged,
     openConflicts: null,
+    agentUsage: null, // totals arrive with the agent log reader (P3 later task)
     allowedCommands: [
       "heron init",
       "heron status",

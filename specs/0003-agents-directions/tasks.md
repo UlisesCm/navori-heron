@@ -47,7 +47,7 @@ Lotes de 1–3 tareas, **en serie** (cada tarea declara de qué depende y con qu
 
 ## Lote 3 — Contratos y estado
 
-- [ ] **T4** (R6, R7, R9, R10, R11, R12, R13, R14, R19, R21) — Contratos de agentes y direcciones (con claves de cache y uso de tokens), datos de CLI, `HeronProject.agents` perezoso, findings y envelope; schemas regenerados.
+- [x] **T4** (R6, R7, R9, R10, R11, R12, R13, R14, R19, R21) — Contratos de agentes y direcciones (con claves de cache y uso de tokens), datos de CLI, `HeronProject.agents` perezoso, findings y envelope; schemas regenerados.
   - **Archivos:** `src/core/contracts/agents.ts`, `src/core/contracts/directions.ts`, `src/core/contracts/agents-data.ts`, `src/core/contracts/heron-project.ts`, `src/core/contracts/common.ts`, `src/core/contracts/cli-envelope.ts`, `src/core/contracts/version.ts`, `src/core/contracts/index.ts`, `schemas/`, `tests/unit/contracts.test.ts`
   - **Interfaces:** AgentSettingsInput; AgentSettingsInputSchema; AgentUsage; AgentRun; AGENT_RUN_DOCUMENT; AgentRunRef; ResearchBrief; RESEARCH_BRIEF_DOCUMENT; ResearchAnalysis; RESEARCH_ANALYSIS_DOCUMENT; VisualDirections; VISUAL_DIRECTIONS_DOCUMENT; ResearchBriefOutput; ResearchAnalysisOutput; DirectionProposalOutput; ProbeOutput; RESEARCH_FACETS; AGENT_PROVIDER_IDS; PACK_ITEM_KINDS; MODEL_NAME_PATTERN; AgentRunSummary; AgentUsageSummary
   - **Patrón:** src/core/contracts/research.ts

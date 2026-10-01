@@ -37,6 +37,15 @@ import {
   type HeronProject,
   type DocumentSpec,
   type HeronState,
+  AGENT_RUN_DOCUMENT,
+  AgentSettingsInputSchema,
+  DirectionProposalOutputSchema,
+  ProbeOutputSchema,
+  RESEARCH_ANALYSIS_DOCUMENT,
+  RESEARCH_BRIEF_DOCUMENT,
+  ResearchAnalysisOutputSchema,
+  ResearchBriefOutputSchema,
+  VISUAL_DIRECTIONS_DOCUMENT,
 } from "../../src/core/contracts/index.ts";
 
 import { sampleReference } from "../helpers/research.ts";
@@ -495,7 +504,8 @@ describe("research documents", () => {
     // Every command has its CommandSpec (the group is the first word of "references add").
     const registered = new Set<string>(COMMANDS.map((spec) => spec.name));
     // TODO(T12): drop PENDING_SPECS once `intake` and `conflicts` register their CommandSpec (envelope data lands in T2).
-    const PENDING_SPECS = new Set(["intake", "conflicts"]);
+    // TODO(P3 CLI task): drop "direction" once `direction` registers its CommandSpec (envelope data lands in T4).
+    const PENDING_SPECS = new Set(["intake", "conflicts", "direction"]);
     for (const command of CLI_COMMANDS) {
       const group = command.split(" ")[0]!;
       if (!PENDING_SPECS.has(group)) expect(registered.has(group)).toBe(true);
@@ -775,7 +785,356 @@ describe("intake documents", () => {
         true,
       );
     }
-    expect(FINDING_CODES.slice(-13)[0]).toBe("PRODUCT_CONTEXT_STALE");
-    expect(FINDING_CODES.at(-1)).toBe("LOWER_TIER_ITEMS_SKIPPED");
+    const p4 = FINDING_CODES.indexOf("PRODUCT_CONTEXT_STALE");
+    expect(FINDING_CODES.slice(p4, p4 + 13).at(-1)).toBe("LOWER_TIER_ITEMS_SKIPPED");
+  });
+});
+
+const texts = (n: number) => Array.from({ length: n }, (_, i) => `item ${i}`);
+
+describe("agent documents", () => {
+  const sha = "a".repeat(64);
+  const template = { id: "design-director/direction-propose", version: 1, sha256: sha };
+  const runRef = {
+    runId: "run-20260930T120000Z-3f9a1c2b",
+    path: "runs/run-20260930T120000Z-3f9a1c2b.json",
+    provider: "fake",
+    template,
+    cacheKey: sha,
+  };
+  const usage = {
+    inputTokens: 10,
+    outputTokens: 5,
+    cachedInputTokens: null,
+    costUsd: null,
+    costIsEstimate: false,
+  };
+  const agentRun = {
+    kind: "AgentRun",
+    schemaVersion: 1,
+    runId: runRef.runId,
+    task: "direction-propose",
+    command: "direction propose",
+    role: "creator",
+    provider: "fake",
+    cacheKey: sha,
+    startedAt: "2026-09-30T12:00:00.000Z",
+    heronVersion: "0.0.0",
+    mode: "reference-only",
+    outputSchema: { task: "direction-propose", dialect: "claude", sha256: sha },
+    pack: {
+      sha256: sha,
+      chars: 100,
+      budget: 120000,
+      items: [{ kind: "reference", id: "REF-1", trust: "untrusted", sha256: sha, chars: 100 }],
+      trimmed: [],
+    },
+    inputs: [{ path: "research/references.json", sha256: sha }],
+    references: ["REF-1"],
+    schemas: [{ kind: "ResearchReferences", schemaVersion: 1 }],
+    outputs: [],
+    status: "succeeded",
+    invocations: [
+      {
+        attempt: 1,
+        kind: "initial",
+        provider: "fake",
+        cliVersion: null,
+        model: { requested: null, reported: [] },
+        template,
+        input: { sha256: sha, chars: 100 },
+        output: { sha256: sha, bytes: 10 },
+        status: "succeeded",
+        exitCode: 0,
+        signal: null,
+        durationMs: 5,
+        usage,
+        issues: 0,
+      },
+    ],
+  };
+  const brief = {
+    kind: "ResearchBrief",
+    schemaVersion: 1,
+    mode: "reference-only",
+    briefedAt: "2026-09-30T12:00:00.000Z",
+    run: runRef,
+    queries: [
+      {
+        id: "Q-0123abcd",
+        facet: "screen-type",
+        job: "show a card",
+        query: "membership card",
+        question: null,
+        rationale: null,
+        origin: "provided",
+      },
+    ],
+  };
+  const analysis = {
+    kind: "ResearchAnalysis",
+    schemaVersion: 1,
+    mode: "reference-only",
+    analyses: [
+      {
+        reference: "REF-1",
+        observations: [{ aspect: "density", note: "airy" }],
+        facets: ["density"],
+        suggestedDoNotCopy: [],
+        answersQueries: ["Q-0123abcd"],
+        referenceSha256: sha,
+        inputKey: sha,
+        analyzedAt: "2026-09-30T12:00:00.000Z",
+        run: runRef,
+        origin: "inferred",
+      },
+    ],
+  };
+  const attrs = {
+    personality: "p",
+    density: "d",
+    surfaceTreatment: "s",
+    typographyStrategy: "t",
+    colorStrategy: "c",
+    imageryStrategy: "i",
+    navigationCharacter: "n",
+    componentWeight: "w",
+    motionCharacter: "m",
+    references: [1, 2].map((n) => ({
+      reference: `REF-${n}`,
+      takes: texts(1),
+      doNotCopy: texts(1),
+    })),
+    risks: texts(1),
+    whenItFits: texts(1),
+    whenItDoesnt: texts(1),
+  };
+  const colors = ["background", "text", "primary", "on-primary"].map((role, i) => ({
+    id: `c${i + 1}`,
+    name: role,
+    hex: "#0a0a0a",
+    role,
+  }));
+  const proposalOut = {
+    palette: {
+      colors,
+      pairs: [
+        { foreground: "c2", background: "c1", usage: "body-text" },
+        { foreground: "c4", background: "c3", usage: "ui-component" },
+      ],
+    },
+    typeScale: {
+      families: [{ role: "text", family: "Inter", fallback: ["sans-serif"] }],
+      steps: [1, 2, 3, 4].map((n) => ({
+        id: `t${n}`,
+        name: `step ${n}`,
+        sizePx: 12 + n,
+        lineHeight: 1.4,
+        weight: 400,
+        usage: "u",
+      })),
+    },
+    componentSheet: Array.from({ length: 4 }, () => ({
+      kind: "button",
+      variant: "primary",
+      fill: "c3",
+      text: "c4",
+      typeStep: "t1",
+      radiusPx: 8,
+      notes: "",
+    })),
+    composition: {
+      title: "Home",
+      description: "d",
+      nodes: [
+        {
+          id: "n1",
+          parent: null,
+          type: "frame",
+          direction: "column",
+          columns: null,
+          fill: "c1",
+          typeStep: null,
+          component: null,
+          text: null,
+          imageHint: null,
+        },
+      ],
+    },
+  };
+  const directionOut = (id: string) => ({
+    id,
+    name: id,
+    summary: "s",
+    attributes: attrs,
+    proposal: proposalOut,
+  });
+  const directionsOutput = { directions: ["DIR-A", "DIR-B", "DIR-C"].map(directionOut) };
+  const persistedDirection = (id: string) => ({
+    ...directionOut(id),
+    origin: "inferred",
+    proposal: {
+      ...proposalOut,
+      marking: "SYNTHETIC",
+      palette: {
+        ...proposalOut.palette,
+        pairs: proposalOut.palette.pairs.map((p) => ({
+          ...p,
+          contrast: { ratio: 18.1, threshold: 4.5, passes: true },
+        })),
+      },
+    },
+  });
+  const directions = {
+    kind: "VisualDirections",
+    schemaVersion: 1,
+    mode: "reference-only",
+    proposedAt: "2026-09-30T12:00:00.000Z",
+    run: runRef,
+    basis: { references: ["REF-1"], brief: sha, analysis: null },
+    directions: ["DIR-A", "DIR-B", "DIR-C"].map(persistedDirection),
+    selection: null,
+  };
+
+  // Covers: R6, R9, R10, R11, R19
+  test("round-trips the agent documents and rejects an unknown schemaVersion", () => {
+    const docs: [DocumentSpec<unknown>, object][] = [
+      [AGENT_RUN_DOCUMENT, agentRun],
+      [RESEARCH_BRIEF_DOCUMENT, brief],
+      [RESEARCH_ANALYSIS_DOCUMENT, analysis],
+      [VISUAL_DIRECTIONS_DOCUMENT, directions],
+    ];
+    for (const [spec, doc] of docs) {
+      const parsed = parseVersionedDocument(doc, spec, "f.json");
+      expect(JSON.parse(canonicalJson(parsed))).toEqual(JSON.parse(canonicalJson(doc)));
+      expect(() => parseVersionedDocument({ ...doc, schemaVersion: 2 }, spec, "f.json")).toThrow(
+        UnsupportedSchemaVersionError,
+      );
+    }
+    expect(AGENT_RUN_DOCUMENT.schema.safeParse({ ...agentRun, cacheKey: "x" }).success).toBe(false);
+    expect(AGENT_RUN_DOCUMENT.schema.safeParse({ ...agentRun, invocations: [] }).success).toBe(
+      false,
+    );
+    expect(
+      VISUAL_DIRECTIONS_DOCUMENT.schema.safeParse({
+        ...directions,
+        directions: directions.directions.slice(0, 2),
+      }).success,
+    ).toBe(false);
+  });
+
+  // Covers: R9, R10, R12
+  test("accepts strict agent outputs and rejects unknown keys or out-of-range sizes", () => {
+    const briefOut = {
+      queries: Array.from({ length: 3 }, (_, i) => ({
+        facet: "flow",
+        job: `job ${i}`,
+        query: "q",
+        question: "?",
+        rationale: "r",
+      })),
+    };
+    expect(ResearchBriefOutputSchema.safeParse(briefOut).success).toBe(true);
+    expect(
+      ResearchBriefOutputSchema.safeParse({ queries: briefOut.queries.slice(0, 2) }).success,
+    ).toBe(false);
+    expect(ResearchBriefOutputSchema.safeParse({ ...briefOut, extra: 1 }).success).toBe(false);
+    const analysisOut = {
+      analyses: [
+        {
+          reference: "REF-1",
+          observations: [{ aspect: "a", note: "n" }],
+          facets: ["flow", "flow"],
+          suggestedDoNotCopy: [],
+          answersQueries: [],
+        },
+      ],
+    };
+    expect(ResearchAnalysisOutputSchema.safeParse(analysisOut).success).toBe(false);
+    analysisOut.analyses[0]!.facets = ["flow"];
+    expect(ResearchAnalysisOutputSchema.safeParse(analysisOut).success).toBe(true);
+    expect(DirectionProposalOutputSchema.safeParse(directionsOutput).success).toBe(true);
+    expect(
+      DirectionProposalOutputSchema.safeParse({ directions: directionsOutput.directions.slice(1) })
+        .success,
+    ).toBe(false);
+    expect(ProbeOutputSchema.safeParse({ status: "ok", facets: ["flow"] }).success).toBe(true);
+  });
+
+  // Covers: R7, R21
+  test("validates lazy agent settings and keeps older projects valid", () => {
+    expect(AgentSettingsInputSchema.safeParse({}).success).toBe(true);
+    expect(
+      AgentSettingsInputSchema.safeParse({
+        roles: { creator: "claude-code" },
+        models: { "codex-cli": "gpt-5.2" },
+        timeoutMs: 5000,
+        warnTokensPerDay: 2000,
+      }).success,
+    ).toBe(true);
+    for (const invalid of [
+      { models: { fake: "--evil" } },
+      { timeoutMs: 10 },
+      { contextBudgetChars: 5 },
+      { warnTokensPerDay: 10 },
+      { roles: { creator: "gemini" } },
+    ]) {
+      expect(AgentSettingsInputSchema.safeParse(invalid).success).toBe(false);
+    }
+    // an invalid "agents" block never fails the project itself (DR21)
+    expect(parses(HERON_PROJECT_DOCUMENT, project)).toBe(true);
+    expect(parses(HERON_PROJECT_DOCUMENT, { ...project, agents: { timeoutMs: "x" } })).toBe(true);
+  });
+
+  // Covers: R13, R14, R19
+  test("grows the envelope with the agent commands, checks and finding codes", () => {
+    const run = {
+      runId: runRef.runId,
+      task: "research-brief",
+      provider: "fake",
+      role: "creator",
+      attempts: 0,
+      durationMs: 0,
+      model: null,
+      path: runRef.path,
+      reused: true,
+      usage,
+    };
+    const payloads: [string, unknown][] = [
+      [
+        "direction propose",
+        {
+          directions,
+          run,
+          phase: { from: "research-ready", to: "directions-ready" },
+          written: [],
+          stateRevision: 3,
+        },
+      ],
+      ["research brief", { brief, run, written: [], stateRevision: 3 }],
+      [
+        "research analyze",
+        {
+          analyzed: [],
+          fresh: ["REF-1"],
+          pending: [],
+          analysis: null,
+          run: null,
+          written: [],
+          stateRevision: 3,
+        },
+      ],
+    ];
+    for (const [command, data] of payloads) {
+      expect(CLI_COMMANDS).toContain(command as never);
+      const result = CLI_ENVELOPE_DOCUMENT.schema.safeParse(researchEnvelope(command, data));
+      expect(result.success ? [] : result.error.issues.slice(0, 3)).toEqual([]);
+    }
+    expect(CLI_COMMANDS).toContain("direction select");
+    expect(DOCTOR_CHECK_IDS).toContain("probe.codex-cli");
+    expect(FINDING_CODES.at(-1)).toBe("SECRET_REDACTED");
+    expect(FINDING_CODES.indexOf("AGENT_UNAVAILABLE")).toBe(
+      FINDING_CODES.indexOf("LOWER_TIER_ITEMS_SKIPPED") + 1,
+    );
   });
 });

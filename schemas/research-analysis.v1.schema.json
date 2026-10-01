@@ -1,0 +1,183 @@
+{
+  "$id": "research-analysis.v1.schema.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": {},
+  "properties": {
+    "analyses": {
+      "items": {
+        "additionalProperties": {},
+        "properties": {
+          "analyzedAt": {
+            "pattern": "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}\\.\\d{3}Z$",
+            "type": "string"
+          },
+          "answersQueries": {
+            "items": {
+              "pattern": "^Q-[0-9a-f]{8}$",
+              "type": "string"
+            },
+            "type": "array"
+          },
+          "facets": {
+            "items": {
+              "enum": [
+                "product-category",
+                "flow",
+                "screen-type",
+                "ux-pattern",
+                "ui-element",
+                "visual-style",
+                "density",
+                "content-strategy",
+                "navigation"
+              ],
+              "type": "string"
+            },
+            "minItems": 1,
+            "type": "array"
+          },
+          "inputKey": {
+            "pattern": "^[0-9a-f]{64}$",
+            "type": "string"
+          },
+          "observations": {
+            "items": {
+              "additionalProperties": {},
+              "properties": {
+                "aspect": {
+                  "maxLength": 80,
+                  "minLength": 1,
+                  "type": "string"
+                },
+                "note": {
+                  "maxLength": 500,
+                  "minLength": 1,
+                  "type": "string"
+                }
+              },
+              "required": [
+                "aspect",
+                "note"
+              ],
+              "type": "object"
+            },
+            "minItems": 1,
+            "type": "array"
+          },
+          "origin": {
+            "const": "inferred",
+            "type": "string"
+          },
+          "reference": {
+            "pattern": "^REF-[1-9][0-9]{0,5}$",
+            "type": "string"
+          },
+          "referenceSha256": {
+            "pattern": "^[0-9a-f]{64}$",
+            "type": "string"
+          },
+          "run": {
+            "additionalProperties": {},
+            "properties": {
+              "cacheKey": {
+                "pattern": "^[0-9a-f]{64}$",
+                "type": "string"
+              },
+              "path": {
+                "maxLength": 512,
+                "type": "string"
+              },
+              "provider": {
+                "enum": [
+                  "claude-code",
+                  "codex-cli",
+                  "fake"
+                ],
+                "type": "string"
+              },
+              "runId": {
+                "pattern": "^run-\\d{8}T\\d{6}Z-[0-9a-f]{8}$",
+                "type": "string"
+              },
+              "template": {
+                "additionalProperties": {},
+                "properties": {
+                  "id": {
+                    "minLength": 1,
+                    "type": "string"
+                  },
+                  "sha256": {
+                    "pattern": "^[0-9a-f]{64}$",
+                    "type": "string"
+                  },
+                  "version": {
+                    "maximum": 9007199254740991,
+                    "minimum": 1,
+                    "type": "integer"
+                  }
+                },
+                "required": [
+                  "id",
+                  "version",
+                  "sha256"
+                ],
+                "type": "object"
+              }
+            },
+            "required": [
+              "runId",
+              "path",
+              "provider",
+              "template",
+              "cacheKey"
+            ],
+            "type": "object"
+          },
+          "suggestedDoNotCopy": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          }
+        },
+        "required": [
+          "reference",
+          "observations",
+          "facets",
+          "suggestedDoNotCopy",
+          "answersQueries",
+          "referenceSha256",
+          "inputKey",
+          "analyzedAt",
+          "run",
+          "origin"
+        ],
+        "type": "object"
+      },
+      "type": "array"
+    },
+    "kind": {
+      "const": "ResearchAnalysis",
+      "type": "string"
+    },
+    "mode": {
+      "enum": [
+        "full",
+        "reference-only"
+      ],
+      "type": "string"
+    },
+    "schemaVersion": {
+      "const": 1,
+      "type": "number"
+    }
+  },
+  "required": [
+    "kind",
+    "schemaVersion",
+    "mode",
+    "analyses"
+  ],
+  "title": "ResearchAnalysis",
+  "type": "object"
+}
