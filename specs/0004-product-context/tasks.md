@@ -56,7 +56,7 @@ Lotes de 1–3 tareas. Cada test lleva `// Covers: R<n>` en la primera línea y 
   - **Done:** comando `bun test tests/unit/intake/navori-master.test.ts tests/unit/harness-readers.test.ts`, esperado exit 0; casos de test "parses decisions and UX.md ux-kind sections", "reads the harness language and a tolerant parts.json"; base de P4.A1.
   - **Fuera de alcance:** cambiar el locale de los artefactos (DR33).
 
-- [ ] **T5** (R10) — Lector UX conmutable y mapeo de `ux.json` a candidatos con extensiones en orden de fuente.
+- [x] **T5** (R10) — Lector UX conmutable y mapeo de `ux.json` a candidatos con extensiones en orden de fuente.
   - **Archivos:** `src/intake/ux-contract.ts`, `src/intake/ux-model.ts`, `tests/contracts/ux-contract.test.ts`
   - **Interfaces:** UxReader; PROVISIONAL_UX_READER; ACTIVE_UX_READER; uxCandidates; extensionsOf; KNOWN_UX_FIELDS
   - **Patrón:** src/intake/ux-contract.ts
