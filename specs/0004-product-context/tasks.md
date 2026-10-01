@@ -88,7 +88,7 @@ Lotes de 1–3 tareas. Cada test lleva `// Covers: R<n>` en la primera línea y 
 
 ## Lote 4 — Adapters
 
-- [ ] **T8** (R1, R2, R3, R13, R15) — `load` real de `navori-master` sobre todas sus fuentes; P4.A1 y P4.A3 sobre los fixtures.
+- [x] **T8** (R1, R2, R3, R13, R15) — `load` real de `navori-master` sobre todas sus fuentes; P4.A1 y P4.A3 sobre los fixtures.
   - **Archivos:** `src/intake/ports.ts`, `src/intake/adapters/navori-master/index.ts`, `tests/contracts/product-context.test.ts`, `tests/unit/intake/precedence.test.ts`
   - **Interfaces:** loadNavoriMaster; LoadRequest; AdapterLoadResult
   - **Patrón:** src/intake/adapters/navori-master/index.ts

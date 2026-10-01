@@ -4,6 +4,7 @@ import type {
   DetectionReport,
   Extension,
   Finding,
+  HeronMode,
   ProductContextMetadata,
   ProductContextSection,
   ProductContextSectionMap,
@@ -46,6 +47,9 @@ export type ContextDraft = {
   uxReader: ProductContextMetadata["uxReader"];
   uxExtensions: Extension[];
   findings: Finding[];
+  /** Parts `parts.json` declares with their criterion ids (`A<m>`, unqualified), in file order. Only
+   * adapters that read `parts.json` set it; it feeds `DefinedIds.parts`. */
+  parts?: { id: string; criteria: string[] }[];
 };
 
 export type StageSummary = { dir: string; state: string };
@@ -62,9 +66,17 @@ export type AdapterDetection =
   | { kind: "detected"; report: DetectionReport }
   | StageError;
 
-export type LoadRequest = DetectRequest & { report: DetectionReport };
-/** P4 widens this union with { ok: true; context: ProductContext }. */
-export type AdapterLoadResult = { ok: false; code: "LOAD_NOT_AVAILABLE"; message: string };
+/** `mode` is the effective mode: UX sources (`ux.json`, `UX.md`) contribute only in `full`. */
+export type LoadRequest = DetectRequest & { report: DetectionReport; mode: HeronMode };
+/** T9 retires LOAD_NOT_AVAILABLE with the `filesystem` stub; T10 adds CONTEXT_INPUT_INVALID. */
+export type AdapterLoadResult =
+  | { ok: true; draft: ContextDraft }
+  | {
+      ok: false;
+      code: "LOAD_NOT_AVAILABLE" | "INPUTS_CHANGED";
+      message: string;
+      findings: Finding[];
+    };
 
 export interface ProductContextAdapter {
   readonly id: AdapterId;
@@ -79,5 +91,6 @@ export function loadNotAvailable(id: AdapterId): AdapterLoadResult {
     ok: false,
     code: "LOAD_NOT_AVAILABLE",
     message: `Adapter "${id}" cannot load a ProductContext yet.`,
+    findings: [],
   };
 }

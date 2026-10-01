@@ -415,16 +415,14 @@ describe("adapters", () => {
     expect(none).toMatchObject({ kind: "detected", report: { adapter: "filesystem" } });
   });
 
-  test("load is not available until P4", () => {
+  test("filesystem load is not available until T9", () => {
     // Covers: R1
     const request = req(repo({}));
     const d = filesystemAdapter.detect(request);
     if (d.kind !== "detected") throw new Error("expected detected");
-    for (const adapter of [filesystemAdapter, navoriMasterAdapter]) {
-      expect(adapter.load({ ...request, report: d.report })).toMatchObject({
-        ok: false,
-        code: "LOAD_NOT_AVAILABLE",
-      });
-    }
+    expect(filesystemAdapter.load({ ...request, report: d.report, mode: "full" })).toMatchObject({
+      ok: false,
+      code: "LOAD_NOT_AVAILABLE",
+    });
   });
 });

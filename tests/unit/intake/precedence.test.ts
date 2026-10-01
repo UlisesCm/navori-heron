@@ -1,5 +1,16 @@
 import { describe, expect, test } from "bun:test";
-import { PRODUCT_CONTEXT_SECTIONS } from "../../../src/core/contracts/index.ts";
+import {
+  PRODUCT_CONTEXT_SECTIONS,
+  type HeronEvent,
+  type HeronState,
+} from "../../../src/core/contracts/index.ts";
+import { canTransition } from "../../../src/core/state/transitions.ts";
+import {
+  acknowledgeConflict,
+  detectConflicts,
+  reconcileConflicts,
+  unacknowledgedCount,
+} from "../../../src/intake/conflicts.ts";
 import {
   COMPARABLE_FIELDS,
   NAME_KEYED_SECTIONS,
@@ -7,11 +18,17 @@ import {
   mergeCandidates,
   sourceRank,
 } from "../../../src/intake/precedence.ts";
-import { buildProductContext, countSections } from "../../../src/intake/product-context.ts";
+import {
+  buildProductContext,
+  countSections,
+  withConflictIds,
+} from "../../../src/intake/product-context.ts";
+import { copyFixture } from "../../helpers/fixtures.ts";
 import {
   actorValue,
   candidate,
   draftOf,
+  loadMasterDraft,
   masterRef,
   requirementValue,
   stateValue,
@@ -309,5 +326,89 @@ describe("source precedence (RN-7)", () => {
       global: true,
       screens: ["S1"],
     });
+  });
+});
+
+const named = (source: Parameters<typeof masterRef>[1], name: string) =>
+  candidate("actors", name, actorValue(name), masterRef("§Actors", source));
+
+describe("skipped lower-tier items", () => {
+  // Covers: R4
+  test("orders the skipped findings by numeric source rank", () => {
+    // Ranks come from SOURCE_PRECEDENCE (0..9 today); the sort is numeric so rank 10 would follow rank 9.
+    const { findings } = mergeCandidates(
+      [
+        named("MASTER.md", "member"),
+        named("navori.config.json", "ghost-config"),
+        named("DIGEST.md", "ghost-digest"),
+        named("context", "ghost-context"),
+      ],
+      PATHS("MASTER.md", "DIGEST.md", "context", "navori.config.json"),
+    );
+    expect(findings.map((f) => f.paths[0])).toEqual(
+      PATHS("DIGEST.md", "context", "navori.config.json"),
+    );
+  });
+});
+
+describe("conflicts over the conflict fixture", () => {
+  const event: HeronEvent = { type: "approve-gate", gate: "intake" };
+  const state: HeronState = {
+    kind: "HeronState",
+    schemaVersion: 1,
+    stateRevision: 1,
+    mode: "full",
+    phase: "initialized",
+    designRevision: 0,
+    artifacts: [],
+    gates: [],
+    stale: [],
+    history: [],
+  };
+  const ack = {
+    by: "ana",
+    at: "2026-10-01T10:00:00.000Z",
+    note: "accepted",
+    runId: "run-20261001T100000Z-3f9a1c2b",
+  } as const;
+
+  // Covers: R5, R7
+  test("records a CONFLICT and blocks the intake gate until acknowledged", () => {
+    const built = buildProductContext(loadMasterDraft(copyFixture("conflict")), META);
+    const detected = detectConflicts(built.context, built.mismatches, built.defined);
+    const doc = reconcileConflicts(null, detected);
+    expect(doc.conflicts).toHaveLength(1);
+    const conflict = doc.conflicts[0];
+    expect(conflict).toMatchObject({
+      id: "CONFLICT-001",
+      kind: "permission-contradiction",
+      subject: "ACT-PARTNER · see member data",
+      status: "open",
+      winner: null,
+      ack: null,
+      files: ["specs/_master/01-mvp/MASTER.md", "specs/_master/01-mvp/ux.json"],
+    });
+    expect(conflict?.values.map((v) => v.value)).toEqual([
+      "cannot: See member data",
+      "capability: See member data",
+    ]);
+    expect(conflict?.impact).toContain("actors/ACT-PARTNER");
+    const withIds = withConflictIds(built.context, doc);
+    expect(withIds.actors.find((a) => a.id === "ACT-PARTNER")).toMatchObject({
+      can: expect.arrayContaining(["Publish benefits"]),
+      cannot: ["See member data"],
+      capabilities: expect.arrayContaining(["See member data"]),
+      conflicts: ["CONFLICT-001"],
+    });
+
+    const facts = (docNow: typeof doc) => ({
+      productContextValid: true,
+      unacknowledgedConflicts: unacknowledgedCount(docNow),
+    });
+    const blocked = canTransition(state, event, facts(doc));
+    expect(blocked).toMatchObject({ ok: false, code: "PRECONDITION_UNMET" });
+    const acknowledged = acknowledgeConflict(doc, "CONFLICT-001", ack);
+    if (!acknowledged.ok) throw new Error(acknowledged.message);
+    expect(canTransition(state, event, facts(acknowledged.doc)).ok).toBe(true);
   });
 });
