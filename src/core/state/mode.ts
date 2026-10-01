@@ -4,6 +4,8 @@ import {
   type Finding,
   type ModeDecision,
   type ModeReason,
+  type StoredFinding,
+  type StoredModeDecision,
   type UxFileCheck,
 } from "../contracts/index.ts";
 import { compareStrings } from "./stale.ts";
@@ -47,9 +49,13 @@ function invalidFinding(file: UxFileCheck): Finding {
   };
 }
 
-const codeOrder = (f: Finding): number => FINDING_CODES.indexOf(f.code);
+/** Known codes keep their FINDING_CODES position; any other persisted code sorts after them (then by text). */
+const codeOrder = (f: StoredFinding): number => {
+  const index = (FINDING_CODES as readonly string[]).indexOf(f.code);
+  return index === -1 ? FINDING_CODES.length : index;
+};
 
-function sortFindings(findings: Finding[]): Finding[] {
+function sortFindings<F extends StoredFinding>(findings: F[]): F[] {
   return findings.toSorted(
     (a, b) => codeOrder(a) - codeOrder(b) || compareStrings(a.paths[0] ?? "", b.paths[0] ?? ""),
   );
@@ -141,7 +147,7 @@ export function detectMode(report: DetectionReport): ModeDecision {
 
 /** Short English cause for MODE_BLOCKED, e.g. "ux.json is missing", "ux.json is invalid",
  * "the harness declared UX.md only", "no stage is selected". */
-export function describeModeBlock(decision: ModeDecision): string {
+export function describeModeBlock(decision: StoredModeDecision): string {
   const has = (code: ModeReason["code"]): boolean => decision.reasons.some((r) => r.code === code);
   const { uxMarkdown: md, uxJson: json } = decision.detection;
   if (decision.mode === "full") return "production is available";

@@ -2,6 +2,7 @@ import {
   GATE_NAMES,
   type DetectionReport,
   type Finding,
+  type StoredFinding,
   type GateName,
   type RelativeArtifactPath,
   type Sha256Hex,
@@ -23,7 +24,7 @@ import { loadWorkspace, type Workspace } from "./workspace.ts";
 export type StatusInput = { path: string };
 
 /** path -> sha256 (null when absent) of every input file a detection looked at. */
-function inputHashes(report: DetectionReport): Map<string, Sha256Hex | null> {
+function inputHashes(report: DetectionReport<StoredFinding>): Map<string, Sha256Hex | null> {
   const map = new Map<string, Sha256Hex | null>();
   for (const file of [...report.artifacts, report.uxMarkdown, report.uxJson]) {
     map.set(file.path, file.present ? file.sha256 : null);
@@ -32,7 +33,10 @@ function inputHashes(report: DetectionReport): Map<string, Sha256Hex | null> {
   return map;
 }
 
-function changedInputs(persisted: DetectionReport, live: DetectionReport): string[] {
+function changedInputs(
+  persisted: DetectionReport<StoredFinding>,
+  live: DetectionReport<StoredFinding>,
+): string[] {
   const before = inputHashes(persisted);
   const after = inputHashes(live);
   const paths = new Set([...before.keys(), ...after.keys()]);

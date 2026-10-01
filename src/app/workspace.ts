@@ -9,6 +9,7 @@ import {
   type HeronProject,
   type HeronState,
   type ModeDecision,
+  type StoredModeDecision,
   type RelativeArtifactPath,
 } from "../core/contracts/index.ts";
 import { detectMode } from "../core/state/mode.ts";
@@ -38,7 +39,7 @@ export type Workspace = {
   state: HeronState;
   project: HeronProject;
   /** `.heron/intake/mode.json`. */
-  persisted: ModeDecision;
+  persisted: StoredModeDecision;
   /** detectMode over the live detection with the persisted stage. */
   live: ModeDecision;
   /** Live detection report. */
@@ -46,7 +47,7 @@ export type Workspace = {
   /** Effective mode: "full" iff state.mode and live.mode are both "full". */
   mode: HeronMode;
   /** Decision that explains reference-only: live when it is reference-only, else the persisted one. */
-  blocked: ModeDecision;
+  blocked: StoredModeDecision;
 };
 
 export type WorkspaceLoad =

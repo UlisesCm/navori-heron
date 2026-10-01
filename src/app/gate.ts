@@ -4,7 +4,7 @@ import {
   type GateName,
   type HeronMode,
   type HeronState,
-  type ModeDecision,
+  type StoredModeDecision,
 } from "../core/contracts/index.ts";
 import { approveGate, rejectGate, type GateOutcome } from "../core/state/gates.ts";
 import { canTransition } from "../core/state/transitions.ts";
@@ -31,7 +31,7 @@ export type GateInput = {
 
 function outcomeFailure(
   outcome: Extract<GateOutcome, { ok: false }>,
-  blocked: ModeDecision,
+  blocked: StoredModeDecision,
 ): UseCaseResult<GateData> {
   switch (outcome.code) {
     case "IDENTITY_REQUIRED":
@@ -139,7 +139,7 @@ function decide(
   ctx: AppContext,
   { store, previous, meta }: WriteRun,
   input: GateInput,
-  who: { decidedBy: string; reason: string; mode: HeronMode; blocked: ModeDecision },
+  who: { decidedBy: string; reason: string; mode: HeronMode; blocked: StoredModeDecision },
 ): WriteBodyResult<GateData> {
   if (previous === null) throw new Error("withWriteRun requireState guarantees state.json");
   const state: HeronState = { ...previous, mode: who.mode };

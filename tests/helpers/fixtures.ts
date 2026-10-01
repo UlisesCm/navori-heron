@@ -29,6 +29,15 @@ export function copyFixture(name: FixtureName): string {
   return realpathSync(target);
 }
 
+const P1_WORKSPACES_ROOT = join(dirname(import.meta.path), "..", "assets", "p1-workspaces");
+
+/** Copies fixtures/{name} plus the P1 golden `.heron/` of the same name (tests/assets/p1-workspaces) into a fresh temp dir. */
+export function copyP1Workspace(name: "membership-product" | "no-ux"): string {
+  const root = copyFixture(name);
+  cpSync(join(P1_WORKSPACES_ROOT, name, ".heron"), join(root, ".heron"), { recursive: true });
+  return root;
+}
+
 /** repo-relative POSIX path -> sha256 of every regular file under root, skipping the given top-level dirs. */
 export function hashTree(
   root: string,

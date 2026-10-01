@@ -1,0 +1,7 @@
+# Managed by Heron. Local-only paths; everything else in .heron/ is versioned.
+/.lock
+/.lock.reclaim
+/staging/
+/cache/
+/logs/
+/penpot/snapshots/

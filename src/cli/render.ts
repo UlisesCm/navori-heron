@@ -1,6 +1,7 @@
 import type {
   DoctorData,
   Finding,
+  StoredFinding,
   GateData,
   HarnessArtifactName,
   HeronMode,
@@ -19,7 +20,7 @@ export function formatPresenceLine(name: HarnessArtifactName, present: boolean):
 }
 
 /** `{CODE}: {message}` and each issue as `  {pointer}: {message}` (empty pointer shown as `(root)`). */
-export function renderFindings(findings: readonly Finding[]): string {
+export function renderFindings(findings: readonly StoredFinding[]): string {
   return findings
     .flatMap((finding) => [
       `${finding.code}: ${finding.message}`,

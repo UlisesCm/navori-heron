@@ -9,7 +9,7 @@ import {
   type CliEnvelope,
   type HeronState,
   type InitData,
-  type ModeDecision,
+  type StoredModeDecision,
 } from "../../src/core/contracts/index.ts";
 import { acquireLock, DEFAULT_LOCK_OPTIONS } from "../../src/core/store/lock.ts";
 import { nodeFs } from "../../src/core/store/fs-port.ts";
@@ -33,7 +33,7 @@ function readState(root: string): HeronState {
   const raw: unknown = JSON.parse(readFileSync(join(root, ".heron", "state.json"), "utf8"));
   return parseVersionedDocument(raw, HERON_STATE_DOCUMENT, "state.json");
 }
-function readMode(root: string): ModeDecision {
+function readMode(root: string): StoredModeDecision {
   const raw: unknown = JSON.parse(
     readFileSync(join(root, ".heron", "intake", "mode.json"), "utf8"),
   );

@@ -7,7 +7,7 @@ import {
   type Finding,
   type FindingCode,
   type FindingSeverity,
-  type ModeDecision,
+  type StoredModeDecision,
 } from "../core/contracts/index.ts";
 import { describeModeBlock } from "../core/state/mode.ts";
 import type { TransitionRejection } from "../core/state/transitions.ts";
@@ -50,7 +50,7 @@ export function failure<T>(
  * `({describeModeBlock(decision)})` before its final period (design.md, Mensajes de findings). */
 export function rejectionToFinding(
   rejection: TransitionRejection,
-  decision: ModeDecision,
+  decision: StoredModeDecision,
 ): Finding {
   const message =
     rejection.code === "MODE_BLOCKED"

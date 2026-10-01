@@ -1,7 +1,7 @@
 import { CLI_ENVELOPE_DOCUMENT, type CliEnvelope } from "./cli-envelope.ts";
 import { HERON_PROJECT_DOCUMENT, type HeronProject } from "./heron-project.ts";
 import { HERON_STATE_DOCUMENT, type HeronState } from "./heron-state.ts";
-import { MODE_DECISION_DOCUMENT, type ModeDecision } from "./mode-decision.ts";
+import { MODE_DECISION_DOCUMENT, type StoredModeDecision } from "./mode-decision.ts";
 import type { DocumentSpec } from "./version.ts";
 
 export * from "./common.ts";
@@ -16,6 +16,6 @@ export * from "./cli-envelope.ts";
 export const CONTRACT_DOCUMENTS: readonly [
   DocumentSpec<HeronProject>,
   DocumentSpec<HeronState>,
-  DocumentSpec<ModeDecision>,
+  DocumentSpec<StoredModeDecision>,
   DocumentSpec<CliEnvelope>,
 ] = [HERON_PROJECT_DOCUMENT, HERON_STATE_DOCUMENT, MODE_DECISION_DOCUMENT, CLI_ENVELOPE_DOCUMENT];

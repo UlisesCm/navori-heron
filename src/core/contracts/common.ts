@@ -81,6 +81,18 @@ export const FindingIssueSchema: z.ZodType<FindingIssue> = z.looseObject({
   pointer: z.string(),
   message: z.string(),
 });
+/** Persisted finding codes are UPPER_SNAKE text (OD1-C′); emitters still type `FindingCode`. */
+export const FINDING_CODE_PATTERN = /^[A-Z][A-Z0-9_]*$/;
+/** Persisted finding: same shape as `Finding`, but `code` is any UPPER_SNAKE string so a new emitter code needs no schema bump. */
+export type StoredFinding = Omit<Finding, "code"> & { code: string };
+export const StoredFindingSchema: z.ZodType<StoredFinding> = z.looseObject({
+  code: z.string().regex(FINDING_CODE_PATTERN),
+  severity: z.enum(["info", "warning", "error"]),
+  message: z.string(),
+  paths: z.array(z.string()),
+  issues: z.array(FindingIssueSchema),
+});
+/** Closed-union schema: CliEnvelope.findings only. */
 export const FindingSchema: z.ZodType<Finding> = z.looseObject({
   code: z.enum(FINDING_CODES),
   severity: z.enum(["info", "warning", "error"]),

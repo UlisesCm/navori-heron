@@ -40,6 +40,18 @@
       ],
       "type": "object"
     },
+    "product": {
+      "additionalProperties": {},
+      "properties": {
+        "locale": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "locale"
+      ],
+      "type": "object"
+    },
     "schemaVersion": {
       "const": 1,
       "type": "number"
@@ -50,7 +62,9 @@
         "adapter": {
           "enum": [
             "navori-master",
-            "filesystem"
+            "filesystem",
+            "markdown",
+            "manual"
           ],
           "type": "string"
         },

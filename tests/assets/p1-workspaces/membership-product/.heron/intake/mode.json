@@ -1,0 +1,97 @@
+{
+  "detection": {
+    "adapter": "navori-master",
+    "artifacts": [
+      {
+        "name": "MASTER.md",
+        "path": "specs/_master/01-mvp/MASTER.md",
+        "present": true,
+        "sha256": "81b88d61824dc8386bbaa57d8c665f7fd67cc68ef3565378d464e6618744a6a6"
+      },
+      {
+        "name": "DECISIONS.md",
+        "path": "specs/_master/01-mvp/DECISIONS.md",
+        "present": true,
+        "sha256": "fac83c3c23edecfa76a29c9efd2389180e823c3b26d1bca5f470264b869825fa"
+      },
+      {
+        "name": "parts.json",
+        "path": "specs/_master/01-mvp/parts.json",
+        "present": true,
+        "sha256": "d993bade9cbc5bc46748369e35bc08d04e217142f3cfa3441500362d56c972c0"
+      },
+      {
+        "name": "UX.md",
+        "path": "specs/_master/01-mvp/UX.md",
+        "present": true,
+        "sha256": "a8a574f6008d4b466780535ff03036678d7564215257757efe612c19ce7f6078"
+      },
+      {
+        "name": "ux.json",
+        "path": "specs/_master/01-mvp/ux.json",
+        "present": true,
+        "sha256": "d375140809e99d8b88ddeab68e1b263fc01f4fc669b065dafda866082fb51798"
+      },
+      {
+        "name": "DIGEST.md",
+        "path": "specs/_master/01-mvp/context/DIGEST.md",
+        "present": true,
+        "sha256": "3f789c108e634990352e98e5bbac5ee2cccf36785d0e0352c84f37d554e8e2fa"
+      },
+      {
+        "name": "CODEBASE.md",
+        "path": "specs/_master/01-mvp/context/CODEBASE.md",
+        "present": true,
+        "sha256": "594ecd5080c6737c18cb86dc36ab6e8cff8f9eef70a1a5e2b6b31ca52ef512bd"
+      }
+    ],
+    "findings": [],
+    "harness": {
+      "mode": "template",
+      "phase": "executing",
+      "ux": "md-json"
+    },
+    "navoriMaster": true,
+    "specsDir": "specs",
+    "stage": {
+      "dir": "01-mvp",
+      "number": 1,
+      "selection": "active",
+      "slug": "mvp",
+      "state": "activa"
+    },
+    "stageNotice": null,
+    "stageStatus": "selected",
+    "uxJson": {
+      "issues": [],
+      "path": "specs/_master/01-mvp/ux.json",
+      "present": true,
+      "reader": "provisional-1",
+      "sha256": "d375140809e99d8b88ddeab68e1b263fc01f4fc669b065dafda866082fb51798",
+      "summary": {
+        "flows": 3,
+        "patterns": 2,
+        "screens": 6,
+        "surfaces": ["MOBILE", "DASHBOARD", "PARTNER"]
+      },
+      "valid": true
+    },
+    "uxMarkdown": {
+      "issues": [],
+      "path": "specs/_master/01-mvp/UX.md",
+      "present": true,
+      "sha256": "a8a574f6008d4b466780535ff03036678d7564215257757efe612c19ce7f6078",
+      "valid": true
+    }
+  },
+  "findings": [],
+  "kind": "ModeDecision",
+  "mode": "full",
+  "reasons": [
+    {
+      "code": "UX_COMPLETE",
+      "message": "UX.md and ux.json are present and valid."
+    }
+  ],
+  "schemaVersion": 1
+}
