@@ -226,15 +226,47 @@ describe("source precedence (RN-7)", () => {
       ],
       {
         sources: [
-          { source: "DECISIONS.md", path: masterRef("", "DECISIONS.md").path, status: "used" },
+          {
+            source: "DECISIONS.md",
+            path: masterRef("", "DECISIONS.md").path,
+            status: "used",
+          },
           { source: "MASTER.md", path: masterRef("").path, status: "read" },
-          { source: "parts.json", path: masterRef("", "parts.json").path, status: "used" },
+          {
+            source: "parts.json",
+            path: masterRef("", "parts.json").path,
+            status: "used",
+          },
         ],
         findings: [
-          { code: "SOURCE_NO_ELEMENTS", severity: "info", message: "b", paths: ["b"], issues: [] },
-          { code: "SOURCE_NO_ELEMENTS", severity: "info", message: "b", paths: ["a"], issues: [] },
-          { code: "SOURCE_NO_ELEMENTS", severity: "info", message: "a", paths: ["a"], issues: [] },
-          { code: "CONTEXT_INPUT_INVALID", severity: "error", message: "x", paths: [], issues: [] },
+          {
+            code: "SOURCE_NO_ELEMENTS",
+            severity: "info",
+            message: "b",
+            paths: ["b"],
+            issues: [],
+          },
+          {
+            code: "SOURCE_NO_ELEMENTS",
+            severity: "info",
+            message: "b",
+            paths: ["a"],
+            issues: [],
+          },
+          {
+            code: "SOURCE_NO_ELEMENTS",
+            severity: "info",
+            message: "a",
+            paths: ["a"],
+            issues: [],
+          },
+          {
+            code: "CONTEXT_INPUT_INVALID",
+            severity: "error",
+            message: "x",
+            paths: [],
+            issues: [],
+          },
         ],
       },
     );
@@ -256,5 +288,26 @@ describe("source precedence (RN-7)", () => {
       "SOURCE_NO_ELEMENTS/a/b",
       "SOURCE_NO_ELEMENTS/b/b",
     ]);
+  });
+
+  // Covers: R3
+  test("unions states when a candidate carries no screens", () => {
+    const bare = { name: "Empty", global: true } as unknown as ReturnType<typeof stateValue>;
+    const merged = mergeCandidates(
+      [
+        candidate("states", "empty", bare, masterRef("§UX", "UX.md")),
+        candidate(
+          "states",
+          "empty",
+          stateValue("Empty", false, ["S1"]),
+          masterRef("/s", "ux.json"),
+        ),
+      ],
+      PATHS("ux.json", "UX.md"),
+    );
+    expect(merged.merged[0]?.value).toMatchObject({
+      global: true,
+      screens: ["S1"],
+    });
   });
 });

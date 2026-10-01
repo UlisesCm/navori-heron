@@ -62,7 +62,9 @@ function sameRef(a: SourceRef, b: SourceRef): boolean {
 
 /** Union of two string lists keeping first-seen order. */
 function unionStrings(a: unknown, b: unknown): string[] {
-  return [...new Set([...(a as string[]), ...(b as string[])])];
+  return [
+    ...new Set([...((a as string[] | undefined) ?? []), ...((b as string[] | undefined) ?? [])]),
+  ];
 }
 
 /** Fills the winner's empty fields from the others, in precedence order; states also union
@@ -202,7 +204,11 @@ export function mergeCandidates(
   }
 
   const findings: Finding[] = [...skipped.entries()]
-    .toSorted(([a], [b]) => compareText(a, b))
+    .toSorted(([a], [b]) => {
+      const [sectionA = "", rankA = "0"] = a.split("\u0000");
+      const [sectionB = "", rankB = "0"] = b.split("\u0000");
+      return compareText(sectionA, sectionB) || Number(rankA) - Number(rankB);
+    })
     .map(([, items]) => {
       const first = items[0] as Candidate;
       const issues = items
