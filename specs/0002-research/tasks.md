@@ -73,7 +73,7 @@ Lotes de 1–3 tareas. Cada test lleva `// Covers: R<n>` y usa el nombre exacto 
 
 ## Lote 4 — Módulo research
 
-- [ ] **T8** (R6, R7, R8, R10, R11, R12) — Puerto `ResearchSource`, registro, validación de provenance, lectura de archivos de entrada (D28) y adapters `manual`, `url`, `image`, `design-md`.
+- [x] **T8** (R6, R7, R8, R10, R11, R12) — Puerto `ResearchSource`, registro, validación de provenance, lectura de archivos de entrada (D28) y adapters `manual`, `url`, `image`, `design-md`.
   - **Archivos:** `src/research/ports.ts`, `src/research/registry.ts`, `src/research/layout.ts`, `src/research/provenance.ts`, `src/research/brand.ts`, `src/research/compare.ts`, `src/research/input-file.ts`, `src/research/image-file.ts`, `src/research/external-text.ts`, `src/research/adapters/manual/index.ts`, `src/research/adapters/url/index.ts`, `src/research/adapters/image/index.ts`, `src/research/adapters/design-md/index.ts`, `src/core/store/paths.ts`, `tests/unit/research/manual.test.ts`, `tests/unit/research/url.test.ts`, `tests/unit/research/image.test.ts`, `tests/unit/research/design-md.test.ts`, `tests/unit/research/provenance.test.ts`
   - **Interfaces:** ResearchSource; RESEARCH_SOURCES; sourceFor; validateReferenceInput; resolveInputFile; readInputFile; captureImageFile; fetchExternalText; manualSource; urlSource; imageSource; designMdSource
   - **Patrón:** src/intake/adapters/filesystem/index.ts
@@ -83,7 +83,7 @@ Lotes de 1–3 tareas. Cada test lleva `// Covers: R<n>` y usa el nombre exacto 
   - **Nota:** cambiar el predicado local de `collectResearchFacts` (`src/app/facts.ts`) por `missingProvenance` de `src/research/provenance.ts` (revisión del lote 3).
   - **Fuera de alcance:** fuentes `penpot` (P6) y `refero` (P10).
 
-- [ ] **T9** (R13, R16) — Renderers de `REFERENCES.md`, `provenance.json` y moodboard HTML con CSP fijada por hash.
+- [x] **T9** (R13, R16) — Renderers de `REFERENCES.md`, `provenance.json` y moodboard HTML con CSP fijada por hash.
   - **Archivos:** `src/research/render/copy.ts`, `src/research/render/provenance.ts`, `src/research/render/references-md.ts`, `src/research/render/moodboard.ts`, `src/research/render/outputs.ts`, `tests/unit/research/render.test.ts`
   - **Interfaces:** renderReferencesMarkdown; buildProvenance; renderMoodboardHtml; MOODBOARD_CSP; renderResearchOutputs
   - **Patrón:** src/cli/render.ts
