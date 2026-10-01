@@ -1,32 +1,25 @@
 import { runStatus } from "../../app/status.ts";
-import type { AppContext } from "../../app/context.ts";
-import { ExitCode } from "../../core/contracts/index.ts";
-import type { ParsedCommand } from "../args.ts";
-import { buildEnvelope } from "../envelope.ts";
-import type { CliIo } from "../io.ts";
+import { parsePathCommand, type CommandSpec, type StatusParsed } from "../command.ts";
+import { emitResult } from "../output.ts";
 import { renderStatusText } from "../render.ts";
 
-export async function handleStatus(
-  parsed: Extract<ParsedCommand, { command: "status" }>,
-  ctx: AppContext,
-  io: CliIo,
-): Promise<ExitCode> {
-  const started = performance.now();
-  const result = await runStatus(ctx, { path: parsed.path });
-  if (parsed.json) {
-    const envelope = buildEnvelope({
-      command: "status",
+export const statusCommand: CommandSpec<StatusParsed> = {
+  name: "status",
+  usage: ["  status [path] [--json]", "      Show mode, stage, phase, gates and stale artifacts"],
+  parse: (args, json) => parsePathCommand("status", args, json),
+  async handle(parsed, ctx, io) {
+    const started = performance.now();
+    const result = await runStatus(ctx, { path: parsed.path });
+    return emitResult(
+      io,
+      {
+        command: "status",
+        json: parsed.json,
+        started,
+        runId: ctx.ids.runId(ctx.clock.now()),
+        render: renderStatusText,
+      },
       result,
-      runId: ctx.ids.runId(ctx.clock.now()),
-      durationMs: Math.round(performance.now() - started),
-    });
-    io.stdout(`${JSON.stringify(envelope)}\n`);
-    return result.ok ? ExitCode.Ok : result.code;
-  }
-  if (!result.ok) {
-    io.stderr(`${result.message}\n`);
-    return result.code;
-  }
-  io.stdout(`${renderStatusText(result.data, result.findings)}\n`);
-  return ExitCode.Ok;
-}
+    );
+  },
+};

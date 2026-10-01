@@ -7,7 +7,7 @@ import {
   type Finding,
   type FindingCode,
   type FindingSeverity,
-  type ModeDecision,
+  type StoredModeDecision,
 } from "../core/contracts/index.ts";
 import { describeModeBlock } from "../core/state/mode.ts";
 import type { TransitionRejection } from "../core/state/transitions.ts";
@@ -50,7 +50,7 @@ export function failure<T>(
  * `({describeModeBlock(decision)})` before its final period (design.md, Mensajes de findings). */
 export function rejectionToFinding(
   rejection: TransitionRejection,
-  decision: ModeDecision,
+  decision: StoredModeDecision,
 ): Finding {
   const message =
     rejection.code === "MODE_BLOCKED"
@@ -73,6 +73,14 @@ export function pathNotFound<T>(path: string): UseCaseResult<T> {
   return failure(
     ExitCode.Usage,
     makeFinding("PATH_NOT_FOUND", "error", `Path not found or not a directory: ${path}`, [path]),
+  );
+}
+
+/** Exit 3 when `.heron/state.json` is absent (the workspace was never initialized). */
+export function notInitialized<T>(path: string): UseCaseResult<T> {
+  return failure(
+    ExitCode.Blocked,
+    makeFinding("NOT_INITIALIZED", "error", `.heron/state.json not found. Run: heron init ${path}`),
   );
 }
 

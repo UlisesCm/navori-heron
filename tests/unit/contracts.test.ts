@@ -1,8 +1,13 @@
 // Covers: R11, R15
 import { describe, expect, test } from "bun:test";
+import { makeFinding } from "../../src/app/result.ts";
 import {
   CLI_ENVELOPE_DOCUMENT,
   CONTRACT_DOCUMENTS,
+  ADAPTER_IDS,
+  FINDING_CODES,
+  FINDING_CODE_PATTERN,
+  StoredFindingSchema,
   ExitCode,
   HERON_PHASES,
   HERON_PROJECT_DOCUMENT,
@@ -205,5 +210,30 @@ describe("canonical json and pointers", () => {
     expect(toJsonPointer(["screens", 1, "surface"])).toBe("/screens/1/surface");
     expect(toJsonPointer(["a/b", "c~d"])).toBe("/a~1b/c~0d");
     expect(toJsonPointer([])).toBe("");
+  });
+});
+
+const stored = (code: unknown): boolean =>
+  StoredFindingSchema.safeParse({
+    code,
+    severity: "info",
+    message: "m",
+    paths: [],
+    issues: [],
+  }).success;
+
+describe("finding codes", () => {
+  test("stores finding codes as formatted strings and keeps the emitter union closed", () => {
+    expect(stored("RESEARCH_REFERENCE_MISSING")).toBe(true);
+    expect(stored("A1_B2")).toBe(true);
+    for (const code of ["lower", "_LEADING", "1ABC", "HAS-DASH", "", 7])
+      expect(stored(code)).toBe(false);
+    expect(FINDING_CODES.every((code) => FINDING_CODE_PATTERN.test(code))).toBe(true);
+    // @ts-expect-error emitters only accept the closed FindingCode union
+    makeFinding("NOT_A_CODE", "info", "m");
+    expect(ADAPTER_IDS).toEqual(["navori-master", "filesystem", "markdown", "manual"]);
+    expect(
+      HERON_PROJECT_DOCUMENT.schema.safeParse({ ...project, product: { locale: "es" } }).success,
+    ).toBe(true);
   });
 });

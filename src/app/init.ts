@@ -1,6 +1,5 @@
 import {
   HERON_PROJECT_DOCUMENT,
-  HERON_STATE_DOCUMENT,
   MODE_DECISION_DOCUMENT,
   canonicalJson,
   parseVersionedDocument,
@@ -14,17 +13,13 @@ import {
 } from "../core/contracts/index.ts";
 import { createInitialState, recordInit } from "../core/state/lifecycle.ts";
 import { detectMode } from "../core/state/mode.ts";
-import type { TransitionMeta } from "../core/state/transitions.ts";
 import {
   GITIGNORE_FILE,
   HERON_GITIGNORE,
   MODE_FILE,
   PROJECT_FILE,
-  STATE_FILE,
-  openFileStore,
 } from "../core/store/file-store.ts";
 import { sha256Hex } from "../core/store/hash.ts";
-import { acquireLock } from "../core/store/lock.ts";
 import { detectProject } from "../intake/detect.ts";
 import type { AppContext } from "./context.ts";
 import {
@@ -32,9 +27,9 @@ import {
   pathNotFound,
   resolveDirectory,
   stageErrorResult,
-  storeErrorResult,
   type UseCaseResult,
 } from "./result.ts";
+import { withWriteRun, type WriteBodyResult, type WriteRun } from "./write-run.ts";
 
 export type InitInput = { path: string; stage: string | null; dryRun: boolean };
 
@@ -72,7 +67,7 @@ function collectFindings(decision: ModeDecision): Finding[] {
   return findings;
 }
 
-/** detect -> decide -> (without dryRun) lock -> recover staging -> transaction -> release. */
+/** detect -> decide -> (without dryRun) withWriteRun: lock -> recover staging -> transaction -> release. */
 export async function runInit(ctx: AppContext, input: InitInput): Promise<UseCaseResult<InitData>> {
   const root = resolveDirectory(ctx.fs, input.path);
   if (root === null) return pathNotFound(input.path);
@@ -93,119 +88,68 @@ export async function runInit(ctx: AppContext, input: InitInput): Promise<UseCas
     return { ok: true, data, findings, next };
   }
 
-  try {
-    return commitInit(ctx, root, decision, findings, next);
-  } catch (error) {
-    const mapped = storeErrorResult<InitData>(error);
-    if (mapped === null) throw error;
-    return mapped;
-  }
+  return withWriteRun(
+    ctx,
+    root,
+    {
+      path: input.path,
+      command: "init",
+      create: true,
+      requireState: false,
+      expectedRevision: null,
+    },
+    (run) => writeInit(run, decision, findings, next),
+  );
 }
 
-function commitInit(
-  ctx: AppContext,
-  root: string,
+function writeInit(
+  { store, tx, previous, meta }: WriteRun,
   decision: ModeDecision,
   findings: Finding[],
   next: string[],
-): UseCaseResult<InitData> {
-  const now = ctx.clock.now();
-  const runId = ctx.ids.runId(now);
-  const store = openFileStore(ctx.fs, root, { create: true });
-  const acquired = acquireLock(
-    ctx.fs,
-    store.heronDir,
+): WriteBodyResult<InitData> {
+  const documents: { path: string; text: string }[] = [
+    { path: MODE_FILE, text: render(MODE_DECISION_DOCUMENT, MODE_FILE, decision) },
     {
-      runId,
-      pid: ctx.process.pid,
-      hostname: ctx.process.hostname,
-      command: "init",
-      acquiredAt: now.toISOString(),
+      path: PROJECT_FILE,
+      text: render(HERON_PROJECT_DOCUMENT, PROJECT_FILE, buildProject(decision)),
     },
-    { ...ctx.lock, hostname: ctx.process.hostname, now: () => Date.now() },
+  ];
+  const hashes = new Map(
+    documents.map((doc) => [doc.path, sha256Hex(new TextEncoder().encode(doc.text))]),
   );
-  const all = [...findings];
-  if (acquired.reclaimed !== null) {
-    const { pid, hostname, runId: staleRun } = acquired.reclaimed;
-    all.push(
-      makeFinding(
-        "LOCK_RECLAIMED",
-        "warning",
-        `Reclaimed a stale lock from pid ${pid} on ${hostname} (run ${staleRun}).`,
-      ),
-    );
+  const unchanged =
+    previous !== null &&
+    previous.mode === decision.mode &&
+    documents.every((doc) => store.sha256(doc.path) === hashes.get(doc.path)) &&
+    sameText(store.readBytes(GITIGNORE_FILE), HERON_GITIGNORE);
+  if (unchanged) {
+    const data: InitData = {
+      decision,
+      dryRun: false,
+      written: false,
+      stateRevision: previous.stateRevision,
+    };
+    return { kind: "skip", result: { ok: true, data, findings, next } };
   }
-  try {
-    const recovered = store.recoverOrphanStaging(runId);
-    if (recovered.length > 0) {
-      all.push(
-        makeFinding(
-          "STAGING_RECOVERED",
-          "info",
-          `Removed orphan staging from interrupted run(s): ${recovered.join(", ")}.`,
-        ),
-      );
-    }
-    const previous = store.readDocument(STATE_FILE, HERON_STATE_DOCUMENT);
 
-    const documents: { path: string; text: string }[] = [
-      { path: MODE_FILE, text: render(MODE_DECISION_DOCUMENT, MODE_FILE, decision) },
-      {
-        path: PROJECT_FILE,
-        text: render(HERON_PROJECT_DOCUMENT, PROJECT_FILE, buildProject(decision)),
-      },
-    ];
-    const hashes = new Map(
-      documents.map((doc) => [doc.path, sha256Hex(new TextEncoder().encode(doc.text))]),
-    );
-    const unchanged =
-      previous !== null &&
-      previous.mode === decision.mode &&
-      documents.every((doc) => store.sha256(doc.path) === hashes.get(doc.path)) &&
-      sameText(store.readBytes(GITIGNORE_FILE), HERON_GITIGNORE);
-    if (unchanged) {
-      const data: InitData = {
-        decision,
-        dryRun: false,
-        written: false,
-        stateRevision: previous.stateRevision,
-      };
-      return { ok: true, data, findings: all, next };
-    }
-
-    const tx = store.begin(runId);
-    try {
-      tx.put(GITIGNORE_FILE, HERON_GITIGNORE);
-      for (const doc of documents) tx.put(doc.path, doc.text);
-      const artifacts: BoundArtifact[] = documents.map((doc) => ({
-        path: doc.path,
-        sha256: hashes.get(doc.path) ?? "",
-      }));
-      const meta: TransitionMeta = {
-        runId,
-        at: now.toISOString(),
-        command: "init",
-        heronVersion: ctx.heronVersion,
-      };
-      const state: HeronState =
-        previous === null
-          ? createInitialState({ mode: decision.mode, artifacts, meta })
-          : recordInit(previous, { mode: decision.mode, artifacts, meta });
-      const result = tx.commit(state, previous?.stateRevision ?? 0);
-      const data: InitData = {
-        decision,
-        dryRun: false,
-        written: true,
-        stateRevision: result.stateRevision,
-      };
-      return { ok: true, data, findings: all, next };
-    } catch (error) {
-      tx.abort();
-      throw error;
-    }
-  } finally {
-    acquired.handle.release();
-  }
+  tx.put(GITIGNORE_FILE, HERON_GITIGNORE);
+  for (const doc of documents) tx.put(doc.path, doc.text);
+  const artifacts: BoundArtifact[] = documents.map((doc) => ({
+    path: doc.path,
+    sha256: hashes.get(doc.path) ?? "",
+  }));
+  const state: HeronState =
+    previous === null
+      ? createInitialState({ mode: decision.mode, artifacts, meta })
+      : recordInit(previous, { mode: decision.mode, artifacts, meta });
+  const data: InitData = {
+    decision,
+    dryRun: false,
+    written: true,
+    stateRevision: state.stateRevision,
+  };
+  return { kind: "commit", state, data, findings, next };
 }
 
 /** Canonical JSON of a validated document (the exact bytes the store writes). */

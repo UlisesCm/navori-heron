@@ -1,7 +1,7 @@
 import { describe, expect, test } from "bun:test";
-import { mkdirSync, readFileSync, symlinkSync, writeFileSync } from "node:fs";
+import { existsSync, mkdirSync, readFileSync, symlinkSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
-import { collectTransitionFacts } from "../../src/app/gate.ts";
+import { collectTransitionFacts } from "../../src/app/facts.ts";
 import {
   ExitCode,
   HERON_STATE_DOCUMENT,
@@ -182,6 +182,20 @@ describe("heron gate", () => {
     const busy = await runCliCaptured([...REJECT, "--yes", root]);
     expect(busy.code).toBe(ExitCode.LockBusy);
     expect(busy.stderr).toContain('.heron/ is locked by "init"');
+  });
+
+  // Covers: R1
+  test("recovers orphan staging before deciding a gate", async () => {
+    const root = await initialized("membership-product");
+    const orphan = join(root, ".heron", "staging", "run-20260101T000000Z-deadbeef");
+    mkdirSync(orphan, { recursive: true });
+    writeFileSync(join(orphan, "half-written.json"), "{");
+    const run = await runCliCaptured([...REJECT, "--yes", "--json", root]);
+    expect(run.code).toBe(ExitCode.Ok);
+    const envelope = JSON.parse(run.stdout) as CliEnvelope;
+    expect(envelope.findings.map((finding) => finding.code)).toEqual(["STAGING_RECOVERED"]);
+    expect(existsSync(orphan)).toBe(false);
+    expect(readState(root).history.at(-1)?.command).toBe("gate");
   });
 
   // Covers: R9

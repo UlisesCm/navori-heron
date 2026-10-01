@@ -3,20 +3,18 @@ import { createDefaultContext } from "../app/context.ts";
 import { failure } from "../app/result.ts";
 import { HERON_VERSION } from "../app/version.ts";
 import { ExitCode, type CliCommand, type Finding } from "../core/contracts/index.ts";
-import { UsageError, USAGE_TEXT, parseCliArgs } from "./args.ts";
-import { handleDoctor } from "./commands/doctor.ts";
-import { handleGate } from "./commands/gate.ts";
-import { handleInit } from "./commands/init.ts";
-import { handleStatus } from "./commands/status.ts";
-import { buildEnvelope } from "./envelope.ts";
+import { USAGE_TEXT, commandFor, parseCliArgs } from "./args.ts";
+import { UsageError } from "./command.ts";
 import type { CliIo } from "./io.ts";
+import { emitResult } from "./output.ts";
 
 function errorFinding(code: Finding["code"], message: string): Finding {
   return { code, severity: "error", message, paths: [], issues: [] };
 }
 
 /** Text mode: result to stdout, failures to stderr. --json: exactly one CliEnvelope + "\n" to stdout, nothing else.
- * Unexpected exception -> exit 1, UNEXPECTED_ERROR (stack only when HERON_DEBUG=1). */
+ * Every output goes through emitResult. Unexpected exception -> exit 1, UNEXPECTED_ERROR (stack only when
+ * HERON_DEBUG=1). */
 export async function runCli(
   argv: readonly string[],
   io: CliIo,
@@ -32,18 +30,14 @@ export async function runCli(
     command: CliCommand | "unknown",
     code: Exclude<ExitCode, 0>,
     finding: Finding,
-    text: string,
+    message: string,
     json: boolean,
-  ): ExitCode => {
-    if (json) {
-      const result = failure<null>(code, finding);
-      const durationMs = Math.round(performance.now() - started);
-      io.stdout(`${JSON.stringify(buildEnvelope({ command, result, runId, durationMs }))}\n`);
-    } else {
-      io.stderr(`${text}\n`);
-    }
-    return code;
-  };
+  ): ExitCode =>
+    emitResult(
+      io,
+      { command, json, started, runId, render: () => "" },
+      failure<null>(code, finding, message),
+    );
 
   if (parsed instanceof UsageError) {
     return fail(
@@ -63,27 +57,17 @@ export async function runCli(
     return ExitCode.Ok;
   }
   try {
-    switch (parsed.command) {
-      case "init":
-        return await handleInit(parsed, scoped, io);
-      case "status":
-        return await handleStatus(parsed, scoped, io);
-      case "doctor":
-        return await handleDoctor(parsed, scoped, io);
-      case "gate":
-        return await handleGate(parsed, scoped, io);
-    }
+    return await commandFor(parsed.command).handle(parsed, scoped, io);
   } catch (error) {
     const detail = error instanceof Error ? error.message : String(error);
     const stack =
       error instanceof Error && process.env["HERON_DEBUG"] === "1" ? `\n${error.stack ?? ""}` : "";
-    const command = parsed.command;
     return fail(
-      command,
+      parsed.command,
       ExitCode.Unexpected,
       errorFinding("UNEXPECTED_ERROR", `Unexpected error: ${detail}`),
       `Unexpected error: ${detail}${stack}`,
-      "json" in parsed && parsed.json,
+      parsed.json,
     );
   }
 }

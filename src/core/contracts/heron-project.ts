@@ -1,10 +1,13 @@
 import { z } from "zod";
 import type { DocumentSpec } from "./version.ts";
 
-export const ADAPTER_IDS = ["navori-master", "filesystem"] as const; // P4 appends "markdown", "manual"
+export const ADAPTER_IDS = ["navori-master", "filesystem", "markdown", "manual"] as const; // "markdown"/"manual" are not emitted before P4
 export type AdapterId = (typeof ADAPTER_IDS)[number];
 export const STAGE_SELECTIONS = ["explicit", "active", "last-closed"] as const;
 export type StageSelection = (typeof STAGE_SELECTIONS)[number];
+
+/** `locale` is canonical BCP 47 (Intl.getCanonicalLocales). */
+export type ProductSettings = { locale: string };
 
 export type HeronProject = {
   kind: "HeronProject";
@@ -15,6 +18,7 @@ export type HeronProject = {
     stage: { dir: string; selection: StageSelection } | null; // null for filesystem or no stage
   };
   penpot: { enabled: boolean; url: string | null; fileId: string | null; version: string | null };
+  product?: ProductSettings | undefined; // optional: no schema bump (DP7)
 };
 
 export const HeronProjectSchema: z.ZodType<HeronProject> = z.looseObject({
@@ -31,6 +35,7 @@ export const HeronProjectSchema: z.ZodType<HeronProject> = z.looseObject({
     fileId: z.string().nullable(),
     version: z.string().nullable(),
   }),
+  product: z.looseObject({ locale: z.string() }).optional(),
 });
 
 export const HERON_PROJECT_DOCUMENT: DocumentSpec<HeronProject> = {

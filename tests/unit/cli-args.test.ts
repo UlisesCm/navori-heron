@@ -1,5 +1,7 @@
 import { describe, expect, test } from "bun:test";
-import { USAGE_TEXT, UsageError, parseCliArgs } from "../../src/cli/args.ts";
+import { USAGE_TEXT, commandFor, parseCliArgs } from "../../src/cli/args.ts";
+import { UsageError, type CommandSpec, type ParsedCommand } from "../../src/cli/command.ts";
+import { COMMANDS } from "../../src/cli/commands/index.ts";
 import { runCliCaptured } from "../helpers/cli.ts";
 
 describe("parseCliArgs", () => {
@@ -94,5 +96,52 @@ describe("parseCliArgs", () => {
     const version = await runCliCaptured(["--version"]);
     expect(version.code).toBe(0);
     expect(version.stdout).toMatch(/^\d+\.\d+\.\d+\n$/);
+  });
+
+  // Covers: R2
+  test("derives the usage text, parsing and lookup from the command registry", () => {
+    expect(COMMANDS.map((spec) => spec.name)).toEqual(["init", "status", "doctor", "gate"]);
+    expect(USAGE_TEXT).toBe(
+      [
+        "Usage: heron <command> [options]",
+        "",
+        "Commands:",
+        "  init [path] [--stage <NN-slug>] [--dry-run] [--json]",
+        "      Detect the product context, decide the mode and write .heron/",
+        "  status [path] [--json]",
+        "      Show mode, stage, phase, gates and stale artifacts",
+        "  doctor [path] [--json]",
+        "      Check the local environment and the .heron/ workspace",
+        "  gate <gate> approve|reject [path] [--note <text>] [--reason <text>] [--yes] [--json]",
+        "      Record a human gate decision bound to artifact hashes",
+        "",
+        "Gates: intake, research, direction, foundations, representative-screens, visual-review",
+        "",
+        "Options:",
+        "  -h, --help     Show this help",
+        "  -v, --version  Show the Heron version",
+        "",
+      ].join("\n"),
+    );
+    expect(commandFor("gate").name).toBe("gate");
+    expect(() => commandFor("gate", [])).toThrow('Command "gate" is not registered.');
+
+    // A command registered in a custom list is parsed and found without touching args.ts.
+    const probe: CommandSpec = {
+      name: "status",
+      usage: [],
+      parse: (_args, json): ParsedCommand => ({ command: "status", path: "probe", json }),
+      handle: async () => 0,
+    };
+    expect(parseCliArgs(["--json", "status"], [probe])).toEqual({
+      command: "status",
+      path: "probe",
+      json: true,
+    });
+    const unknown = parseCliArgs(["init"], [probe]);
+    expect(unknown instanceof UsageError && unknown.message).toBe('Unknown command "init".');
+    const misplaced = parseCliArgs(["--stage", "init"]);
+    expect(misplaced instanceof UsageError).toBe(true);
+    expect(parseCliArgs(["--json"])).toEqual({ command: "help" });
   });
 });

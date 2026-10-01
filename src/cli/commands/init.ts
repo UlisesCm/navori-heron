@@ -1,40 +1,57 @@
 import { runInit } from "../../app/init.ts";
-import type { AppContext } from "../../app/context.ts";
-import { ExitCode } from "../../core/contracts/index.ts";
-import type { ParsedCommand } from "../args.ts";
-import { buildEnvelope } from "../envelope.ts";
-import type { CliIo } from "../io.ts";
+import {
+  UsageError,
+  parseOptions,
+  unexpectedArgument,
+  type CommandSpec,
+  type InitParsed,
+} from "../command.ts";
+import { emitResult, splitNotices } from "../output.ts";
 import { renderFindings, renderInitText } from "../render.ts";
 
-const APP_ONLY_CODES: readonly string[] = ["LOCK_RECLAIMED", "STAGING_RECOVERED"];
-
-export async function handleInit(
-  parsed: Extract<ParsedCommand, { command: "init" }>,
-  ctx: AppContext,
-  io: CliIo,
-): Promise<ExitCode> {
-  const started = performance.now();
-  const result = await runInit(ctx, {
-    path: parsed.path,
-    stage: parsed.stage,
-    dryRun: parsed.dryRun,
-  });
-  if (parsed.json) {
-    const envelope = buildEnvelope({
+export const initCommand: CommandSpec<InitParsed> = {
+  name: "init",
+  usage: [
+    "  init [path] [--stage <NN-slug>] [--dry-run] [--json]",
+    "      Detect the product context, decide the mode and write .heron/",
+  ],
+  parse(args, json) {
+    const parsed = parseOptions(
+      args,
+      { stage: { type: "string" }, "dry-run": { type: "boolean" } },
+      json,
+    );
+    if (parsed instanceof UsageError) return parsed;
+    const tooMany = unexpectedArgument(parsed.positionals, 1, json);
+    if (tooMany !== null) return tooMany;
+    return {
       command: "init",
-      result,
-      runId: ctx.ids.runId(ctx.clock.now()),
-      durationMs: Math.round(performance.now() - started),
+      path: parsed.positionals[0] ?? ".",
+      stage: parsed.values.stage ?? null,
+      dryRun: parsed.values["dry-run"] === true,
+      json,
+    };
+  },
+  async handle(parsed, ctx, io) {
+    const started = performance.now();
+    const result = await runInit(ctx, {
+      path: parsed.path,
+      stage: parsed.stage,
+      dryRun: parsed.dryRun,
     });
-    io.stdout(`${JSON.stringify(envelope)}\n`);
-    return result.ok ? ExitCode.Ok : result.code;
-  }
-  if (!result.ok) {
-    io.stderr(`${result.message}\n`);
-    return result.code;
-  }
-  io.stdout(`${renderInitText(result.data)}\n`);
-  const notices = result.findings.filter((finding) => APP_ONLY_CODES.includes(finding.code));
-  if (notices.length > 0) io.stderr(`${renderFindings(notices)}\n`);
-  return ExitCode.Ok;
-}
+    return emitResult(
+      io,
+      {
+        command: "init",
+        json: parsed.json,
+        started,
+        runId: ctx.ids.runId(ctx.clock.now()),
+        render: (data, findings) => ({
+          stdout: renderInitText(data),
+          stderr: renderFindings(splitNotices(findings).notices),
+        }),
+      },
+      result,
+    );
+  },
+};

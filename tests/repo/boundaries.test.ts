@@ -1,4 +1,4 @@
-// Covers: R14
+// Covers: R3, R5
 import { describe, expect, test } from "bun:test";
 import { readFileSync } from "node:fs";
 import { dirname, join, relative, resolve, sep } from "node:path";
@@ -8,6 +8,10 @@ const ROOT = resolve(import.meta.dir, "..", "..");
 // Static literal regexes only: specifiers are never interpolated into a RegExp.
 const TYPE_IMPORT_RE = /\b(?:import|export)\s+type\b[^;]*?\bfrom\s*["']([^"']+)["']/g;
 
+// Blanks comments and string/template literals (keeping newlines) so only code tokens remain.
+const NON_CODE_RE =
+  /\/\/[^\n]*|\/\*[\s\S]*?\*\/|"(?:\\.|[^"\\\n])*"|'(?:\\.|[^'\\\n])*'|`(?:\\[\s\S]|[^`\\])*`/g;
+
 /** Every module specifier of a TS source: Bun scanner (static, dynamic, require) plus type-only forms it omits. */
 export function extractImports(source: string): string[] {
   const found = new Set<string>();
@@ -15,6 +19,12 @@ export function extractImports(source: string): string[] {
   for (const entry of scanned) found.add(entry.path);
   for (const match of source.matchAll(TYPE_IMPORT_RE)) found.add(match[1] ?? "");
   return [...found];
+}
+
+/** Module specifiers that exist at runtime: the Bun scanner only (type-only imports are erased, DP20). */
+export function runtimeImports(source: string): string[] {
+  const scanned = new Bun.Transpiler({ loader: "ts" }).scanImports(source.replace(/^#!.*/, ""));
+  return [...new Set(scanned.map((entry) => entry.path))];
 }
 
 const listTs = (dir: string): string[] =>
@@ -32,60 +42,362 @@ function resolveRelative(file: string, specifier: string): string | null {
     .join("/");
 }
 
+/** `path` is `prefix` itself or lives below it (a prefix may be a directory or an exact file). */
 const under = (path: string, prefix: string): boolean =>
   path === prefix || path.startsWith(`${prefix}/`);
+const underAny = (path: string, prefixes: readonly string[]): boolean =>
+  prefixes.some((prefix) => under(path, prefix));
+
+type Example = { file: string; source: string };
+type LayerRule = {
+  from: string;
+  allow: readonly string[];
+  typeOnly: readonly string[];
+  bare: readonly RegExp[];
+  violates: Example;
+  passes: Example;
+};
+type VendorRule = {
+  specifier: RegExp;
+  only: readonly string[];
+  rule: string;
+  violates: Example;
+  passes: Example;
+};
+type TokenRule = {
+  pattern: RegExp;
+  scope: readonly string[];
+  allow: readonly string[];
+  rule: string;
+  violates: Example;
+  passes: Example;
+};
+/** "{file} -> {specifier}: {rule}" or "{file}: {rule}". */
+export type Violation = string;
 
 const NAVORI_RE = /^(?:navori|navori\/.*|@navori\/.*)$/;
-const FS_RE = /^(?:node:)?fs(?:\/.*)?$/;
-const FS_SCRIPTS = new Set(["scripts/gen-schemas.ts", "scripts/check-coverage.ts"]);
+/** Read-only store API that domain modules may import (heron-architecture SKILL: STORE_READ). */
+export const STORE_READ: readonly string[] = [
+  "src/core/store/fs-port.ts",
+  "src/core/store/paths.ts",
+  "src/core/store/hash.ts",
+];
 
-type Violation = string;
+const ex = (file: string, ...lines: string[]): Example => ({ file, source: lines.join("\n") });
 
-/** Returns one message per boundary rule broken by `file` (path relative to the repo root). */
-function violationsFor(file: string, source: string): Violation[] {
+export const LAYERS: readonly LayerRule[] = [
+  {
+    from: "src/core/contracts",
+    allow: ["src/core/contracts"],
+    typeOnly: [],
+    bare: [/^zod$/],
+    violates: ex("src/core/contracts/x.ts", 'import "../state/mode.ts";'),
+    passes: ex("src/core/contracts/x.ts", 'import { z } from "zod";', 'import "./common.ts";'),
+  },
+  {
+    from: "src/core/state",
+    allow: ["src/core/contracts", "src/core/state"],
+    typeOnly: [],
+    bare: [],
+    violates: ex("src/core/state/x.ts", 'import "../store/paths.ts";'),
+    passes: ex("src/core/state/x.ts", 'import "../contracts/index.ts";', 'import "./stale.ts";'),
+  },
+  {
+    from: "src/core/store",
+    allow: ["src/core/contracts", "src/core/store"],
+    typeOnly: [],
+    bare: [/^node:fs$/, /^node:path$/, /^node:crypto$/],
+    violates: ex("src/core/store/x.ts", 'import "../state/mode.ts";'),
+    passes: ex(
+      "src/core/store/x.ts",
+      'import { join } from "node:path";',
+      'import "../contracts/index.ts";',
+      'import "./paths.ts";',
+    ),
+  },
+  {
+    from: "src/security",
+    allow: ["src/core/contracts", "src/security"],
+    typeOnly: [],
+    bare: [/^node:dns(?:\/promises)?$/, /^node:(?:net|tls|http|https)$/, /^sharp$/], // VENDORS narrows each to its file
+    violates: ex("src/security/x.ts", 'import "../intake/ports.ts";'),
+    passes: ex("src/security/x.ts", 'import "../core/contracts/index.ts";'),
+  },
+  {
+    from: "src/intake",
+    allow: ["src/core/contracts", ...STORE_READ, "src/security", "src/intake"],
+    typeOnly: ["src/research/ports.ts"],
+    bare: [/^zod$/],
+    violates: ex("src/intake/x.ts", 'import { r } from "../research/ports.ts";'),
+    passes: ex(
+      "src/intake/x.ts",
+      'import type { R } from "../research/ports.ts";',
+      'import "../core/store/paths.ts";',
+      'import "../security/ssrf.ts";',
+    ),
+  },
+  {
+    from: "src/research",
+    allow: ["src/core/contracts", ...STORE_READ, "src/security", "src/research"],
+    typeOnly: ["src/intake/ports.ts"],
+    bare: [/^zod$/],
+    violates: ex("src/research/x.ts", 'import { DEFAULT_INPUT_LIMITS } from "../intake/ports.ts";'),
+    passes: ex(
+      "src/research/x.ts",
+      'import type { InputLimits } from "../intake/ports.ts";',
+      'import "../core/store/paths.ts";',
+      'import "../security/ssrf.ts";',
+    ),
+  },
+  {
+    from: "src/app",
+    allow: ["src/core", "src/intake", "src/research", "src/security", "src/app", "package.json"],
+    typeOnly: [],
+    bare: [/^node:os$/, /^node:path$/],
+    violates: ex("src/app/x.ts", 'import "../cli/output.ts";'),
+    passes: ex(
+      "src/app/x.ts",
+      'import "../core/state/mode.ts";',
+      'import "../intake/detect.ts";',
+      'import { resolve } from "node:path";',
+      'import pkg from "../../package.json" with { type: "json" };',
+    ),
+  },
+  {
+    from: "src/cli",
+    allow: ["src/app", "src/core/contracts", "src/cli"],
+    typeOnly: [],
+    bare: [/^node:util$/, /^node:readline$/],
+    violates: ex("src/cli/x.ts", 'import "../core/state/mode.ts";'),
+    passes: ex(
+      "src/cli/x.ts",
+      'import "../app/status.ts";',
+      'import "../core/contracts/index.ts";',
+      'import { parseArgs } from "node:util";',
+    ),
+  },
+  {
+    from: "bin",
+    allow: ["src/cli"],
+    typeOnly: [],
+    bare: [],
+    violates: ex("bin/heron.ts", 'import "../src/app/init.ts";'),
+    passes: ex("bin/heron.ts", 'import "../src/cli/main.ts";'),
+  },
+  {
+    from: "scripts",
+    allow: ["src/core/contracts", "scripts"],
+    typeOnly: [],
+    bare: [/^zod$/, /^node:fs$/],
+    violates: ex("scripts/x.ts", 'import "../src/app/init.ts";'),
+    passes: ex(
+      "scripts/gen-schemas.ts",
+      'import { z } from "zod";',
+      'import { mkdirSync } from "node:fs";',
+      'import "../src/core/contracts/index.ts";',
+    ),
+  },
+];
+
+export const VENDORS: readonly VendorRule[] = [
+  {
+    specifier: /^(?:node:)?fs(?:\/.*)?$/,
+    only: ["src/core/store", "scripts/gen-schemas.ts", "scripts/check-coverage.ts"],
+    rule: "only src/core/store touches the filesystem (DP2)",
+    violates: ex("src/app/x.ts", 'import "node:fs";'),
+    passes: ex("scripts/gen-schemas.ts", 'import "node:fs";'),
+  },
+  {
+    specifier: /^(?:node:)?dns(?:\/.*)?$/,
+    only: ["src/security/fetch/system.ts"],
+    rule: "only src/security/fetch/system.ts resolves DNS",
+    violates: ex("src/security/x.ts", 'import "node:dns/promises";'),
+    passes: ex("src/security/fetch/system.ts", 'import "node:dns/promises";'),
+  },
+  {
+    specifier: /^(?:node:)?(?:net|tls|http|https)$/,
+    only: ["src/security/fetch"],
+    rule: "only src/security/fetch opens network sockets",
+    violates: ex("src/security/x.ts", 'import "node:net";'),
+    passes: ex("src/security/fetch/x.ts", 'import "node:net";'),
+  },
+  {
+    specifier: /^sharp$/,
+    only: ["src/security/images"],
+    rule: "sharp lives only in src/security/images",
+    violates: ex("src/security/x.ts", 'import sharp from "sharp";'),
+    passes: ex("src/security/images/sanitize.ts", 'import sharp from "sharp";'),
+  },
+  {
+    specifier: /^node:os$/,
+    only: ["src/app/context.ts"],
+    rule: "node:os only in src/app/context.ts",
+    violates: ex("src/app/x.ts", 'import "node:os";'),
+    passes: ex("src/app/context.ts", 'import "node:os";'),
+  },
+  {
+    specifier: /^(?:node:)?crypto$/,
+    only: ["src/core/store/hash.ts"],
+    rule: "node:crypto only in src/core/store/hash.ts",
+    violates: ex("src/core/store/x.ts", 'import "node:crypto";'),
+    passes: ex("src/core/store/hash.ts", 'import "node:crypto";'),
+  },
+  {
+    specifier: /^(?:node:)?child_process$/,
+    only: [],
+    rule: "child_process is not allowed (P3 revisits it)",
+    violates: ex("src/app/x.ts", 'import "node:child_process";'),
+    passes: ex("src/app/x.ts", 'import "node:path";'),
+  },
+  {
+    specifier: NAVORI_RE,
+    only: [],
+    rule: "navori import (RN-1)",
+    violates: ex("src/cli/x.ts", 'import "@navori/core";'),
+    passes: ex("src/cli/x.ts", 'import "../app/status.ts";'),
+  },
+];
+
+export const TOKENS: readonly TokenRule[] = [
+  {
+    pattern: /\bnew\s+RegExp\(/,
+    scope: ["src"],
+    allow: [],
+    rule: "no dynamic RegExp",
+    violates: ex("src/app/x.ts", "const r = new RegExp(input);"),
+    passes: ex("src/app/x.ts", 'const s = "new RegExp(";', "const r = /a/;"),
+  },
+  {
+    pattern: /\bprocess\.env\b/,
+    scope: ["src"],
+    allow: ["src/app/context.ts", "src/cli/main.ts"],
+    rule: "process.env only in src/app/context.ts and src/cli/main.ts",
+    violates: ex("src/app/x.ts", "const v = process.env.HOME;"),
+    passes: ex("src/cli/main.ts", "const v = process.env.HOME;"),
+  },
+  {
+    pattern: /(?<![.\w$])fetch\(/,
+    scope: ["src"],
+    allow: ["src/security/fetch/system.ts"],
+    rule: "fetch( only in src/security/fetch/system.ts",
+    violates: ex("src/research/x.ts", 'const r = await fetch("https://example.test");'),
+    passes: ex("src/security/fetch/system.ts", 'const r = await fetch("https://example.test");'),
+  },
+  {
+    pattern: /\bBun\.(?:write|file)\b/,
+    scope: ["src"],
+    allow: ["src/core/store"],
+    rule: "Bun.write/Bun.file only in src/core/store",
+    violates: ex("src/app/x.ts", "await Bun.write(path, text);"),
+    passes: ex("src/core/store/x.ts", "await Bun.write(path, text);"),
+  },
+  {
+    pattern: /\bcrypto\.subtle\b|\bCryptoHasher\b/,
+    scope: ["src"],
+    allow: ["src/core/store/hash.ts"],
+    rule: "crypto.subtle/CryptoHasher only in src/core/store/hash.ts",
+    violates: ex("src/app/x.ts", 'const h = new Bun.CryptoHasher("sha256");'),
+    passes: ex("src/core/store/hash.ts", 'const h = new Bun.CryptoHasher("sha256");'),
+  },
+  {
+    pattern: /\brandomUUID\(/,
+    scope: ["src"],
+    allow: ["src/app/context.ts"],
+    rule: "randomUUID( only in src/app/context.ts",
+    violates: ex("src/app/x.ts", "const id = crypto.randomUUID();"),
+    passes: ex("src/app/context.ts", "const id = crypto.randomUUID();"),
+  },
+  {
+    pattern: /\bBun\.spawn/,
+    scope: ["src"],
+    allow: [],
+    rule: "Bun.spawn is not allowed (P3 revisits it)",
+    violates: ex("src/app/x.ts", 'Bun.spawn(["ls"]);'),
+    passes: ex("src/app/x.ts", 'const s = "Bun.spawn";'),
+  },
+  {
+    pattern: /\bconsole\./,
+    scope: ["src"],
+    allow: [],
+    rule: "no console in src",
+    violates: ex("src/app/x.ts", 'console.log("x");'),
+    passes: ex("src/app/x.ts", '// console.log("x")'),
+  },
+  {
+    pattern: /\bnew Date\(|\bDate\.now\(/,
+    scope: ["src"],
+    allow: ["src/app/context.ts", "src/app/write-run.ts", "src/app/doctor.ts"],
+    rule: "dates only from ctx.clock (new Date( / Date.now( restricted)",
+    violates: ex("src/core/state/x.ts", "const t = Date.now();"),
+    passes: ex("src/app/context.ts", "const t = Date.now();"),
+  },
+  {
+    pattern: /\bBun\./,
+    scope: ["src/core/contracts", "src/core/state"],
+    allow: [],
+    rule: "Bun runtime usage in pure core (RNF-20)",
+    violates: ex("src/core/state/x.ts", "const v = Bun.version;"),
+    passes: ex("src/core/state/x.ts", 'const s = "Bun.version";'),
+  },
+  {
+    pattern: /\bfailure\(\s*\d|\bcode:\s*\d/,
+    scope: ["src/app", "src/cli"],
+    allow: [],
+    rule: "numeric exit code literal; use ExitCode.* (R5)",
+    violates: ex("src/app/x.ts", "return failure(3, finding);"),
+    passes: ex("src/app/x.ts", "return failure(ExitCode.Blocked, finding);"),
+  },
+];
+
+/** `src/<module>/adapters/<adapter>/...` -> [module, adapter]. */
+const adapterOf = (path: string): readonly [string, string] | null => {
+  const match = /^src\/([^/]+)\/adapters\/([^/]+)(?:\/|$)/.exec(path);
+  return match === null ? null : [match[1] ?? "", match[2] ?? ""];
+};
+
+/** Layer = row with the longest `from` prefix; a src/bin/scripts file without a row is a violation. Relative targets must
+ * fall under `allow` or, only as type-only imports, under `typeOnly`; bare specifiers must match `bare` and every VENDORS
+ * row whose specifier matches; adapters never import another adapter (any module); only src/<m>/registry.ts and
+ * src/intake/detect.ts import src/<m>/adapters/**; TOKENS run on the source with NON_CODE_RE applied, for files under
+ * `scope` and outside `allow`. */
+export function violationsFor(file: string, source: string): Violation[] {
   const out: Violation[] = [];
-  const imports = extractImports(source);
-  for (const specifier of imports) {
+  const layer = LAYERS.filter((row) => under(file, row.from)).toSorted(
+    (a, b) => b.from.length - a.from.length,
+  )[0];
+  if (layer === undefined) out.push(`${file}: file belongs to no layer in LAYERS`);
+  const runtime = new Set(runtimeImports(source));
+  for (const specifier of extractImports(source)) {
     const target = resolveRelative(file, specifier);
     const bad = (rule: string): number => out.push(`${file} -> ${specifier}: ${rule}`);
-    if (NAVORI_RE.test(specifier)) bad("navori import");
-    if (FS_RE.test(specifier) && !under(file, "src/core/store") && !FS_SCRIPTS.has(file)) {
-      bad("only src/core/store imports node:fs");
+    if (target === null) {
+      if (layer !== undefined && !layer.bare.some((re) => re.test(specifier))) {
+        bad(`${layer.from} may not import this package`);
+      }
+      for (const vendor of VENDORS) {
+        if (vendor.specifier.test(specifier) && !underAny(file, vendor.only)) bad(vendor.rule);
+      }
+      continue;
     }
-    if (under(file, "src/core/contracts")) {
-      if (target === null ? specifier !== "zod" : !under(target, "src/core/contracts")) {
-        bad("contracts imports only zod and siblings");
-      }
+    if (layer !== undefined && !underAny(target, layer.allow)) {
+      if (!underAny(target, layer.typeOnly)) bad(`${layer.from} may not import ${target}`);
+      else if (runtime.has(specifier)) bad(`${target} must be imported with import type`);
     }
-    if (under(file, "src/core/state")) {
-      if (
-        target === null ||
-        !(under(target, "src/core/contracts") || under(target, "src/core/state"))
-      ) {
-        bad("state imports only contracts (and siblings)");
-      }
-    }
-    if (target !== null) {
-      if (
-        under(file, "src/core") &&
-        (under(target, "src/intake") || under(target, "src/app") || under(target, "src/cli"))
-      ) {
-        bad("core must not import intake, app or cli");
-      }
-      if (under(file, "src/intake") && (under(target, "src/app") || under(target, "src/cli"))) {
-        bad("intake must not import app or cli");
-      }
-      if (under(file, "src/app") && under(target, "src/cli")) bad("app must not import cli");
-      const own = /^src\/intake\/adapters\/([^/]+)\//.exec(file)?.[1];
-      const other = /^src\/intake\/adapters\/([^/]+)(?:\/|$)/.exec(target)?.[1];
-      if (own !== undefined && other !== undefined && own !== other) {
-        bad("adapters must not import each other");
+    const own = adapterOf(file);
+    const other = adapterOf(target);
+    if (other !== null) {
+      if (own !== null) {
+        if (own[0] !== other[0] || own[1] !== other[1]) bad("adapters must not import each other");
+      } else if (file !== `src/${other[0]}/registry.ts` && file !== "src/intake/detect.ts") {
+        bad("only registry.ts (and intake/detect.ts) imports adapters");
       }
     }
   }
-  if (under(file, "src/core/contracts") || under(file, "src/core/state")) {
-    if (/\bBun\./.test(source) || /["']bun:/.test(source))
-      out.push(`${file}: Bun runtime usage in pure core`);
+  const code = source.replace(NON_CODE_RE, (m) => m.replace(/[^\n]/g, " "));
+  for (const token of TOKENS) {
+    if (underAny(file, token.scope) && !underAny(file, token.allow) && token.pattern.test(code)) {
+      out.push(`${file}: ${token.rule}`);
+    }
   }
   return out;
 }
@@ -110,9 +422,15 @@ const SYNTHETIC = [
 const SOURCE_DIRS = ["src", "bin", "scripts"] as const;
 const SOURCE_FILES = SOURCE_DIRS.flatMap((dir) => (dir === "bin" ? ["bin/heron.ts"] : listTs(dir)));
 
+/** Asserts that the violating example is flagged and the passing example is clean. */
+function expectRow(row: { violates: Example; passes: Example }): void {
+  expect(violationsFor(row.violates.file, row.violates.source).length).toBeGreaterThan(0);
+  expect(violationsFor(row.passes.file, row.passes.source)).toEqual([]);
+}
+
 describe("module boundaries", () => {
   test("enforces module boundaries and no navori imports", () => {
-    // self-check: the extractor sees every import form
+    // self-check: the extractors see every import form
     expect(extractImports(SYNTHETIC).toSorted()).toEqual(
       [
         "mod-default",
@@ -129,17 +447,32 @@ describe("module boundaries", () => {
         "mod-multiline-type",
       ].toSorted(),
     );
-    // self-check: the rules do flag violations
-    expect(
-      violationsFor("src/core/state/x.ts", 'import "../../app/result.ts";').length,
-    ).toBeGreaterThan(0);
+    expect(runtimeImports(SYNTHETIC)).not.toContain("mod-type");
+    expect(runtimeImports(SYNTHETIC)).toContain("mod-dynamic");
+
+    // self-check: every table row flags its violating example and accepts its passing one
+    for (const row of [...LAYERS, ...VENDORS, ...TOKENS]) expectRow(row);
+
+    // self-check: rules that are not table rows
+    expect(violationsFor("src/zzz/x.ts", "export {};").length).toBeGreaterThan(0);
     expect(
       violationsFor("src/intake/adapters/a/x.ts", 'import "../b/y.ts";').length,
     ).toBeGreaterThan(0);
-    expect(violationsFor("src/app/x.ts", 'import "node:fs";').length).toBeGreaterThan(0);
-    expect(violationsFor("scripts/other.ts", 'import "node:fs";').length).toBeGreaterThan(0);
-    expect(violationsFor("scripts/gen-schemas.ts", 'import "node:fs";')).toEqual([]);
-    expect(violationsFor("src/cli/x.ts", 'import "@navori/core";').length).toBeGreaterThan(0);
+    expect(
+      violationsFor("src/research/adapters/a/x.ts", 'import "../../../intake/adapters/b/y.ts";')
+        .length,
+    ).toBeGreaterThan(0);
+    expect(violationsFor("src/intake/adapters/a/x.ts", 'import "./y.ts";')).toEqual([]);
+    expect(
+      violationsFor("src/intake/x.ts", 'import "./adapters/filesystem/index.ts";').length,
+    ).toBeGreaterThan(0);
+    expect(
+      violationsFor("src/research/registry.ts", 'import "./adapters/manual/index.ts";'),
+    ).toEqual([]);
+    expect(
+      violationsFor("src/intake/detect.ts", 'import "./adapters/filesystem/index.ts";'),
+    ).toEqual([]);
+    expect(violationsFor("src/security/x.ts", "const r = ctx.fetch(url);")).toEqual([]);
 
     expect(SOURCE_FILES.length).toBeGreaterThan(20);
     const violations = SOURCE_FILES.flatMap((file) => violationsFor(file, readSource(file)));
@@ -160,9 +493,6 @@ describe("module boundaries", () => {
   });
 });
 
-// Blanks comments and string/template literals (keeping newlines) so only code tokens remain.
-const NON_CODE_RE =
-  /\/\/[^\n]*|\/\*[\s\S]*?\*\/|"(?:\\.|[^"\\\n])*"|'(?:\\.|[^'\\\n])*'|`(?:\\[\s\S]|[^`\\])*`/g;
 // any justified: this is the detector pattern, not a type. A member access such as `expect.any(...)` is not the type.
 const ANY_RE = /(?<![.\w$])any\b/;
 const DIRECTIVE_RULE = ["no-explicit", "any"].join("-");

@@ -1,10 +1,11 @@
 import { z } from "zod";
 import {
   FindingIssueSchema,
-  FindingSchema,
+  StoredFindingSchema,
   HeronModeSchema,
   Sha256HexSchema,
   type Finding,
+  type StoredFinding,
   type FindingIssue,
   type HeronMode,
   type Sha256Hex,
@@ -52,7 +53,7 @@ export type StageRef = {
 };
 export type HarnessDeclaration = { phase: string | null; mode: string | null; ux: string | null }; // raw, tolerant
 
-export type DetectionReport = {
+export type DetectionReport<F extends StoredFinding = Finding> = {
   adapter: AdapterId;
   navoriMaster: boolean;
   specsDir: string | null;
@@ -63,7 +64,7 @@ export type DetectionReport = {
   artifacts: DetectedArtifact[];
   uxMarkdown: UxFileCheck;
   uxJson: UxJsonCheck;
-  findings: Finding[];
+  findings: F[];
 };
 
 const DetectedArtifactSchema: z.ZodType<DetectedArtifact> = z.looseObject({
@@ -104,7 +105,7 @@ const HarnessDeclarationSchema: z.ZodType<HarnessDeclaration> = z.looseObject({
   ux: z.string().nullable(),
 });
 
-export const DetectionReportSchema: z.ZodType<DetectionReport> = z.looseObject({
+export const DetectionReportSchema: z.ZodType<DetectionReport<StoredFinding>> = z.looseObject({
   adapter: z.enum(ADAPTER_IDS),
   navoriMaster: z.boolean(),
   specsDir: z.string().nullable(),
@@ -115,7 +116,7 @@ export const DetectionReportSchema: z.ZodType<DetectionReport> = z.looseObject({
   artifacts: z.array(DetectedArtifactSchema),
   uxMarkdown: UxFileCheckSchema,
   uxJson: UxJsonCheckSchema,
-  findings: z.array(FindingSchema),
+  findings: z.array(StoredFindingSchema),
 });
 
 export const MODE_REASON_CODES = [
@@ -130,23 +131,25 @@ export const MODE_REASON_CODES = [
 export type ModeReasonCode = (typeof MODE_REASON_CODES)[number];
 export type ModeReason = { code: ModeReasonCode; message: string };
 
-export type ModeDecision = {
+export type ModeDecision<F extends StoredFinding = Finding> = {
   kind: "ModeDecision";
   schemaVersion: 1;
   mode: HeronMode;
   reasons: ModeReason[]; // "UX_COMPLETE" alone iff mode = "full"
-  findings: Finding[]; // mode-level findings (UX_*), in FINDING_CODES order then by path
-  detection: DetectionReport;
+  findings: F[]; // mode-level findings (UX_*), in FINDING_CODES order then by path
+  detection: DetectionReport<F>;
 };
-export const ModeDecisionSchema: z.ZodType<ModeDecision> = z.looseObject({
+/** Shape read back from disk: finding codes are formatted strings, not the closed emitter union. */
+export type StoredModeDecision = ModeDecision<StoredFinding>;
+export const ModeDecisionSchema: z.ZodType<StoredModeDecision> = z.looseObject({
   kind: z.literal("ModeDecision"),
   schemaVersion: z.literal(1),
   mode: HeronModeSchema,
   reasons: z.array(z.looseObject({ code: z.enum(MODE_REASON_CODES), message: z.string() })),
-  findings: z.array(FindingSchema),
+  findings: z.array(StoredFindingSchema),
   detection: DetectionReportSchema,
 });
-export const MODE_DECISION_DOCUMENT: DocumentSpec<ModeDecision> = {
+export const MODE_DECISION_DOCUMENT: DocumentSpec<StoredModeDecision> = {
   kind: "ModeDecision",
   schemaVersion: 1,
   schema: ModeDecisionSchema,

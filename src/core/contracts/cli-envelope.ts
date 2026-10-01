@@ -23,7 +23,7 @@ import {
   ModeDecisionSchema,
   StageRefSchema,
   UxSummarySchema,
-  type ModeDecision,
+  type StoredModeDecision,
   type StageRef,
   type UxSummary,
 } from "./mode-decision.ts";
@@ -33,7 +33,7 @@ export const CLI_COMMANDS = ["init", "status", "doctor", "gate"] as const;
 export type CliCommand = (typeof CLI_COMMANDS)[number];
 
 export type InitData = {
-  decision: ModeDecision;
+  decision: StoredModeDecision;
   dryRun: boolean;
   written: boolean;
   stateRevision: number | null;

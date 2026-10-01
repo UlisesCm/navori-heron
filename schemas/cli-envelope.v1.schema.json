@@ -68,7 +68,9 @@
                         "adapter": {
                           "enum": [
                             "navori-master",
-                            "filesystem"
+                            "filesystem",
+                            "markdown",
+                            "manual"
                           ],
                           "type": "string"
                         },
@@ -121,40 +123,7 @@
                             "additionalProperties": {},
                             "properties": {
                               "code": {
-                                "enum": [
-                                  "UX_INCONSISTENT",
-                                  "UX_CONTRACT_INVALID",
-                                  "UX_DECLARATION_MISMATCH",
-                                  "UX_DECLARED_MD_ONLY",
-                                  "MODE_BLOCKED",
-                                  "TRANSITION_NOT_ALLOWED",
-                                  "PRECONDITION_UNMET",
-                                  "GATE_APPROVAL_INVALIDATED",
-                                  "INPUTS_CHANGED",
-                                  "SCHEMA_VERSION_UNSUPPORTED",
-                                  "DOCUMENT_INVALID",
-                                  "NOT_INITIALIZED",
-                                  "HARNESS_UNREADABLE",
-                                  "HARNESS_VERSION_UNSUPPORTED",
-                                  "HARNESS_UNKNOWN_VALUE",
-                                  "NO_STAGE",
-                                  "STAGE_FALLBACK_LAST_CLOSED",
-                                  "STAGE_NOT_FOUND",
-                                  "NO_SELECTABLE_STAGE",
-                                  "INVALID_STAGE",
-                                  "UNSAFE_PATH",
-                                  "INPUT_TOO_LARGE",
-                                  "PATH_NOT_FOUND",
-                                  "LOCK_BUSY",
-                                  "LOCK_RECLAIMED",
-                                  "STAGING_RECOVERED",
-                                  "CONFIRMATION_REQUIRED",
-                                  "IDENTITY_REQUIRED",
-                                  "REASON_REQUIRED",
-                                  "USAGE",
-                                  "UNEXPECTED_ERROR",
-                                  "PENPOT_REQUIRED_FOR_DIRECTION"
-                                ],
+                                "pattern": "^[A-Z][A-Z0-9_]*$",
                                 "type": "string"
                               },
                               "issues": {
@@ -484,40 +453,7 @@
                         "additionalProperties": {},
                         "properties": {
                           "code": {
-                            "enum": [
-                              "UX_INCONSISTENT",
-                              "UX_CONTRACT_INVALID",
-                              "UX_DECLARATION_MISMATCH",
-                              "UX_DECLARED_MD_ONLY",
-                              "MODE_BLOCKED",
-                              "TRANSITION_NOT_ALLOWED",
-                              "PRECONDITION_UNMET",
-                              "GATE_APPROVAL_INVALIDATED",
-                              "INPUTS_CHANGED",
-                              "SCHEMA_VERSION_UNSUPPORTED",
-                              "DOCUMENT_INVALID",
-                              "NOT_INITIALIZED",
-                              "HARNESS_UNREADABLE",
-                              "HARNESS_VERSION_UNSUPPORTED",
-                              "HARNESS_UNKNOWN_VALUE",
-                              "NO_STAGE",
-                              "STAGE_FALLBACK_LAST_CLOSED",
-                              "STAGE_NOT_FOUND",
-                              "NO_SELECTABLE_STAGE",
-                              "INVALID_STAGE",
-                              "UNSAFE_PATH",
-                              "INPUT_TOO_LARGE",
-                              "PATH_NOT_FOUND",
-                              "LOCK_BUSY",
-                              "LOCK_RECLAIMED",
-                              "STAGING_RECOVERED",
-                              "CONFIRMATION_REQUIRED",
-                              "IDENTITY_REQUIRED",
-                              "REASON_REQUIRED",
-                              "USAGE",
-                              "UNEXPECTED_ERROR",
-                              "PENPOT_REQUIRED_FOR_DIRECTION"
-                            ],
+                            "pattern": "^[A-Z][A-Z0-9_]*$",
                             "type": "string"
                           },
                           "issues": {
@@ -655,7 +591,9 @@
                 "adapter": {
                   "enum": [
                     "navori-master",
-                    "filesystem"
+                    "filesystem",
+                    "markdown",
+                    "manual"
                   ],
                   "type": "string"
                 },

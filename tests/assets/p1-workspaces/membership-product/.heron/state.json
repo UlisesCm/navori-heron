@@ -1,0 +1,31 @@
+{
+  "artifacts": [
+    {
+      "path": "intake/mode.json",
+      "sha256": "3117affa832ef69d5a832c17733357d1c6e217fd2891103600194cc83f1912cf"
+    },
+    {
+      "path": "project.json",
+      "sha256": "b11a7268c53cf5912efe5e75f82e23e4140fbaabab112914df5dafdba2f8ac5d"
+    }
+  ],
+  "designRevision": 0,
+  "gates": [],
+  "history": [
+    {
+      "at": "2026-09-30T12:00:00.000Z",
+      "command": "init",
+      "heronVersion": "0.1.0",
+      "mode": "full",
+      "runId": "run-20260930T120000Z-fb58bdae",
+      "stateRevision": 1,
+      "transition": null
+    }
+  ],
+  "kind": "HeronState",
+  "mode": "full",
+  "phase": "initialized",
+  "schemaVersion": 1,
+  "stale": [],
+  "stateRevision": 1
+}
