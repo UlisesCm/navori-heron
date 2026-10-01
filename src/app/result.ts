@@ -76,6 +76,14 @@ export function pathNotFound<T>(path: string): UseCaseResult<T> {
   );
 }
 
+/** Exit 3 when `.heron/state.json` is absent (the workspace was never initialized). */
+export function notInitialized<T>(path: string): UseCaseResult<T> {
+  return failure(
+    ExitCode.Blocked,
+    makeFinding("NOT_INITIALIZED", "error", `.heron/state.json not found. Run: heron init ${path}`),
+  );
+}
+
 /** Exit 2 with the stage error message plus the `Available stages:` line. */
 export function stageErrorResult<T>(error: StageError): UseCaseResult<T> {
   const available =

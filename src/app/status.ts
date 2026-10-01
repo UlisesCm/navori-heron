@@ -1,14 +1,8 @@
 import {
   GATE_NAMES,
-  HERON_PROJECT_DOCUMENT,
-  HERON_STATE_DOCUMENT,
-  InvalidDocumentError,
-  MODE_DECISION_DOCUMENT,
   type DetectionReport,
-  type DocumentSpec,
   type Finding,
   type GateName,
-  type HeronMode,
   type RelativeArtifactPath,
   type Sha256Hex,
   type StatusData,
@@ -19,27 +13,12 @@ import {
   isApprovalValid,
   latestDecision,
 } from "../core/state/gates.ts";
-import { describeModeBlock, detectMode } from "../core/state/mode.ts";
+import { describeModeBlock } from "../core/state/mode.ts";
 import { compareStrings } from "../core/state/stale.ts";
 import { allowedEvents } from "../core/state/transitions.ts";
-import {
-  MODE_FILE,
-  PROJECT_FILE,
-  STATE_FILE,
-  openFileStore,
-  type FileStore,
-} from "../core/store/file-store.ts";
-import { detectProject } from "../intake/detect.ts";
 import type { AppContext } from "./context.ts";
-import {
-  failure,
-  makeFinding,
-  pathNotFound,
-  resolveDirectory,
-  stageErrorResult,
-  storeErrorResult,
-  type UseCaseResult,
-} from "./result.ts";
+import { makeFinding, storeErrorResult, type UseCaseResult } from "./result.ts";
+import { loadWorkspace, type Workspace } from "./workspace.ts";
 
 export type StatusInput = { path: string };
 
@@ -62,28 +41,14 @@ function changedInputs(persisted: DetectionReport, live: DetectionReport): strin
     .toSorted(compareStrings);
 }
 
-/** A document that must exist once state.json does; a missing one is reported as invalid. */
-function requireDocument<T>(
-  store: FileStore,
-  path: RelativeArtifactPath,
-  spec: DocumentSpec<T>,
-): T {
-  const value = store.readDocument(path, spec);
-  if (value === null) {
-    throw new InvalidDocumentError(path, spec.kind, [{ pointer: "", message: "file is missing" }]);
-  }
-  return value;
-}
-
 /** Read-only: no lock, no writes (DP16). */
 export async function runStatus(
   ctx: AppContext,
   input: StatusInput,
 ): Promise<UseCaseResult<StatusData>> {
-  const root = resolveDirectory(ctx.fs, input.path);
-  if (root === null) return pathNotFound(input.path);
   try {
-    return readStatus(ctx, root, input.path);
+    const loaded = loadWorkspace(ctx, input.path);
+    return loaded.ok ? readStatus(loaded.workspace, input.path) : loaded.result;
   } catch (error) {
     const mapped = storeErrorResult<StatusData>(error);
     if (mapped === null) throw error;
@@ -91,35 +56,10 @@ export async function runStatus(
   }
 }
 
-function readStatus(ctx: AppContext, root: string, path: string): UseCaseResult<StatusData> {
-  const store = openFileStore(ctx.fs, root, { create: false });
-  const state = store.readDocument(STATE_FILE, HERON_STATE_DOCUMENT);
-  if (state === null) {
-    return failure(
-      3,
-      makeFinding(
-        "NOT_INITIALIZED",
-        "error",
-        `.heron/state.json not found. Run: heron init ${path}`,
-      ),
-    );
-  }
-  const project = requireDocument(store, PROJECT_FILE, HERON_PROJECT_DOCUMENT);
-  const persisted = requireDocument(store, MODE_FILE, MODE_DECISION_DOCUMENT);
-
-  const detection = detectProject({
-    root,
-    stage: project.source.stage?.dir ?? null,
-    fs: ctx.fs,
-    limits: ctx.limits,
-  });
-  if (detection.kind === "stage-error") return stageErrorResult(detection);
-  const live = detectMode(detection.report);
-
-  const effective: HeronMode =
-    state.mode === "full" && live.mode === "full" ? "full" : "reference-only";
+function readStatus(workspace: Workspace, path: string): UseCaseResult<StatusData> {
+  const { store, state, persisted, live, detection, mode: effective, blocked } = workspace;
   const findings: Finding[] = [];
-  const inputsChanged = changedInputs(persisted.detection, detection.report);
+  const inputsChanged = changedInputs(persisted.detection, detection);
   if (inputsChanged.length > 0) {
     findings.push(
       makeFinding(
@@ -160,9 +100,9 @@ function readStatus(ctx: AppContext, root: string, path: string): UseCaseResult<
       gatesWithRows.add(event.gate);
   }
   const data: StatusData = {
-    adapter: detection.report.adapter,
-    navoriMaster: detection.report.navoriMaster,
-    stage: detection.report.stage,
+    adapter: detection.adapter,
+    navoriMaster: detection.navoriMaster,
+    stage: detection.stage,
     mode: effective,
     persistedMode: state.mode,
     liveMode: live.mode,
@@ -183,7 +123,6 @@ function readStatus(ctx: AppContext, root: string, path: string): UseCaseResult<
     ],
   };
   if (effective === "reference-only") {
-    const blocked = live.mode === "reference-only" ? live : persisted;
     // Carries the cause of "Production blocked: ..." to the renderer (StatusData has no field for it).
     findings.push(
       makeFinding("MODE_BLOCKED", "info", `Production blocked: ${describeModeBlock(blocked)}`),

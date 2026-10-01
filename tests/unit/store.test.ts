@@ -9,9 +9,12 @@ import {
   utimesSync,
   writeFileSync,
   existsSync,
+  readdirSync,
 } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
+import { runGate } from "../../src/app/gate.ts";
+import { runInit } from "../../src/app/init.ts";
 import {
   ExitCode,
   HERON_STATE_DOCUMENT,
@@ -52,7 +55,9 @@ import {
   resolveInside,
   toPosixRelative,
 } from "../../src/core/store/paths.ts";
+import { fixedContext } from "../helpers/cli.ts";
 import { withFaultInjection } from "../helpers/faulty-fs.ts";
+import { copyFixture } from "../helpers/fixtures.ts";
 
 const tmpDirs: string[] = [];
 function tmp(): string {
@@ -138,6 +143,13 @@ function heronDirIn(root: string): string {
   return dir;
 }
 
+const prepared = async (): Promise<string> => {
+  const root = copyFixture("membership-product");
+  tmpDirs.push(root);
+  await runInit(fixedContext(), { path: root, stage: null, dryRun: false });
+  return root;
+};
+
 describe("store", () => {
   test("keeps a consistent state on injected failures and rejects a second writer", async () => {
     // Count K mutating calls in a successful first init.
@@ -201,6 +213,46 @@ describe("store", () => {
     handle.release();
     expect(existsSync(join(dir, ".lock"))).toBe(false);
   }, 30_000); // bound by real fsync calls in the fault-injection loop (~2·K inits + spawned CLI): observed 5–7 s vs Bun's 5 s default
+
+  test("keeps a consistent state when gate crashes at every write point", async () => {
+    const GATE_INPUT = {
+      gate: "intake",
+      decision: "reject",
+      note: null,
+      reason: "needs more context",
+      yes: true,
+    } as const;
+    const counting = withFaultInjection(nodeFs, null);
+    const base = await prepared();
+    expect(
+      (await runGate(fixedContext({ fs: counting.fs }), { path: base, ...GATE_INPUT })).ok,
+    ).toBe(true);
+    const total = counting.mutations();
+    expect(total).toBeGreaterThan(5);
+
+    for (let n = 1; n <= total; n++) {
+      const root = await prepared();
+      const faulty = withFaultInjection(nodeFs, n);
+      await expect(
+        runGate(fixedContext({ fs: faulty.fs }), { path: root, ...GATE_INPUT }),
+      ).rejects.toThrow();
+      expectConsistent(root);
+      const committed = readState(root)?.stateRevision ?? 0;
+      // A dead pid left the lock behind; the next gate reclaims it and recovers the orphan staging.
+      const retry = await runGate(
+        fixedContext({
+          ids: { runId: () => RUN_B },
+          lock: { ...DEFAULT_LOCK_OPTIONS, corruptGraceMs: 0, isProcessAlive: () => false },
+        }),
+        { path: root, ...GATE_INPUT },
+      );
+      expect(retry.ok ? "ok" : `${n}: ${retry.message}`).toBe("ok");
+      expect(readState(root)?.stateRevision).toBe(committed + 1);
+      expect(existsSync(join(root, ".heron", ".lock"))).toBe(false);
+      const staging = join(root, ".heron", "staging");
+      expect(existsSync(staging) ? readdirSync(staging) : []).toEqual([]);
+    }
+  }, 60_000); // real fsync calls: one init and two gates per injected write point
 
   test("reclaims a lock whose pid is dead on the same host", () => {
     const dir = heronDirIn(tmp());
