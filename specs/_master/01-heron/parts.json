@@ -391,7 +391,13 @@
         {
           "id": "A2",
           "description": "Una referencia sin alguno de los campos de provenance sale con código 2, nombra los faltantes y no escribe nada",
-          "evidence": null,
+          "evidence": {
+            "kind": "run",
+            "command": "bun test tests/e2e/references.test.ts -t \"rejects a reference missing any provenance field\"",
+            "result": "exit 0; 1 pass,0 fail",
+            "commit": "4170cde3d59e304a7816a5f69711967a4fb8d4a6",
+            "date": "2026-10-01"
+          },
           "method": "test",
           "test": {
             "file": "tests/e2e/references.test.ts",
