@@ -71,7 +71,7 @@ Lotes de 1–3 tareas, **en serie** (cada tarea declara de qué depende y con qu
 
 ## Lote 4 — Dominio puro
 
-- [ ] **T6** (R11, R12, R13) — Contraste WCAG 2.2 en `src/tokens/` y validador/constructor de direcciones.
+- [x] **T6** (R11, R12, R13) — Contraste WCAG 2.2 en `src/tokens/` y validador/constructor de direcciones.
   - **Archivos:** `src/tokens/contrast.ts`, `src/research/directions.ts`, `src/research/layout.ts`, `tests/unit/tokens/contrast.test.ts`, `tests/unit/research/directions.test.ts`, `tests/repo/boundaries.test.ts`, `scripts/check-coverage.ts`, `tests/repo/coverage-rules.test.ts`
   - **Interfaces:** contrastRatio; checkContrast; parseHexColor; CONTRAST_THRESHOLDS; ContrastCheck; validateDirectionsOutput; buildVisualDirections; selectDirection; DIRECTION_LIMITS
   - **Patrón:** src/research/provenance.ts
@@ -82,7 +82,7 @@ Lotes de 1–3 tareas, **en serie** (cada tarea declara de qué depende y con qu
   - **Comparte archivos con:** T2, T8, T10 (`boundaries.test.ts`); T8 (`check-coverage.ts`, `coverage-rules.test.ts`).
   - **Fuera de alcance:** OKLCH, escalas y variantes de marca (P5).
 
-- [ ] **T7** (R9, R10) — Validadores y constructores de brief (ids estables, consultas acumulativas) y de análisis (frescura por digest).
+- [x] **T7** (R9, R10) — Validadores y constructores de brief (ids estables, consultas acumulativas) y de análisis (frescura por digest).
   - **Archivos:** `src/research/brief.ts`, `src/research/analysis.ts`, `tests/unit/research/brief.test.ts`, `tests/unit/research/analysis.test.ts`
   - **Interfaces:** parseQueryFlag; validateResearchQuery; validateBriefOutput; buildBrief; queryId; GENERIC_QUERY_TERMS; referenceDigest; referencesToAnalyze; validateAnalysisOutput; mergeAnalysis; freshAnalyses
   - **Patrón:** src/research/provenance.ts
