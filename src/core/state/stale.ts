@@ -13,7 +13,10 @@ export const PHASE_ARTIFACTS: Readonly<Record<HeronPhase, readonly string[]>> = 
   researching: [
     "research/references.json",
     "research/provenance.json",
+    "research/REFERENCES.md",
+    "research/moodboards/**",
     "research/assets/**",
+    "research/sources/**",
     "brand/**",
   ],
   "research-ready": [],

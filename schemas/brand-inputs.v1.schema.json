@@ -1,0 +1,244 @@
+{
+  "$id": "brand-inputs.v1.schema.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": {},
+  "properties": {
+    "inputs": {
+      "items": {
+        "additionalProperties": {},
+        "properties": {
+          "capturedAt": {
+            "pattern": "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}\\.\\d{3}Z$",
+            "type": "string"
+          },
+          "derivedFrom": {
+            "anyOf": [
+              {
+                "pattern": "^REF-[1-9][0-9]{0,5}$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "file": {
+            "anyOf": [
+              {
+                "additionalProperties": {},
+                "properties": {
+                  "location": {
+                    "enum": [
+                      "repo",
+                      "external"
+                    ],
+                    "type": "string"
+                  },
+                  "name": {
+                    "maxLength": 255,
+                    "minLength": 1,
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "name",
+                  "location"
+                ],
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "id": {
+            "pattern": "^BRAND-[1-9][0-9]{0,5}$",
+            "type": "string"
+          },
+          "image": {
+            "anyOf": [
+              {
+                "additionalProperties": {},
+                "properties": {
+                  "bytes": {
+                    "maximum": 9007199254740991,
+                    "minimum": 0,
+                    "type": "integer"
+                  },
+                  "height": {
+                    "maximum": 9007199254740991,
+                    "minimum": 1,
+                    "type": "integer"
+                  },
+                  "mediaType": {
+                    "const": "image/webp",
+                    "type": "string"
+                  },
+                  "original": {
+                    "additionalProperties": {},
+                    "properties": {
+                      "bytes": {
+                        "maximum": 9007199254740991,
+                        "minimum": 0,
+                        "type": "integer"
+                      },
+                      "mediaType": {
+                        "enum": [
+                          "image/png",
+                          "image/jpeg",
+                          "image/webp"
+                        ],
+                        "type": "string"
+                      },
+                      "sha256": {
+                        "pattern": "^[0-9a-f]{64}$",
+                        "type": "string"
+                      }
+                    },
+                    "required": [
+                      "sha256",
+                      "mediaType",
+                      "bytes"
+                    ],
+                    "type": "object"
+                  },
+                  "path": {
+                    "maxLength": 512,
+                    "type": "string"
+                  },
+                  "removedMetadata": {
+                    "items": {
+                      "enum": [
+                        "exif",
+                        "gps",
+                        "xmp",
+                        "iptc",
+                        "icc"
+                      ],
+                      "type": "string"
+                    },
+                    "type": "array"
+                  },
+                  "sha256": {
+                    "pattern": "^[0-9a-f]{64}$",
+                    "type": "string"
+                  },
+                  "trust": {
+                    "const": "untrusted",
+                    "type": "string"
+                  },
+                  "width": {
+                    "maximum": 9007199254740991,
+                    "minimum": 1,
+                    "type": "integer"
+                  }
+                },
+                "required": [
+                  "path",
+                  "sha256",
+                  "mediaType",
+                  "width",
+                  "height",
+                  "bytes",
+                  "trust",
+                  "original",
+                  "removedMetadata"
+                ],
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "kind": {
+            "enum": [
+              "logo",
+              "brand-color",
+              "secondary-color",
+              "font",
+              "brand-guidelines",
+              "screenshot",
+              "url",
+              "existing-product",
+              "competitor",
+              "liked-reference",
+              "disliked-reference"
+            ],
+            "type": "string"
+          },
+          "mode": {
+            "enum": [
+              "full",
+              "reference-only"
+            ],
+            "type": "string"
+          },
+          "note": {
+            "anyOf": [
+              {
+                "maxLength": 2000,
+                "minLength": 1,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "origin": {
+            "enum": [
+              "provided",
+              "derived",
+              "inferred",
+              "reference-derived"
+            ],
+            "type": "string"
+          },
+          "value": {
+            "maxLength": 2000,
+            "minLength": 1,
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "kind",
+          "origin",
+          "value",
+          "note",
+          "derivedFrom",
+          "image",
+          "file",
+          "capturedAt",
+          "mode"
+        ],
+        "type": "object"
+      },
+      "type": "array"
+    },
+    "kind": {
+      "const": "BrandInputs",
+      "type": "string"
+    },
+    "mode": {
+      "enum": [
+        "full",
+        "reference-only"
+      ],
+      "type": "string"
+    },
+    "schemaVersion": {
+      "const": 1,
+      "type": "number"
+    }
+  },
+  "required": [
+    "kind",
+    "schemaVersion",
+    "mode",
+    "inputs"
+  ],
+  "title": "BrandInputs",
+  "type": "object"
+}

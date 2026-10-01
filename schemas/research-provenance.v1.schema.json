@@ -1,0 +1,311 @@
+{
+  "$id": "research-provenance.v1.schema.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": {},
+  "properties": {
+    "entries": {
+      "items": {
+        "additionalProperties": {},
+        "properties": {
+          "capturedAt": {
+            "pattern": "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}\\.\\d{3}Z$",
+            "type": "string"
+          },
+          "fetch": {
+            "anyOf": [
+              {
+                "additionalProperties": {},
+                "properties": {
+                  "address": {
+                    "type": "string"
+                  },
+                  "finalUrl": {
+                    "type": "string"
+                  },
+                  "local": {
+                    "type": "boolean"
+                  },
+                  "redirects": {
+                    "items": {
+                      "type": "string"
+                    },
+                    "maxItems": 3,
+                    "type": "array"
+                  },
+                  "requestedUrl": {
+                    "type": "string"
+                  },
+                  "status": {
+                    "maximum": 9007199254740991,
+                    "minimum": -9007199254740991,
+                    "type": "integer"
+                  }
+                },
+                "required": [
+                  "requestedUrl",
+                  "finalUrl",
+                  "status",
+                  "redirects",
+                  "address",
+                  "local"
+                ],
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "file": {
+            "anyOf": [
+              {
+                "additionalProperties": {},
+                "properties": {
+                  "location": {
+                    "enum": [
+                      "repo",
+                      "external"
+                    ],
+                    "type": "string"
+                  },
+                  "name": {
+                    "maxLength": 255,
+                    "minLength": 1,
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "name",
+                  "location"
+                ],
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "files": {
+            "items": {
+              "additionalProperties": {},
+              "properties": {
+                "mediaType": {
+                  "minLength": 1,
+                  "type": "string"
+                },
+                "originalSha256": {
+                  "anyOf": [
+                    {
+                      "pattern": "^[0-9a-f]{64}$",
+                      "type": "string"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                },
+                "path": {
+                  "maxLength": 512,
+                  "type": "string"
+                },
+                "sha256": {
+                  "pattern": "^[0-9a-f]{64}$",
+                  "type": "string"
+                },
+                "trust": {
+                  "const": "untrusted",
+                  "type": "string"
+                }
+              },
+              "required": [
+                "path",
+                "sha256",
+                "mediaType",
+                "trust",
+                "originalSha256"
+              ],
+              "type": "object"
+            },
+            "type": "array"
+          },
+          "mode": {
+            "enum": [
+              "full",
+              "reference-only"
+            ],
+            "type": "string"
+          },
+          "origin": {
+            "maxLength": 2048,
+            "minLength": 1,
+            "type": "string"
+          },
+          "reference": {
+            "pattern": "^REF-[1-9][0-9]{0,5}$",
+            "type": "string"
+          },
+          "removed": {
+            "type": "boolean"
+          },
+          "securityFindings": {
+            "items": {
+              "additionalProperties": {},
+              "properties": {
+                "code": {
+                  "enum": [
+                    "SUSPICIOUS_INSTRUCTION",
+                    "HIDDEN_TEXT",
+                    "METADATA_REMOVED",
+                    "LOCAL_TARGET_ALLOWED"
+                  ],
+                  "type": "string"
+                },
+                "line": {
+                  "anyOf": [
+                    {
+                      "maximum": 9007199254740991,
+                      "minimum": 1,
+                      "type": "integer"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                },
+                "message": {
+                  "type": "string"
+                },
+                "offset": {
+                  "anyOf": [
+                    {
+                      "maximum": 9007199254740991,
+                      "minimum": 0,
+                      "type": "integer"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                },
+                "path": {
+                  "anyOf": [
+                    {
+                      "maxLength": 512,
+                      "type": "string"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                },
+                "phrase": {
+                  "anyOf": [
+                    {
+                      "maxLength": 200,
+                      "type": "string"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                },
+                "rule": {
+                  "type": [
+                    "string",
+                    "null"
+                  ]
+                },
+                "severity": {
+                  "enum": [
+                    "info",
+                    "warning"
+                  ],
+                  "type": "string"
+                }
+              },
+              "required": [
+                "code",
+                "severity",
+                "message",
+                "path",
+                "offset",
+                "line",
+                "phrase",
+                "rule"
+              ],
+              "type": "object"
+            },
+            "type": "array"
+          },
+          "source": {
+            "enum": [
+              "manual",
+              "url",
+              "image",
+              "design-md",
+              "penpot",
+              "refero"
+            ],
+            "type": "string"
+          }
+        },
+        "required": [
+          "reference",
+          "source",
+          "origin",
+          "capturedAt",
+          "mode",
+          "removed",
+          "fetch",
+          "file",
+          "files",
+          "securityFindings"
+        ],
+        "type": "object"
+      },
+      "type": "array"
+    },
+    "kind": {
+      "const": "ResearchProvenance",
+      "type": "string"
+    },
+    "mode": {
+      "enum": [
+        "full",
+        "reference-only"
+      ],
+      "type": "string"
+    },
+    "references": {
+      "additionalProperties": {},
+      "properties": {
+        "path": {
+          "const": "research/references.json",
+          "type": "string"
+        },
+        "sha256": {
+          "pattern": "^[0-9a-f]{64}$",
+          "type": "string"
+        }
+      },
+      "required": [
+        "path",
+        "sha256"
+      ],
+      "type": "object"
+    },
+    "schemaVersion": {
+      "const": 1,
+      "type": "number"
+    }
+  },
+  "required": [
+    "kind",
+    "schemaVersion",
+    "mode",
+    "references",
+    "entries"
+  ],
+  "title": "ResearchProvenance",
+  "type": "object"
+}
