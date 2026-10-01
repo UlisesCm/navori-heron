@@ -72,7 +72,11 @@
         "flows": 3,
         "patterns": 2,
         "screens": 6,
-        "surfaces": ["MOBILE", "DASHBOARD", "PARTNER"]
+        "surfaces": [
+          "MOBILE",
+          "DASHBOARD",
+          "PARTNER"
+        ]
       },
       "valid": true
     },

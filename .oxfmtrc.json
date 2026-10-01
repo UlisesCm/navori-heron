@@ -7,6 +7,7 @@
     "fixtures/**",
     "schemas/**",
     "specs/**",
+    "tests/assets/p1-workspaces/**",
     "progress/**",
     ".claude/**",
     ".codex/**",
