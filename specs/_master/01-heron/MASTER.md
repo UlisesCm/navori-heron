@@ -149,7 +149,7 @@ Origen: plan1, plan2, plan3, D2, D6, D12, D14, D16, D22, D23, D24, D26
 - **RF-2** `--stage` acepta cualquier etapa de `index.json`; una inexistente sale con error y lista las disponibles. (los tres)
 - **RF-3** `heron status [--json]`: modo, etapa, conteos, fase, gates pendientes, artefactos `stale`, `CONFLICT` abiertos y comandos permitidos. (los tres)
 - **RF-4** `heron doctor [--json] [--deep]`: checks PASS/WARNING/FAIL con remedio y timeout propio; crece por parte (base, agentes, Penpot, Refero). (los tres)
-- **RF-5** `heron intake [--refresh]` construye `ProductContext` v1 con `sourceRef` por elemento y registra `CONFLICT`; `heron conflicts list|ack`. (plan1 RF-12, plan2 RF-4/RF-5, plan3 RF-5)
+- **RF-5** `heron intake [--refresh]` construye `ProductContext` v1 con `sourceRef` por elemento y registra `CONFLICT`; `heron conflicts list|ack`. `--refresh` se acepta sin efecto: toda corrida relee las fuentes (D32). (plan1 RF-12, plan2 RF-4/RF-5, plan3 RF-5)
 - **RF-6** Bloqueo: todo comando o transición de producción en `reference-only` sale con código 3 nombrando el archivo UX faltante o inválido y sin escribir. (plan1 RF-4, plan2 M2)
 
 **Estado**
@@ -179,7 +179,7 @@ Origen: plan1, plan2, plan3, D2, D6, D12, D14, D16, D22, D23, D24, D26
 - **RF-22** `docker compose up` levanta solo Heron; Penpot en proyecto compose separado. (los tres)
 - **RF-23** Fuente de research `refero` sobre el MCP oficial, opcional (P10). (los tres, D13)
 
-Origen: plan1, plan2, plan3, D13
+Origen: plan1, plan2, plan3, D13, D32
 
 ## Requisitos no funcionales
 
@@ -375,7 +375,7 @@ Grafo: P2 ← P1 · P3 ← P2 · P12 ← P3 · P4 ← P1 · P5 ← P3 + P4 + P12
 
 Desviaciones frente a context/md/PLAN.md §77: las fases 1–3 (research, propuesta de arquitectura, ADRs) quedan cubiertas por este plan maestro y los ADRs se escriben en la parte que toma cada decisión; los contratos se definen justo a tiempo por parte; la seguridad de ingesta llega en P2 y la de agentes en P3, no en el hardening final; Penpot va antes de generalizar para ver el slice en el canvas. (plan1)
 
-<!-- navori:master-parts hash="234436aa" -->
+<!-- navori:master-parts hash="03eaa03f" -->
 ### P1 — Núcleo, heron init y detección de modo
 
 Objetivo: El usuario corre `heron init <repo>` y en ≤ 2 s sabe qué modo aplica y por qué, con estado persistido, gates atados a hashes y guard de producción probado (primer slice de context/md/PLAN.md §80).
@@ -449,9 +449,9 @@ Requisitos semilla: RF-5, RN-6, RN-7, RN-8, RN-9, RN-38, RN-46, RNF-13, RNF-16
 - P4.A2 (test): Con el mismo dato en varias fuentes gana la de mayor precedencia de RN-7 y se registra la fuente ganadora — tests/unit/intake/precedence.test.ts#applies source precedence and records the winning source
 - P4.A3 (test): Si un actor de `ux.json` contradice MASTER.md se crea `CONFLICT-001` con archivos, valores e impacto, sin elegir en silencio, y el gate `intake` no se aprueba hasta el `ack` — tests/unit/intake/precedence.test.ts#records a CONFLICT and blocks the intake gate until acknowledged
 - P4.A4 (test): `filesystem` llega a full solo con UX.md y ux.json válidos; `markdown` y `manual` quedan en reference-only — tests/unit/intake/adapters.test.ts#only the filesystem and navori-master adapters can reach full
-- P4.A5 (test): Los campos desconocidos de `ux.json` se preservan byte a byte y los IDs no cambian — tests/contracts/ux-contract.test.ts#preserves unknown ux.json fields and stable ids
+- P4.A5 (test): Los campos desconocidos de `ux.json` conservan su clave, su orden y su valor en JSON canónico, los IDs no cambian y `ux.json` nunca se reescribe (sha256 igual) (D31) — tests/contracts/ux-contract.test.ts#preserves unknown ux.json fields and stable ids
 - P4.A6 (test): Los JSON Schemas emitidos validan todos los fixtures con ajv 2020-12 y todo archivo de datos de `fixtures/` declara SYNTHETIC — tests/contracts/json-schema.test.ts#emitted JSON Schemas validate every fixture and fixtures are marked SYNTHETIC
-- P4.A7 (comando): Intake sobre el fixture completo — bun run heron intake --json fixtures/membership-product
+- P4.A7 (comando): Intake sobre el fixture completo — d="$(mktemp -d)" && cp -R fixtures/membership-product/. "$d" && bun run heron init "$d" >/dev/null && bun run heron intake --json "$d"
 - P4.A8 (test): Con un ProductContext válido y 0 conflictos, `heron gate intake approve --yes` sale con 0, registra `approvedBy`, fecha y sha256 de los artefactos atados, avanza a `intake-ready` y solo cambia `state.json` dentro de `.heron/` — tests/e2e/gate.test.ts#approves intake with valid context, recording approvedBy, artifact hashes, and committing only state.json
 - P4.A9 (manual): Contrato de integración con el harness — `docs/contracts.md` y `docs/integrations/navori-harness.md` mapean archivo → campo, el subconjunto provisional exigido de `ux.json` y la conmutación a la copia fijada, sin redefinir el contrato UX del harness
 

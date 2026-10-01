@@ -682,7 +682,7 @@
       "inheritedFrom": null,
       "state": "pendiente",
       "reason": null,
-      "spec": null,
+      "spec": "specs/0003-agents-directions",
       "issue": null
     },
     {
@@ -761,7 +761,7 @@
         },
         {
           "id": "A5",
-          "description": "Los campos desconocidos de `ux.json` se preservan byte a byte y los IDs no cambian",
+          "description": "Los campos desconocidos de `ux.json` conservan su clave, su orden y su valor en JSON canónico, los IDs no cambian y `ux.json` nunca se reescribe (sha256 igual) (D31)",
           "evidence": null,
           "method": "test",
           "test": {
@@ -785,8 +785,8 @@
           "evidence": null,
           "method": "comando",
           "command": {
-            "run": "bun run heron intake --json fixtures/membership-product",
-            "expected": "exit 0 y JSON con `data.mode = \"full\"`, `data.conflicts = []` y conteos iguales a los de `ux.json`"
+            "run": "d=\"$(mktemp -d)\" && cp -R fixtures/membership-product/. \"$d\" && bun run heron init \"$d\" >/dev/null && bun run heron intake --json \"$d\"",
+            "expected": "exit 0 y JSON con `data.mode = \"full\"`, `data.conflicts = []` y conteos iguales a los de `ux.json`; `fixtures/` sin cambios (D30)"
           }
         },
         {
@@ -813,7 +813,7 @@
       "inheritedFrom": null,
       "state": "pendiente",
       "reason": null,
-      "spec": null,
+      "spec": "specs/0004-product-context",
       "issue": null
     },
     {
