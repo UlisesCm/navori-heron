@@ -146,7 +146,7 @@ function heronDirIn(root: string): string {
 const prepared = async (): Promise<string> => {
   const root = copyFixture("membership-product");
   tmpDirs.push(root);
-  await runInit(fixedContext(), { path: root, stage: null, dryRun: false });
+  await runInit(fixedContext(), { path: root, stage: null, dryRun: false, locale: null });
   return root;
 };
 

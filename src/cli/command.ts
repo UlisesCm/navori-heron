@@ -23,6 +23,8 @@ export type InitParsed = {
   stage: string | null;
   dryRun: boolean;
   json: boolean;
+  /** Present only when --locale is given (P1 parse results keep their exact shape). */
+  locale?: string;
 };
 export type StatusParsed = { command: "status"; path: string; json: boolean };
 export type DoctorParsed = { command: "doctor"; path: string; json: boolean };

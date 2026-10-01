@@ -86,6 +86,25 @@ describe("heron research render", () => {
     expect(repaired.stdout).toContain("State revision: 3");
   });
 
+  // Covers: R13
+  test("renders the es catalog without LOCALE_FALLBACK after init --locale es-MX", async () => {
+    const root = await initialized("no-ux");
+    expect((await runCliCaptured(["init", root, "--locale", "es-MX"])).code).toBe(ExitCode.Ok);
+    expect((await runCliCaptured(referenceArgs(root))).code).toBe(ExitCode.Ok);
+    const run = await runCliCaptured(["research", "render", root]);
+    expect(run.code).toBe(ExitCode.Ok);
+    expect(run.stdout).toContain("(reference-only, locale es):");
+    expect(run.stdout).not.toContain("LOCALE_FALLBACK");
+    const markdown = readFileSync(join(root, ".heron", "research", "REFERENCES.md"), "utf8");
+    expect(markdown).toContain("Qué se estudia");
+    const unknown = await runCliCaptured(["init", root, "--locale", "xx-YY"]);
+    expect(unknown.code).toBe(ExitCode.Ok);
+    const fallback = await runCliCaptured(["research", "render", root]);
+    expect(fallback.stdout).toContain(
+      'LOCALE_FALLBACK: No research copy for locale "xx-YY"; artifacts are rendered in en.',
+    );
+  });
+
   test("rejects unknown subcommands and extra arguments", async () => {
     const root = await initialized("no-ux");
     const unknown = await runCliCaptured(["research", "show", root]);

@@ -114,7 +114,7 @@ describe("parseCliArgs", () => {
         "Usage: heron <command> [options]",
         "",
         "Commands:",
-        "  init [path] [--stage <NN-slug>] [--dry-run] [--json]",
+        "  init [path] [--stage <NN-slug>] [--locale <bcp47>] [--dry-run] [--json]",
         "      Detect the product context, decide the mode and write .heron/",
         "  status [path] [--json]",
         "      Show mode, stage, phase, gates and stale artifacts",

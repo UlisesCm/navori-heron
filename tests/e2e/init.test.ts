@@ -390,4 +390,32 @@ describe("heron init", () => {
     expect([error.ok, error.code, error.data]).toEqual([false, 2, null]);
     expect(error.findings[0]?.code).toBe("STAGE_NOT_FOUND");
   });
+
+  // Covers: R13
+  test("persists a canonical locale, keeps it on re-init and rejects an invalid tag before writing", async () => {
+    const root = fixture("no-ux");
+    const before = hashTree(root, { exclude: [] });
+    for (const bad of ["not a locale", "", "es_MX"]) {
+      const run = await runCliCaptured(["init", root, "--locale", bad]);
+      expect({ bad, code: run.code }).toEqual({ bad, code: ExitCode.Usage });
+      expect(run.stderr).toBe(
+        `Invalid locale "${bad}": expected a BCP 47 tag such as es or en-US.\n`,
+      );
+      expect(hashTree(root, { exclude: [] })).toEqual(before);
+    }
+    const dry = await runCliCaptured(["init", root, "--locale", "es-mx", "--dry-run"]);
+    expect(dry.code).toBe(ExitCode.Ok);
+    expect(hashTree(root, { exclude: [] })).toEqual(before);
+
+    const read = (): { product?: { locale: string }; penpot: unknown } =>
+      JSON.parse(readFileSync(join(root, ".heron", "project.json"), "utf8"));
+    expect((await runCliCaptured(["init", root, "--locale", "es-mx"])).code).toBe(ExitCode.Ok);
+    expect(read().product).toEqual({ locale: "es-MX" });
+    const penpot = read().penpot;
+    expect((await runCliCaptured(["init", root])).code).toBe(ExitCode.Ok);
+    expect(read().product).toEqual({ locale: "es-MX" });
+    expect(read().penpot).toEqual(penpot);
+    expect((await runCliCaptured(["init", root, "--locale", "en-US"])).code).toBe(ExitCode.Ok);
+    expect(read().product).toEqual({ locale: "en-US" });
+  });
 });
