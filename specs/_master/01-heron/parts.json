@@ -407,7 +407,13 @@
         {
           "id": "A3",
           "description": "El 100 % del corpus SSRF queda bloqueado con `SSRF_BLOCKED` (loopback v4/v6, 10/8, 172.16/12, 192.168/16, 100.64/10, 169.254.169.254, fc00::/7, fe80::/10, IPv4-mapped, formas decimal/octal/hex, `file:`, `ftp:`, `gopher:`, `data:`, redirect a IP privada, rebinding); `--allow-local` permite un destino local y queda en la provenance",
-          "evidence": null,
+          "evidence": {
+            "kind": "run",
+            "command": "bun test tests/security/ssrf.test.ts -t \"blocks every vector of the SSRF corpus and records explicit local allowances\"",
+            "result": "exit 0; 1 pass,0 fail",
+            "commit": "382de5950b9d550d6528271ed421cd3f2e4d3f1e",
+            "date": "2026-10-01"
+          },
           "method": "test",
           "test": {
             "file": "tests/security/ssrf.test.ts",
