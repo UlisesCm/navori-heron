@@ -202,3 +202,24 @@
 - Elegida: `https` en cualquier puerto; sin `http` público; `http` solo para destinos locales con `--allow-local`; el control de SSRF es la validación de IP/DNS
 - Descartadas: Solo `https` en el puerto 443
 - Fecha: 2026-09-30
+
+## D30
+
+- Pregunta: El criterio P4.A7 (`bun run heron intake --json fixtures/membership-product`) falla tal cual con `NOT_INITIALIZED`, porque el fixture no tiene `.heron/` y los tests nunca escriben en `fixtures/`. ¿Cómo se enmienda?
+- Elegida: Correr `init` + `intake` sobre una copia temporal del fixture: `d="$(mktemp -d)" && cp -R fixtures/membership-product/. "$d" && bun run heron init "$d" >/dev/null && bun run heron intake --json "$d"`, con el mismo resultado esperado más "`fixtures/` sin cambios" (spec 0004, DR29)
+- Descartadas: `heron intake --dry-run --json fixtures/membership-product` (solo prueba el cálculo); `intake` sin `.heron/` como dry run implícito; `intake` que inicializa implícitamente (escribiría en `fixtures/`)
+- Fecha: 2026-10-01
+
+## D31
+
+- Pregunta: P4.A5 pide que los campos desconocidos de `ux.json` se preserven "byte a byte", pero el `ProductContext` es JSON canónico y `JSON.parse` pierde precisión en enteros mayores que 2^53. ¿Se mantiene el texto literal?
+- Elegida: Enmendar P4.A5: los campos desconocidos conservan su clave, su orden y su valor en JSON canónico, los IDs no cambian y `ux.json` nunca se reescribe (sha256 igual); los enteros mayores que 2^53 conservan el valor de `JSON.parse` (límite documentado) (spec 0004, DR32)
+- Descartadas: Guardar el fragmento crudo de cada campo con un escáner JSON propio (literalmente byte a byte); valor canónico más sha256 del fragmento crudo
+- Fecha: 2026-10-01
+
+## D32
+
+- Pregunta: RF-5 define `heron intake [--refresh]`, pero cada corrida de `intake` ya relee las fuentes y escribe solo si cambian los bytes. ¿Qué pasa con `--refresh`?
+- Elegida: Se acepta como alias sin efecto y el texto de uso lo dice; RF-5 queda literal con esa nota (spec 0004, DR31)
+- Descartadas: Quitarlo y enmendar RF-5; darle un significado propio (reescribir aunque nada cambie o renumerar conflictos)
+- Fecha: 2026-10-01
