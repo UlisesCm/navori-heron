@@ -68,12 +68,11 @@ export type AdapterDetection =
 
 /** `mode` is the effective mode: UX sources (`ux.json`, `UX.md`) contribute only in `full`. */
 export type LoadRequest = DetectRequest & { report: DetectionReport; mode: HeronMode };
-/** T10 adds CONTEXT_INPUT_INVALID. */
 export type AdapterLoadResult =
   | { ok: true; draft: ContextDraft }
   | {
       ok: false;
-      code: "INPUTS_CHANGED";
+      code: "CONTEXT_INPUT_INVALID" | "INPUTS_CHANGED";
       message: string;
       findings: Finding[];
     };

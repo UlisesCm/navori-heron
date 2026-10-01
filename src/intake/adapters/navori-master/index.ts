@@ -9,7 +9,7 @@ import type {
   SourceKind,
 } from "../../../core/contracts/index.ts";
 import { candidateSink } from "../../candidates.ts";
-import { createDraftKit, type Extraction } from "../../draft-kit.ts";
+import { createDraftKit, type DraftKit, type Extraction } from "../../draft-kit.ts";
 import { extractRoleSections, type MarkdownDoc } from "../../markdown.ts";
 import {
   type AdapterDetection,
@@ -175,13 +175,16 @@ const role = (path: RelativeArtifactPath, source: SourceKind) => (doc: MarkdownD
 export function loadNavoriMaster(request: LoadRequest): AdapterLoadResult {
   const { fs, root, limits, report, mode } = request;
   const { stage, specsDir } = report;
-  if (!report.navoriMaster || stage === null || specsDir === null) {
-    return {
-      ok: false,
-      code: "INPUTS_CHANGED",
-      message: "The detection no longer selects a navori-master stage; run the command again.",
-      findings: [],
-    };
+  // Invariant: `detect` always sets `specsDir` on a navori-master report (only an absent index is not-detected).
+  if (!report.navoriMaster || specsDir === null) {
+    throw new Error("loadNavoriMaster requires a navori-master detection report");
+  }
+  if (stage === null) {
+    // No stage (empty or unreadable index): the stage-scoped sources are not part of the draft; the
+    // root-level navori.config.json is still read. The detection findings explain the missing stage.
+    const kit = createDraftKit(request);
+    configSource(kit, request);
+    return kit.finish();
   }
   const dir = `${specsDir}/_master/${stage.dir}`;
   const kit = createDraftKit(request);
@@ -229,6 +232,14 @@ export function loadNavoriMaster(request: LoadRequest): AdapterLoadResult {
   findings.push(...listed.findings);
   for (const path of listed.paths) markdown(path, "context", role(path, "context"));
 
+  configSource(kit, request);
+
+  return kit.finish(parts);
+}
+
+/** `navori.config.json` (product name and language), the last source of the draft (DR3). */
+function configSource(kit: DraftKit, { fs, root, limits }: LoadRequest): void {
+  const { take, findings } = kit;
   const config = readNavoriConfig(fs, root, limits);
   if (config.status === "ok") {
     const sink = candidateSink({
@@ -253,8 +264,6 @@ export function loadNavoriMaster(request: LoadRequest): AdapterLoadResult {
   } else {
     take(...unsettled("navori.config.json", CONFIG_PATH, config, findings));
   }
-
-  return kit.finish(parts);
 }
 
 /** One traceability candidate per seeded requirement, listing the parts that seed it (file order). */
