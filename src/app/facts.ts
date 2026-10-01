@@ -5,7 +5,6 @@ import {
   type GateName,
   type HeronState,
   type RelativeArtifactPath,
-  type ResearchReference,
   type Sha256Hex,
 } from "../core/contracts/index.ts";
 import {
@@ -18,6 +17,8 @@ import { compareStrings } from "../core/state/stale.ts";
 import type { TransitionFacts } from "../core/state/transitions.ts";
 import type { FileStore } from "../core/store/file-store.ts";
 import type { ReadonlyFs } from "../core/store/fs-port.ts";
+import type { ResearchSettings } from "../research/ports.ts";
+import { missingProvenance } from "../research/provenance.ts";
 const GLOB_SUFFIX = "/**";
 
 /** Files under `dir` (relative to .heron/), recursively; symlinks are never followed. */
@@ -82,28 +83,19 @@ export function collectTransitionFacts(
   return facts;
 }
 
-/** A reference counts toward D16 when every RN-11 field is present (the schema already enforces the bounds). */
-function hasProvenance(reference: ResearchReference): boolean {
-  return (
-    reference.removed === null &&
-    reference.origin.trim() !== "" &&
-    reference.reason.trim() !== "" &&
-    reference.studies.length > 0 &&
-    reference.doNotCopy.length > 0 &&
-    reference.influences.length > 0
-  );
-}
-
-/** referencesWithProvenance = active references in research/references.json with complete provenance;
+/** referencesWithProvenance = active references in research/references.json with no `missingProvenance` field;
  * minReferences = settings.minReferences (D16: 5). Absent references.json -> 0.
  * Throws the store's document errors, which callers map with storeErrorResult. */
 export function collectResearchFacts(
   store: FileStore,
-  settings: { minReferences: number },
+  settings: Pick<ResearchSettings, "minReferences">,
 ): Pick<TransitionFacts, "referencesWithProvenance" | "minReferences"> {
   const document = store.readDocument("research/references.json", RESEARCH_REFERENCES_DOCUMENT);
   return {
-    referencesWithProvenance: document?.references.filter(hasProvenance).length ?? 0,
+    referencesWithProvenance:
+      document?.references.filter(
+        (reference) => reference.removed === null && missingProvenance(reference).length === 0,
+      ).length ?? 0,
     minReferences: settings.minReferences,
   };
 }
