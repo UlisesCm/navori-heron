@@ -423,7 +423,13 @@
         {
           "id": "A4",
           "description": "Rutas de imagen con `..`, rutas absolutas fuera de la raíz y symlinks que escapan se rechazan",
-          "evidence": null,
+          "evidence": {
+            "kind": "run",
+            "command": "bun test tests/security/paths.test.ts -t \"rejects image paths and symlinks escaping the allowed roots\"",
+            "result": "exit 0; 1 pass,0 fail",
+            "commit": "098cde31cdb9dd95df8f67266edf89a0b7f02060",
+            "date": "2026-10-01"
+          },
           "method": "test",
           "test": {
             "file": "tests/security/paths.test.ts",
