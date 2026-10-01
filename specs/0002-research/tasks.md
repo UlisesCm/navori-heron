@@ -4,7 +4,7 @@ Lotes de 1–3 tareas. Cada test lleva `// Covers: R<n>` y usa el nombre exacto 
 
 ## Lote 1 — Refactors previos (base de P2)
 
-- [ ] **T1** (R1) — Envoltorio de escritura único y lectura de workspace; `gate` recupera staging huérfano.
+- [x] **T1** (R1) — Envoltorio de escritura único y lectura de workspace; `gate` recupera staging huérfano.
   - **Archivos:** `src/app/write-run.ts`, `src/app/workspace.ts`, `src/app/facts.ts`, `src/app/init.ts`, `src/app/gate.ts`, `src/app/status.ts`, `tests/unit/app/write-run.test.ts`, `tests/e2e/gate.test.ts`, `tests/unit/store.test.ts`
   - **Interfaces:** withWriteRun; loadWorkspace; collectTransitionFacts
   - **Patrón:** src/app/init.ts
@@ -13,7 +13,7 @@ Lotes de 1–3 tareas. Cada test lleva `// Covers: R<n>` y usa el nombre exacto 
   - **Done:** comando `bun test tests/unit/app/write-run.test.ts tests/e2e/gate.test.ts tests/unit/store.test.ts`, esperado exit 0; casos de test "releases the lock and discards staging when the body fails or skips", "rejects a stale snapshot revision with exit 6", "recovers orphan staging before deciding a gate"; habilita P2.A1 (toda escritura de research pasa por `withWriteRun`).
   - **Fuera de alcance:** comandos de research; `collectResearchFacts` (T5).
 
-- [ ] **T2** (R2) — Registro de órdenes y emisión única de salida; las 4 órdenes de P1 migran sin cambiar su comportamiento.
+- [x] **T2** (R2) — Registro de órdenes y emisión única de salida; las 4 órdenes de P1 migran sin cambiar su comportamiento.
   - **Archivos:** `src/cli/output.ts`, `src/cli/command.ts`, `src/cli/commands/index.ts`, `src/cli/args.ts`, `src/cli/main.ts`, `src/cli/commands/init.ts`, `src/cli/commands/status.ts`, `src/cli/commands/doctor.ts`, `src/cli/commands/gate.ts`, `tests/unit/cli/output.test.ts`, `tests/unit/cli-args.test.ts`
   - **Interfaces:** emitResult; splitNotices; CommandSpec; COMMANDS; parseCliArgs; commandFor
   - **Patrón:** src/cli/commands/init.ts
