@@ -47,7 +47,7 @@ Lotes de 1–3 tareas. Cada test lleva `// Covers: R<n>` en la primera línea y 
   - **Nota:** en `ports.ts` solo se agregan tipos; la firma de `load` cambia en T8.
   - **Fuera de alcance:** `DECISIONS.md`, `UX.md` y `parts.json` (T4).
 
-- [ ] **T4** (R2, R15, R16) — `DECISIONS.md` y `UX.md` por `ux-kind`, nombre e idioma de `navori.config.json` y `parts.json` tolerante con ids de criterio.
+- [x] **T4** (R2, R15, R16) — `DECISIONS.md` y `UX.md` por `ux-kind`, nombre e idioma de `navori.config.json` y `parts.json` tolerante con ids de criterio.
   - **Archivos:** `src/intake/adapters/navori-master/decisions.ts`, `src/intake/ux-markdown.ts`, `src/intake/adapters/navori-master/harness.ts`, `tests/unit/intake/navori-master.test.ts`, `tests/unit/harness-readers.test.ts`
   - **Interfaces:** parseDecisions; extractUxMarkdown; readParts; NavoriConfigView; PartView
   - **Patrón:** src/intake/adapters/navori-master/harness.ts

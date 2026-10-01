@@ -88,13 +88,22 @@ function readVersioned<T>(
 
 // ---- navori.config.json -------------------------------------------------
 
-export type NavoriConfigView = { specsDir: string };
+/** `language` is the harness document language (DR33): product data only, never the artifact locale.
+ * A string other than `es`/`en` is kept apart in `unknownLanguage` so the adapter can report it. */
+export type NavoriConfigView = {
+  specsDir: string;
+  name: string | null;
+  language: "es" | "en" | null;
+  unknownLanguage: string | null;
+};
 const ConfigShape = z.looseObject({
+  name: z.unknown().optional(),
+  language: z.unknown().optional(),
   sdd: z.looseObject({ specsDir: z.string().optional() }).optional(),
 });
 export const CONFIG_PATH = "navori.config.json";
 
-/** sdd.specsDir ?? "specs". A hostile specsDir (absolute, "..", backslash, escaping symlink) is
+/** sdd.specsDir ?? "specs", plus `name` (non-empty string) and `language` (exactly `es` or `en`). A hostile specsDir (absolute, "..", backslash, escaping symlink) is
  * reported as UNSAFE_PATH and the caller falls back to "specs". */
 export function readNavoriConfig(
   fs: ReadonlyFs,
@@ -118,7 +127,19 @@ export function readNavoriConfig(
       ),
     };
   }
-  return { status: "ok", value: { specsDir }, sha256: parsed.sha256 };
+  const { name, language } = config.data;
+  const trimmed = typeof name === "string" ? name.trim() : "";
+  return {
+    status: "ok",
+    value: {
+      specsDir,
+      name: trimmed === "" ? null : trimmed,
+      language: language === "es" || language === "en" ? language : null,
+      unknownLanguage:
+        typeof language === "string" && language !== "es" && language !== "en" ? language : null,
+    },
+    sha256: parsed.sha256,
+  };
 }
 
 // ---- _master/index.json ---------------------------------------------------
@@ -205,4 +226,81 @@ export function readStageState(
       value: { version: 1, phase: str(raw.phase), mode: str(raw.mode), ux: str(raw.ux) },
     }),
   );
+}
+
+// ---- <stage>/parts.json -----------------------------------------------------
+
+/** `acceptance` holds the criterion ids (`A1`, `A2`, ...); `pointer` is the part's JSON Pointer. */
+export type PartView = {
+  id: string;
+  title: string | null;
+  seedRequirements: string[];
+  acceptance: string[];
+  pointer: string;
+};
+export type PartsView = { version: 1; parts: PartView[]; skipped: Finding[] };
+
+const isObject = (v: unknown): v is Record<string, unknown> =>
+  typeof v === "object" && v !== null && !Array.isArray(v);
+const strings = (v: unknown): string[] =>
+  Array.isArray(v) ? v.filter((item): item is string => typeof item === "string") : [];
+
+/** Tolerant reader of `parts.json` (version 1): extra fields are ignored, a malformed part is skipped
+ * with HARNESS_UNREADABLE and a repeated part id keeps the first with CONTEXT_DUPLICATE_ID. Version 2
+ * or later is `unsupported-version`. Criterion ids are deduplicated in order. */
+export function readParts(
+  fs: ReadonlyFs,
+  root: string,
+  stageRelativeDir: string,
+  limits: InputLimits,
+): HarnessReadResult<PartsView> {
+  const path = `${stageRelativeDir}/parts.json`;
+  return readVersioned<PartsView>(fs, root, path, limits, (raw) => {
+    if (!Array.isArray(raw.parts)) return { error: "parts must be an array" };
+    const parts: PartView[] = [];
+    const skipped: Finding[] = [];
+    const seen = new Map<string, string[]>();
+    raw.parts.forEach((entry: unknown, at: number) => {
+      const pointer = `/parts/${at}`;
+      if (!isObject(entry) || typeof entry.id !== "string" || entry.id === "") {
+        skipped.push(
+          finding(
+            "HARNESS_UNREADABLE",
+            path,
+            `${path} could not be read: parts[${at}] is malformed.`,
+          ),
+        );
+        return;
+      }
+      const earlier = seen.get(entry.id);
+      if (earlier !== undefined) {
+        earlier.push(pointer);
+        return;
+      }
+      seen.set(entry.id, [pointer]);
+      const criteria = Array.isArray(entry.acceptance) ? entry.acceptance : [];
+      const acceptance = criteria.flatMap((criterion: unknown) =>
+        isObject(criterion) && typeof criterion.id === "string" ? [criterion.id] : [],
+      );
+      parts.push({
+        id: entry.id,
+        title: typeof entry.title === "string" ? entry.title : null,
+        seedRequirements: strings(entry.seedRequirements),
+        acceptance: [...new Set(acceptance)],
+        pointer,
+      });
+    });
+    for (const [id, pointers] of seen) {
+      if (pointers.length > 1) {
+        skipped.push(
+          finding(
+            "CONTEXT_DUPLICATE_ID",
+            path,
+            `${id} appears more than once in ${path} (${pointers.join(", ")}); the first one is used.`,
+          ),
+        );
+      }
+    }
+    return { value: { version: 1, parts, skipped } };
+  });
 }
