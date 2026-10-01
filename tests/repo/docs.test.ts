@@ -40,3 +40,32 @@ describe("research docs", () => {
     expect(await read("docs/architecture.md")).toContain("0003-research-source-boundary.md");
   });
 });
+
+describe("agent providers docs", () => {
+  // Covers: R17
+  test("records the subscription terms with sources and dates", async () => {
+    const doc = await read("docs/agent-providers.md");
+    const section = doc.split(/^## Términos$/m)[1]?.split(/^## /m)[0] ?? "";
+    expect(section).not.toBe("");
+
+    // each source is a URL line followed by its access date; at least two (R17)
+    const dated = section.match(/- URLs?: https?:\/\/\S+\n- Consultado: \d{4}-\d{2}-\d{2}/g) ?? [];
+    expect(dated.length).toBeGreaterThanOrEqual(2);
+    for (const url of [
+      "https://www.anthropic.com/legal/consumer-terms",
+      "https://code.claude.com/docs/en/legal-and-compliance",
+      "https://code.claude.com/docs/en/authentication",
+    ]) {
+      expect(section).toContain(url);
+    }
+    // what could not be read is flagged, never inferred
+    expect(section).toContain("[SIN VERIFICAR]");
+    // the DR35 conclusion is stated for P3.A11
+    expect(section).toMatch(/^### Conclusión \(DR35/m);
+    expect(section).toContain("no permiten con claridad");
+    // the user's decision and its revisit trigger are recorded
+    expect(section).toMatch(/^### Decisión \(P3\.A11\)$/m);
+    expect(section).toContain("2026-10-01 decidió mantener DR35");
+    expect(section).toContain("Disparador de revisión");
+  });
+});
