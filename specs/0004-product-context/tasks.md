@@ -74,6 +74,7 @@ Lotes de 1–3 tareas. Cada test lleva `// Covers: R<n>` en la primera línea y 
   - **Lectura:** `specs/0004-product-context/design.md` (§ Contracts › 1, 6; § Decisions DR1, DR3, DR13, DR21), `src/core/state/stale.ts` (`compareStrings`)
   - **Librerías:** ninguna
   - **Done:** comando `bun test tests/unit/intake/precedence.test.ts`, esperado exit 0; casos de test "applies source precedence and records the winning source"; cubre P4.A2.
+  - **Nota:** al fusionar los estados globales de `UX.md` (`global: true`) con los de `ux.json` (`global: false`, con `screens`) bajo la misma clave normalizada, unir los campos `global` y `screens` en lugar de que gane solo el de mayor rango.
   - **Fuera de alcance:** ids de conflicto (T7).
 
 - [ ] **T7** (R5, R7) — Conflictos por par con fingerprint estable, reapertura de resueltos, reconocimiento, detalle de `intake-context-valid` y re-aprobación de `intake` en sitio desde producción.
@@ -135,6 +136,7 @@ Lotes de 1–3 tareas. Cada test lleva `// Covers: R<n>` en la primera línea y 
   - **Librerías:** ninguna
   - **Done:** comando `bun test tests/e2e/conflicts.test.ts tests/e2e/gate.test.ts tests/e2e/status.test.ts tests/e2e/intake.test.ts tests/perf/init.perf.test.ts`, esperado exit 0; casos de test "approves intake with valid context, recording approvedBy, artifact hashes, and committing only state.json", "lists and acknowledges conflicts with a note and an identity", "blocks the intake gate while a conflict is not acknowledged", "reports open conflicts and a stale product context", "does not report stale when an unused or non-contributing source changes", "absorbs a product context change in a production phase and re-approves intake in place", "status p95 under 2000 ms with a product context and 50 context files"; cubre P4.A3 y P4.A8.
   - **Nota:** cambia `tests/e2e/gate.test.ts:46` (detalle de `intake-context-valid`, DR17).
+  - **Nota:** eliminar la allowlist `PENDING_SPECS` del test de registros (`tests/unit/contracts.test.ts`, agregada en T2 con `TODO(T11)`) una vez que `intake` y `conflicts` tengan su `CommandSpec`: exime por nombre de grupo y podría ocultar una spec faltante.
   - **Fuera de alcance:** `init --adapter` (T13).
 
 - [ ] **T13** (R9, R18) — `heron init --adapter auto|markdown|manual --context <archivo>...` y compatibilidad con un workspace de P2.
