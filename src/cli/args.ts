@@ -1,3 +1,4 @@
+import { availableReferenceSources } from "../app/references.ts";
 import { GATE_NAMES } from "../core/contracts/index.ts";
 import { UsageError, type CommandName, type CommandSpec, type ParsedCommand } from "./command.ts";
 import { COMMANDS } from "./commands/index.ts";
@@ -39,6 +40,7 @@ Commands:
 ${COMMANDS.flatMap((spec) => spec.usage).join("\n")}
 
 Gates: ${GATE_NAMES.join(", ")}
+Reference sources: ${availableReferenceSources().join(", ")}
 
 Options:
   -h, --help     Show this help

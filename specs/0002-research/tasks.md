@@ -94,7 +94,7 @@ Lotes de 1–3 tareas. Cada test lleva `// Covers: R<n>` y usa el nombre exacto 
 
 ## Lote 5 — Casos de uso y CLI
 
-- [ ] **T10** (R6, R7, R8, R9, R10, R11, R12, R15) — `heron references add|list|show|compare|remove|import` de punta a punta, con las pruebas de seguridad de ingesta.
+- [x] **T10** (R6, R7, R8, R9, R10, R11, R12, R15) — `heron references add|list|show|compare|remove|import` de punta a punta, con las pruebas de seguridad de ingesta.
   - **Archivos:** `src/app/context.ts`, `src/app/research-store.ts`, `src/app/references.ts`, `src/cli/commands/references.ts`, `src/cli/commands/index.ts`, `src/cli/render-research.ts`, `tests/helpers/cli.ts`, `tests/helpers/research.ts`, `tests/assets/research/design-injection.md`, `tests/assets/research/references-batch.json`, `tests/e2e/references.test.ts`, `tests/security/ssrf.test.ts`, `tests/security/paths.test.ts`, `tests/security/images.test.ts`, `tests/security/untrusted-content.test.ts`
   - **Interfaces:** runReferencesAdd; runReferencesList; runReferencesShow; runReferencesCompare; runReferencesRemove; runReferencesImport; referencesCommand
   - **Patrón:** src/app/gate.ts
@@ -111,6 +111,7 @@ Lotes de 1–3 tareas. Cada test lleva `// Covers: R<n>` y usa el nombre exacto 
   - **Lectura:** `specs/0002-research/design.md` (§Contracts › 7. Casos de uso, 8. CLI, 9. Renderers, 10. Layout), `src/app/references.ts`
   - **Librerías:** ninguna
   - **Done:** comando `bun test tests/e2e/brand.test.ts tests/e2e/research-render.test.ts tests/e2e/status.test.ts`, esperado exit 0; casos de test "requires an origin for every brand input", "renders reference-only outputs with escaped text and CSP", "renders byte-identical outputs and skips the write when nothing changed", "warns when research assets exceed the size threshold"; cubre P2.A7 y P2.A8.
+  - **Nota:** cubrir la fila "vía `brand add --file`" en `tests/security/paths.test.ts` (pendiente de T10).
   - **Fuera de alcance:** `brand list|show|remove` (no lo exige R14).
 
 ## Lote 6 — Documentación y recorrido real

@@ -7,6 +7,11 @@ import {
   type LockOptions,
 } from "../core/store/lock.ts";
 import { DEFAULT_INPUT_LIMITS, type InputLimits } from "../intake/ports.ts";
+import { DEFAULT_RESEARCH_SETTINGS, type ResearchSettings } from "../research/ports.ts";
+import { createSafeFetcher } from "../security/fetch/safe-fetch.ts";
+import { bunTransport, systemResolver } from "../security/fetch/system.ts";
+import type { Fetcher } from "../security/fetch/types.ts";
+import { sharpImageSanitizer, type ImageSanitizer } from "../security/images/sanitize.ts";
 import { HERON_VERSION } from "./version.ts";
 
 export interface Clock {
@@ -31,6 +36,12 @@ export type AppContext = {
   confirm: (question: string) => Promise<boolean>;
   lock: Omit<LockOptions, "hostname" | "now">;
   limits: InputLimits;
+  /** The only way research reaches the network (SSRF-safe, injected so tests never leave the machine). */
+  fetcher: Fetcher;
+  images: ImageSanitizer;
+  research: ResearchSettings;
+  /** Base of relative `--file` paths (the process working directory). */
+  cwd: string;
 };
 
 /** SOURCE_DATE_EPOCH (integer seconds) fixes now(); an invalid value is ignored. */
@@ -84,5 +95,13 @@ export function createDefaultContext(io: {
     },
     lock: { ...DEFAULT_LOCK_OPTIONS, isProcessAlive: defaultIsProcessAlive },
     limits: DEFAULT_INPUT_LIMITS,
+    fetcher: createSafeFetcher({
+      resolver: systemResolver,
+      transport: bunTransport,
+      userAgent: `Heron/${HERON_VERSION}`,
+    }),
+    images: sharpImageSanitizer,
+    research: DEFAULT_RESEARCH_SETTINGS,
+    cwd: process.cwd(),
   };
 }

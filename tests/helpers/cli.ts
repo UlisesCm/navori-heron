@@ -5,11 +5,14 @@ import type { AppContext } from "../../src/app/context.ts";
 import { HERON_VERSION } from "../../src/app/version.ts";
 import type { ExitCode, RunId } from "../../src/core/contracts/index.ts";
 import { runCli } from "../../src/cli/main.ts";
+import { DEFAULT_RESEARCH_SETTINGS } from "../../src/research/ports.ts";
+import { sharpImageSanitizer } from "../../src/security/images/sanitize.ts";
+import { offlineFetcher } from "./research.ts";
 
 export type CapturedRun = { code: ExitCode; stdout: string; stderr: string };
 
 /** Fixed clock (2026-09-30T12:00:00.000Z unless given), sequential run ids, identity "tester", isTTY false,
- * confirm resolving to `confirmAnswer`, lock.isProcessAlive overridable. */
+ * confirm resolving to `confirmAnswer`, an offline fetcher (no test reaches the Internet), the real image sanitizer, lock.isProcessAlive overridable. */
 export function fixedContext(
   overrides: Partial<AppContext> & { confirmAnswer?: boolean } = {},
 ): AppContext {
@@ -31,6 +34,10 @@ export function fixedContext(
     confirm: async () => confirmAnswer,
     lock: { ...DEFAULT_LOCK_OPTIONS, isProcessAlive: defaultIsProcessAlive },
     limits: DEFAULT_INPUT_LIMITS,
+    fetcher: offlineFetcher,
+    images: sharpImageSanitizer,
+    research: DEFAULT_RESEARCH_SETTINGS,
+    cwd: process.cwd(),
   };
   return { ...context, ...rest };
 }

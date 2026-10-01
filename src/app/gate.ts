@@ -7,9 +7,10 @@ import {
   type StoredModeDecision,
 } from "../core/contracts/index.ts";
 import { approveGate, rejectGate, type GateOutcome } from "../core/state/gates.ts";
-import { canTransition } from "../core/state/transitions.ts";
+import { canTransition, type TransitionFacts } from "../core/state/transitions.ts";
+import type { FileStore } from "../core/store/file-store.ts";
 import type { AppContext } from "./context.ts";
-import { boundArtifacts, collectTransitionFacts } from "./facts.ts";
+import { boundArtifacts, collectResearchFacts, collectTransitionFacts } from "./facts.ts";
 import {
   failure,
   makeFinding,
@@ -44,12 +45,30 @@ function outcomeFailure(
   }
 }
 
+/** Transition facts of the snapshot: the P1 ones plus the research reference counts (R15). May throw document errors. */
+function gateFacts(
+  ctx: AppContext,
+  store: FileStore,
+  state: HeronState,
+  gate: GateName,
+): TransitionFacts {
+  return {
+    ...collectTransitionFacts(store, state, gate, ctx.fs),
+    ...collectResearchFacts(store, ctx.research),
+  };
+}
+
 /** Order: parse -> state readable -> effective mode -> canTransition -> confirmation (no lock held) -> lock with
  * expectedRevision R -> decision -> commit (state.json only) -> release. */
 export async function runGate(ctx: AppContext, input: GateInput): Promise<UseCaseResult<GateData>> {
   let loaded: WorkspaceLoad;
+  let facts: TransitionFacts | null = null;
   try {
     loaded = loadWorkspace(ctx, input.path);
+    if (loaded.ok) {
+      const { store, state, mode } = loaded.workspace;
+      facts = gateFacts(ctx, store, { ...state, mode }, input.gate);
+    }
   } catch (error) {
     const mapped = storeErrorResult<GateData>(error);
     if (mapped === null) throw error;
@@ -63,11 +82,7 @@ export async function runGate(ctx: AppContext, input: GateInput): Promise<UseCas
     type: input.decision === "approve" ? "approve-gate" : "reject-gate",
     gate: input.gate,
   } as const;
-  const checked = canTransition(
-    snapshot,
-    event,
-    collectTransitionFacts(store, snapshot, input.gate, ctx.fs),
-  );
+  const checked = canTransition(snapshot, event, facts ?? {});
   if (!checked.ok) return failure(ExitCode.Blocked, rejectionToFinding(checked, blocked));
 
   const decidedBy = ctx.identity.current()?.trim() ?? "";
@@ -143,7 +158,7 @@ function decide(
 ): WriteBodyResult<GateData> {
   if (previous === null) throw new Error("withWriteRun requireState guarantees state.json");
   const state: HeronState = { ...previous, mode: who.mode };
-  const facts = collectTransitionFacts(store, state, input.gate, ctx.fs);
+  const facts = gateFacts(ctx, store, state, input.gate);
   const artifacts = boundArtifacts(ctx.fs, store, input.gate);
   const outcome =
     input.decision === "approve"

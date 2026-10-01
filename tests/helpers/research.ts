@@ -1,7 +1,12 @@
-import { mkdirSync, mkdtempSync, realpathSync, writeFileSync } from "node:fs";
+import { mkdirSync, mkdtempSync, readFileSync, realpathSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { dirname, join } from "node:path";
-import type { ResearchReference } from "../../src/core/contracts/index.ts";
+import {
+  RESEARCH_REFERENCES_DOCUMENT,
+  type ResearchReference,
+  type ResearchReferences,
+} from "../../src/core/contracts/index.ts";
+import { openFileStore } from "../../src/core/store/file-store.ts";
 import { nodeFs, type ReadonlyFs } from "../../src/core/store/fs-port.ts";
 import {
   DEFAULT_RESEARCH_SETTINGS,
@@ -11,6 +16,7 @@ import {
   type InputFileRef,
 } from "../../src/research/ports.ts";
 import { createSafeFetcher } from "../../src/security/fetch/safe-fetch.ts";
+import { bunTransport, systemResolver } from "../../src/security/fetch/system.ts";
 import type { SanitizeResult, ImageSanitizer } from "../../src/security/images/sanitize.ts";
 import type {
   Fetcher,
@@ -20,6 +26,7 @@ import type {
   TransportRequest,
   TransportResponse,
 } from "../../src/security/fetch/types.ts";
+import { hashTree } from "./fixtures.ts";
 
 /** A complete manual reference (all provenance fields present); `overrides` replaces any field. */
 export function sampleReference(overrides: Partial<ResearchReference> = {}): ResearchReference {
@@ -136,6 +143,16 @@ export function fakeFetcher(
   return { fetch: fetcher.fetch, transport };
 }
 
+/** Fetcher that never leaves the machine: every request fails as a network error. */
+export const offlineFetcher: Fetcher = {
+  fetch: async () => ({
+    ok: false,
+    code: "FETCH_FAILED",
+    message: "Could not fetch the URL: offline test fetcher.",
+    hops: [],
+  }),
+};
+
 /** Sanitizer double returning `result`; records the bytes it received. */
 export function stubSanitizer(
   result: SanitizeResult,
@@ -207,3 +224,71 @@ export function tempRepo(dirs: string[]): {
     ref: (path, allowExternal = true) => ({ path, base: root, allowExternal }),
   };
 }
+
+/** The six provenance flags of a valid manual reference (RN-11), keyed by flag name. */
+export const PROVENANCE_FLAGS = {
+  source: ["--source", "manual"],
+  origin: ["--origin", "Linear pricing page"],
+  reason: ["--reason", "Shows a calm pricing table"],
+  study: ["--study", "table density"],
+  "do-not-copy": ["--do-not-copy", "brand colors"],
+  influence: ["--influence", "plan comparison layout"],
+} as const;
+
+/** argv of `heron references add {root}` with every provenance flag except `omit`, then `extra`. */
+export function referenceArgs(
+  root: string,
+  omit: readonly (keyof typeof PROVENANCE_FLAGS)[] = [],
+  extra: readonly string[] = [],
+): string[] {
+  const flags = Object.entries(PROVENANCE_FLAGS)
+    .filter(([name]) => !omit.some((skipped) => skipped === name))
+    .flatMap(([, pair]) => [...pair]);
+  return ["references", "add", root, ...flags, ...extra];
+}
+
+/** A solid-color PNG generated in memory (no binaries in the repo). */
+export async function makePng(width = 100, height = 50): Promise<Uint8Array> {
+  const { default: sharp } = await import("sharp");
+  return new Uint8Array(
+    await sharp({ create: { width, height, channels: 3, background: "#2b6cb0" } })
+      .png()
+      .toBuffer(),
+  );
+}
+
+/** Reads `.heron/research/references.json` of an initialized repo; throws when it is absent. */
+export function readReferences(root: string): ResearchReferences {
+  const store = openFileStore(nodeFs, root, { create: false });
+  const document = store.readDocument("research/references.json", RESEARCH_REFERENCES_DOCUMENT);
+  if (document === null) throw new Error("research/references.json is missing");
+  return document;
+}
+
+/** Every file under `.heron/` with its text, for "this string appears nowhere" assertions. */
+export function heronTexts(root: string): string[] {
+  return [...hashTree(join(root, ".heron"), { exclude: [] }).keys()].map((path) =>
+    readFileSync(join(root, ".heron", path), "latin1"),
+  );
+}
+
+/** Real HTTP server on 127.0.0.1 (the only network the tests use). `url` ends without a slash. */
+export function serveLocal(handler: (request: Request) => Response | Promise<Response>): {
+  url: string;
+  port: number;
+  stop: () => void;
+} {
+  const server = Bun.serve({ port: 0, hostname: "127.0.0.1", fetch: handler });
+  return {
+    url: `http://127.0.0.1:${server.port}`,
+    port: server.port ?? 0,
+    stop: () => void server.stop(true),
+  };
+}
+
+/** The production SSRF-safe fetcher over the real resolver and transport (loopback tests only). */
+export const systemFetcher: Fetcher = createSafeFetcher({
+  resolver: systemResolver,
+  transport: bunTransport,
+  userAgent: "Heron/test",
+});
