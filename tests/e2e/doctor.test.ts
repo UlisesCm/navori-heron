@@ -3,6 +3,7 @@ import { mkdirSync, symlinkSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import { runCheck, withTimeout } from "../../src/app/doctor.ts";
 import {
+  DOCTOR_CHECK_IDS,
   ExitCode,
   type CliEnvelope,
   type DoctorCheck,
@@ -30,7 +31,7 @@ async function checks(root: string): Promise<DoctorCheck[]> {
 }
 
 describe("heron doctor", () => {
-  // Covers: R11
+  // Covers: R11, R18
   test("reports every base check as PASS on an initialized workspace without writing", async () => {
     const root = await initialized("membership-product");
     const before = hashTree(root, { exclude: [] });
@@ -38,16 +39,13 @@ describe("heron doctor", () => {
     expect(run.code).toBe(ExitCode.Ok);
     expect(run.stderr).toBe("");
     const lines = run.stdout.trimEnd().split("\n");
-    expect(lines.slice(0, 6).map((line) => line.slice(0, 26))).toEqual([
-      `${"PASS".padEnd(7)} ${"runtime.bun".padEnd(18)}`,
-      `${"PASS".padEnd(7)} ${"target.path".padEnd(18)}`,
-      `${"PASS".padEnd(7)} ${"heron.documents".padEnd(18)}`,
-      `${"PASS".padEnd(7)} ${"heron.lock".padEnd(18)}`,
-      `${"PASS".padEnd(7)} ${"heron.gitignore".padEnd(18)}`,
-      `${"PASS".padEnd(7)} ${"harness.detection".padEnd(18)}`,
-    ]);
-    expect(lines.at(-1)).toBe("Summary: 6 PASS, 0 WARNING, 0 FAIL");
-    expect(lines[5]).toContain("adapter navori-master, stage 01-mvp");
+    expect(lines.slice(0, DOCTOR_CHECK_IDS.length).map((line) => line.slice(0, 26))).toEqual(
+      DOCTOR_CHECK_IDS.map((id) => `${"PASS".padEnd(7)} ${id.padEnd(18)}`),
+    );
+    expect(lines.at(-1)).toBe(`Summary: ${DOCTOR_CHECK_IDS.length} PASS, 0 WARNING, 0 FAIL`);
+    expect(lines[DOCTOR_CHECK_IDS.indexOf("harness.detection")]).toContain(
+      "adapter navori-master, stage 01-mvp",
+    );
     expect(hashTree(root, { exclude: [] })).toEqual(before);
   });
 

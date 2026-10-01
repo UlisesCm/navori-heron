@@ -1,0 +1,122 @@
+{
+  "kind": "ResearchReferences",
+  "mode": "full",
+  "references": [
+    {
+      "capture": {
+        "kind": "manual"
+      },
+      "capturedAt": "2026-09-30T12:00:00.000Z",
+      "crops": [],
+      "doNotCopy": [
+        "branding 1"
+      ],
+      "id": "REF-1",
+      "influences": [
+        "list structure 1"
+      ],
+      "mode": "full",
+      "origin": "Linear pricing page",
+      "reason": "Reference 1 for membership benefits",
+      "removed": null,
+      "securityFindings": [],
+      "source": "manual",
+      "studies": [
+        "layout density 1"
+      ]
+    },
+    {
+      "capture": {
+        "kind": "manual"
+      },
+      "capturedAt": "2026-09-30T12:00:00.000Z",
+      "crops": [],
+      "doNotCopy": [
+        "branding 2"
+      ],
+      "id": "REF-2",
+      "influences": [
+        "list structure 2"
+      ],
+      "mode": "full",
+      "origin": "Stripe dashboard",
+      "reason": "Reference 2 for membership benefits",
+      "removed": null,
+      "securityFindings": [],
+      "source": "manual",
+      "studies": [
+        "layout density 2"
+      ]
+    },
+    {
+      "capture": {
+        "kind": "manual"
+      },
+      "capturedAt": "2026-09-30T12:00:00.000Z",
+      "crops": [],
+      "doNotCopy": [
+        "branding 3"
+      ],
+      "id": "REF-3",
+      "influences": [
+        "list structure 3"
+      ],
+      "mode": "full",
+      "origin": "Notion onboarding",
+      "reason": "Reference 3 for membership benefits",
+      "removed": null,
+      "securityFindings": [],
+      "source": "manual",
+      "studies": [
+        "layout density 3"
+      ]
+    },
+    {
+      "capture": {
+        "kind": "manual"
+      },
+      "capturedAt": "2026-09-30T12:00:00.000Z",
+      "crops": [],
+      "doNotCopy": [
+        "branding 4"
+      ],
+      "id": "REF-4",
+      "influences": [
+        "list structure 4"
+      ],
+      "mode": "full",
+      "origin": "Airbnb search",
+      "reason": "Reference 4 for membership benefits",
+      "removed": null,
+      "securityFindings": [],
+      "source": "manual",
+      "studies": [
+        "layout density 4"
+      ]
+    },
+    {
+      "capture": {
+        "kind": "manual"
+      },
+      "capturedAt": "2026-09-30T12:00:00.000Z",
+      "crops": [],
+      "doNotCopy": [
+        "branding 5"
+      ],
+      "id": "REF-5",
+      "influences": [
+        "list structure 5"
+      ],
+      "mode": "full",
+      "origin": "Spotify library",
+      "reason": "Reference 5 for membership benefits",
+      "removed": null,
+      "securityFindings": [],
+      "source": "manual",
+      "studies": [
+        "layout density 5"
+      ]
+    }
+  ],
+  "schemaVersion": 1
+}

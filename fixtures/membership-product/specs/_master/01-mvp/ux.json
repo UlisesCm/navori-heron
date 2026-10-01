@@ -4,131 +4,691 @@
   "surfaces": [
     {
       "id": "MOBILE",
-      "name": "Mobile"
+      "name": "Member app",
+      "actors": [
+        "ACT-MEMBER"
+      ],
+      "purpose": "Members browse and redeem benefits.",
+      "capabilities": [
+        "Browse benefits",
+        "Redeem a benefit"
+      ],
+      "constraints": [
+        "Only active members see benefits"
+      ],
+      "requirements": [
+        "RN-1",
+        "RF-1",
+        "RF-2"
+      ]
     },
     {
       "id": "DASHBOARD",
-      "name": "Dashboard"
+      "name": "Admin dashboard",
+      "actors": [
+        "ACT-ADMIN"
+      ],
+      "purpose": "Admins manage members and partners.",
+      "capabilities": [
+        "Manage members",
+        "Manage partners"
+      ],
+      "constraints": [],
+      "requirements": [
+        "RF-4"
+      ]
     },
     {
       "id": "PARTNER",
-      "name": "Partner"
-    }
-  ],
-  "screens": [
-    {
-      "id": "SCR-MOBILE-01",
-      "surface": "MOBILE",
-      "name": "Screen SCR-MOBILE-01"
-    },
-    {
-      "id": "SCR-MOBILE-02",
-      "surface": "MOBILE",
-      "name": "Screen SCR-MOBILE-02"
-    },
-    {
-      "id": "SCR-DASHBOARD-01",
-      "surface": "DASHBOARD",
-      "name": "Screen SCR-DASHBOARD-01"
-    },
-    {
-      "id": "SCR-DASHBOARD-02",
-      "surface": "DASHBOARD",
-      "name": "Screen SCR-DASHBOARD-02"
-    },
-    {
-      "id": "SCR-PARTNER-01",
-      "surface": "PARTNER",
-      "name": "Screen SCR-PARTNER-01"
-    },
-    {
-      "id": "SCR-PARTNER-02",
-      "surface": "PARTNER",
-      "name": "Screen SCR-PARTNER-02"
-    }
-  ],
-  "flows": [
-    {
-      "id": "F01",
-      "name": "Join",
-      "screens": [
-        "SCR-MOBILE-01",
-        "SCR-MOBILE-02"
-      ]
-    },
-    {
-      "id": "F02",
-      "name": "Manage members",
-      "screens": [
-        "SCR-DASHBOARD-01",
-        "SCR-DASHBOARD-02"
-      ]
-    },
-    {
-      "id": "F03",
-      "name": "Offer benefits",
-      "screens": [
-        "SCR-PARTNER-01",
-        "SCR-PARTNER-02"
-      ]
-    }
-  ],
-  "patterns": [
-    {
-      "id": "PT01",
-      "name": "Benefit card",
-      "screens": [
-        "SCR-MOBILE-01",
-        "SCR-PARTNER-01"
-      ]
-    },
-    {
-      "id": "PT02",
-      "name": "Data table",
-      "screens": [
-        "SCR-DASHBOARD-01",
-        "SCR-DASHBOARD-02"
+      "name": "Partner portal",
+      "actors": [
+        "ACT-PARTNER"
+      ],
+      "purpose": "Partners publish benefits and validate redemptions.",
+      "capabilities": [
+        "Publish benefits",
+        "Validate redemptions"
+      ],
+      "constraints": [
+        "Partners never see member data"
+      ],
+      "requirements": [
+        "RN-2",
+        "RF-3"
       ]
     }
   ],
   "actors": [
     {
-      "id": "A01",
-      "name": "Member"
+      "id": "ACT-MEMBER",
+      "name": "Member",
+      "goal": "Use partner benefits.",
+      "capabilities": [
+        "Browse benefits",
+        "Redeem a benefit"
+      ],
+      "constraints": [
+        "Needs an active membership"
+      ],
+      "surfaces": [
+        "MOBILE"
+      ],
+      "forbiddenActions": [
+        "See other members' data"
+      ],
+      "relations": [
+        "Redeems benefits offered by ACT-PARTNER"
+      ]
+    },
+    {
+      "id": "ACT-PARTNER",
+      "name": "Partner",
+      "goal": "Attract members with benefits.",
+      "capabilities": [
+        "Publish benefits",
+        "Validate redemptions"
+      ],
+      "constraints": [],
+      "surfaces": [
+        "PARTNER"
+      ],
+      "forbiddenActions": [
+        "See member data"
+      ],
+      "relations": [
+        "Validates redemptions made by ACT-MEMBER"
+      ]
+    },
+    {
+      "id": "ACT-ADMIN",
+      "name": "Admin",
+      "goal": "Run the membership program.",
+      "capabilities": [
+        "Manage members",
+        "Manage partners"
+      ],
+      "constraints": [],
+      "surfaces": [
+        "DASHBOARD"
+      ],
+      "forbiddenActions": [
+        "Edit a partner's benefits"
+      ],
+      "relations": []
     }
   ],
   "journeys": [
     {
       "id": "J01",
       "name": "First benefit",
+      "actor": "ACT-MEMBER",
+      "goal": "Redeem a first benefit.",
+      "trigger": "The member joins.",
+      "initialState": "Active membership",
+      "expectedResult": "The benefit is redeemed.",
       "flows": [
         "F01"
+      ],
+      "requirements": [
+        "RF-1",
+        "RF-2"
+      ],
+      "exceptions": [
+        "Membership expired"
       ]
+    },
+    {
+      "id": "J02",
+      "name": "Run the program",
+      "actor": "ACT-ADMIN",
+      "goal": "Keep members and partners up to date.",
+      "trigger": "A new member or partner appears.",
+      "initialState": "Admin signed in",
+      "expectedResult": "The record is up to date.",
+      "flows": [
+        "F02"
+      ],
+      "requirements": [
+        "RF-4"
+      ],
+      "exceptions": []
+    },
+    {
+      "id": "J03",
+      "name": "Offer a benefit",
+      "actor": "ACT-PARTNER",
+      "goal": "Publish a benefit and validate its redemption.",
+      "trigger": "The partner wants to attract members.",
+      "initialState": "Partner signed in",
+      "expectedResult": "The benefit is live and redemptions are validated.",
+      "flows": [
+        "F03"
+      ],
+      "requirements": [
+        "RN-2",
+        "RF-3"
+      ],
+      "exceptions": []
+    }
+  ],
+  "flows": [
+    {
+      "id": "F01",
+      "name": "Join",
+      "actor": "ACT-MEMBER",
+      "purpose": "Browse and redeem a benefit.",
+      "trigger": "The member opens the app.",
+      "preconditions": [
+        "Active membership"
+      ],
+      "steps": [
+        "Open the catalog",
+        "Pick a benefit",
+        "Show the QR code"
+      ],
+      "decisions": [],
+      "alternateStates": [
+        "Membership expired"
+      ],
+      "errors": [
+        "Benefit exhausted"
+      ],
+      "result": "The redemption is shown to the partner.",
+      "screens": [
+        "SCR-MOBILE-01",
+        "SCR-MOBILE-02"
+      ],
+      "requirements": [
+        "RN-1",
+        "RF-1",
+        "RF-2"
+      ]
+    },
+    {
+      "id": "F02",
+      "name": "Manage members",
+      "actor": "ACT-ADMIN",
+      "purpose": "Review and edit members.",
+      "trigger": "The admin opens the dashboard.",
+      "preconditions": [
+        "Admin signed in"
+      ],
+      "steps": [
+        "Open the member list",
+        "Open a member",
+        "Update the status"
+      ],
+      "decisions": [],
+      "alternateStates": [],
+      "errors": [],
+      "result": "The member record is updated.",
+      "screens": [
+        "SCR-DASHBOARD-01",
+        "SCR-DASHBOARD-02"
+      ],
+      "requirements": [
+        "RF-4"
+      ]
+    },
+    {
+      "id": "F03",
+      "name": "Offer benefits",
+      "actor": "ACT-PARTNER",
+      "purpose": "Publish benefits and validate redemptions.",
+      "trigger": "The partner opens the portal.",
+      "preconditions": [
+        "Partner signed in"
+      ],
+      "steps": [
+        "Publish a benefit",
+        "Scan a redemption code"
+      ],
+      "decisions": [],
+      "alternateStates": [],
+      "errors": [
+        "Code already used"
+      ],
+      "result": "The redemption is validated once.",
+      "screens": [
+        "SCR-PARTNER-01",
+        "SCR-PARTNER-02"
+      ],
+      "requirements": [
+        "RN-2",
+        "RF-3"
+      ]
+    }
+  ],
+  "screens": [
+    {
+      "id": "SCR-MOBILE-01",
+      "name": "Benefit catalog",
+      "surface": "MOBILE",
+      "actors": [
+        "ACT-MEMBER"
+      ],
+      "purpose": "Browse the benefits available to the member.",
+      "requirements": [
+        "RN-1",
+        "RF-1"
+      ],
+      "journeys": [
+        "J01"
+      ],
+      "flows": [
+        "F01"
+      ],
+      "information": [
+        "Benefit title",
+        "Partner name"
+      ],
+      "actions": [
+        {
+          "label": "Open benefit",
+          "priority": "primary"
+        }
+      ],
+      "states": [
+        "loading",
+        "empty",
+        "membership-expired"
+      ],
+      "conditions": [],
+      "navigation": {
+        "from": [],
+        "to": [
+          "SCR-MOBILE-02"
+        ]
+      },
+      "permissions": [
+        "ACT-MEMBER"
+      ],
+      "events": []
+    },
+    {
+      "id": "SCR-MOBILE-02",
+      "name": "Benefit redemption",
+      "surface": "MOBILE",
+      "actors": [
+        "ACT-MEMBER"
+      ],
+      "purpose": "Show the QR code that redeems a benefit.",
+      "requirements": [
+        "RF-2"
+      ],
+      "journeys": [
+        "J01"
+      ],
+      "flows": [
+        "F01"
+      ],
+      "information": [
+        "QR code",
+        "Benefit title"
+      ],
+      "actions": [
+        {
+          "label": "Show QR code",
+          "priority": "primary"
+        },
+        {
+          "label": "Cancel",
+          "priority": "secondary"
+        }
+      ],
+      "states": [
+        "loading",
+        "success"
+      ],
+      "conditions": [],
+      "navigation": {
+        "from": [
+          "SCR-MOBILE-01"
+        ],
+        "to": []
+      },
+      "permissions": [
+        "ACT-MEMBER"
+      ],
+      "events": []
+    },
+    {
+      "id": "SCR-DASHBOARD-01",
+      "name": "Member list",
+      "surface": "DASHBOARD",
+      "actors": [
+        "ACT-ADMIN"
+      ],
+      "purpose": "List and filter the program members.",
+      "requirements": [
+        "RF-4"
+      ],
+      "journeys": [
+        "J02"
+      ],
+      "flows": [
+        "F02"
+      ],
+      "information": [
+        "Member name",
+        "Status"
+      ],
+      "actions": [
+        {
+          "label": "Open member",
+          "priority": "primary"
+        }
+      ],
+      "states": [
+        "loading",
+        "empty"
+      ],
+      "conditions": [],
+      "navigation": {
+        "from": [],
+        "to": [
+          "SCR-DASHBOARD-02"
+        ]
+      },
+      "permissions": [
+        "ACT-ADMIN"
+      ],
+      "events": []
+    },
+    {
+      "id": "SCR-DASHBOARD-02",
+      "name": "Member detail",
+      "surface": "DASHBOARD",
+      "actors": [
+        "ACT-ADMIN"
+      ],
+      "purpose": "Review and update one member.",
+      "requirements": [
+        "RF-4"
+      ],
+      "journeys": [
+        "J02"
+      ],
+      "flows": [
+        "F02"
+      ],
+      "information": [
+        "Member name",
+        "Status",
+        "Expiry date"
+      ],
+      "actions": [
+        {
+          "label": "Update status",
+          "priority": "primary"
+        },
+        {
+          "label": "Suspend member",
+          "priority": "destructive"
+        }
+      ],
+      "states": [
+        "loading",
+        "error"
+      ],
+      "conditions": [],
+      "navigation": {
+        "from": [
+          "SCR-DASHBOARD-01"
+        ],
+        "to": []
+      },
+      "permissions": [
+        "ACT-ADMIN"
+      ],
+      "events": []
+    },
+    {
+      "id": "SCR-PARTNER-01",
+      "name": "Benefit publishing",
+      "surface": "PARTNER",
+      "actors": [
+        "ACT-PARTNER"
+      ],
+      "purpose": "Publish and edit the partner benefits.",
+      "requirements": [
+        "RF-3"
+      ],
+      "journeys": [
+        "J03"
+      ],
+      "flows": [
+        "F03"
+      ],
+      "information": [
+        "Benefit title",
+        "Valid until"
+      ],
+      "actions": [
+        {
+          "label": "Publish benefit",
+          "priority": "primary"
+        }
+      ],
+      "states": [
+        "loading",
+        "empty"
+      ],
+      "conditions": [],
+      "navigation": {
+        "from": [],
+        "to": [
+          "SCR-PARTNER-02"
+        ]
+      },
+      "permissions": [
+        "ACT-PARTNER"
+      ],
+      "events": []
+    },
+    {
+      "id": "SCR-PARTNER-02",
+      "name": "Redemption validation",
+      "surface": "PARTNER",
+      "actors": [
+        "ACT-PARTNER"
+      ],
+      "purpose": "Validate a member redemption once.",
+      "requirements": [
+        "RN-2",
+        "RF-3"
+      ],
+      "journeys": [
+        "J03"
+      ],
+      "flows": [
+        "F03"
+      ],
+      "information": [
+        "Benefit title",
+        "Redemption result"
+      ],
+      "actions": [
+        {
+          "label": "Scan code",
+          "priority": "primary"
+        }
+      ],
+      "states": [
+        "loading",
+        "success",
+        "error"
+      ],
+      "conditions": [],
+      "navigation": {
+        "from": [
+          "SCR-PARTNER-01"
+        ],
+        "to": []
+      },
+      "permissions": [
+        "ACT-PARTNER"
+      ],
+      "events": []
     }
   ],
   "functionalComponents": [
     {
-      "id": "FC01",
+      "id": "C01",
       "name": "Benefit list",
-      "patterns": [
-        "PT01"
+      "responsibility": "Show benefits with their partner.",
+      "information": [
+        "Benefit title",
+        "Partner name"
+      ],
+      "actions": [
+        "Open benefit"
+      ],
+      "states": [
+        "loading",
+        "empty"
+      ],
+      "screens": [
+        "SCR-MOBILE-01",
+        "SCR-PARTNER-01"
+      ],
+      "variations": []
+    },
+    {
+      "id": "C02",
+      "name": "Member table",
+      "responsibility": "Show members with their status.",
+      "information": [
+        "Member name",
+        "Status"
+      ],
+      "actions": [
+        "Open member"
+      ],
+      "states": [
+        "loading",
+        "empty"
+      ],
+      "screens": [
+        "SCR-DASHBOARD-01"
+      ],
+      "variations": []
+    }
+  ],
+  "patterns": [
+    {
+      "id": "PT01",
+      "name": "Benefit card",
+      "purpose": "Present one benefit with its partner.",
+      "screens": [
+        "SCR-MOBILE-01",
+        "SCR-PARTNER-01"
+      ],
+      "states": [
+        "loading",
+        "empty"
+      ],
+      "rules": [
+        "A benefit is shown only while it is valid"
+      ],
+      "requirements": [
+        "RF-1"
+      ]
+    },
+    {
+      "id": "PT02",
+      "name": "Data table",
+      "purpose": "List records with filters.",
+      "screens": [
+        "SCR-DASHBOARD-01",
+        "SCR-DASHBOARD-02"
+      ],
+      "states": [
+        "loading",
+        "empty"
+      ],
+      "rules": [],
+      "requirements": [
+        "RF-4"
       ]
     }
   ],
   "uxRequirements": [
     {
-      "id": "UXR-1",
-      "text": "Benefits are reachable in two taps."
+      "id": "UX-1",
+      "statement": "A member must know the membership status before starting a redemption.",
+      "derivedFrom": [
+        "RN-1",
+        "RN-3"
+      ]
+    },
+    {
+      "id": "UX-2",
+      "statement": "A partner must see the validation result immediately.",
+      "derivedFrom": [
+        "RN-2"
+      ]
     }
   ],
   "traceability": [
     {
       "requirement": "RF-1",
+      "journeys": [
+        "J01"
+      ],
+      "flows": [
+        "F01"
+      ],
       "screens": [
         "SCR-MOBILE-01"
       ],
-      "rules": [
-        "RN-1"
+      "patterns": [
+        "PT01"
+      ]
+    },
+    {
+      "requirement": "RF-2",
+      "journeys": [
+        "J01"
+      ],
+      "flows": [
+        "F01"
+      ],
+      "screens": [
+        "SCR-MOBILE-02"
+      ],
+      "patterns": []
+    },
+    {
+      "requirement": "RF-3",
+      "journeys": [
+        "J03"
+      ],
+      "flows": [
+        "F03"
+      ],
+      "screens": [
+        "SCR-PARTNER-01",
+        "SCR-PARTNER-02"
+      ],
+      "patterns": [
+        "PT01"
+      ]
+    },
+    {
+      "requirement": "RF-4",
+      "journeys": [
+        "J02"
+      ],
+      "flows": [
+        "F02"
+      ],
+      "screens": [
+        "SCR-DASHBOARD-01",
+        "SCR-DASHBOARD-02"
+      ],
+      "patterns": [
+        "PT02"
       ]
     }
   ]

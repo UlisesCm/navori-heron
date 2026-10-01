@@ -3,6 +3,7 @@ import { describe, expect, test } from "bun:test";
 import type { BoundArtifact, HeronState } from "../../src/core/contracts/index.ts";
 import {
   createInitialState,
+  freshen,
   recordCommand,
   recordInit,
   withArtifacts,
@@ -93,5 +94,32 @@ describe("lifecycle", () => {
         since: next.stateRevision,
       },
     ]);
+  });
+
+  // Covers: R8
+  test("freshens regenerated artifacts and marks their dependents stale", () => {
+    const foundations: BoundArtifact = { path: "design/foundations/colors.json", sha256: sha("6") };
+    const state = withArtifacts(base(), [foundations], "seed");
+    const stale = withArtifacts(
+      recordCommand(state, meta),
+      [
+        { path: "research/references.json", sha256: sha("7") },
+        { path: "intake/mode.json", sha256: sha("8") },
+      ],
+      "An upstream artifact changed.",
+    );
+    // withArtifacts marks the dependents of what changed; freshen drops only the regenerated path.
+    expect(stale.stale.map((entry) => entry.path)).toContain("design/foundations/colors.json");
+    const snapshot = structuredClone(stale);
+    const fresh = freshen(stale, ["design/foundations/colors.json"]);
+    expect(stale).toEqual(snapshot);
+    expect(fresh.stale.map((entry) => entry.path)).not.toContain("design/foundations/colors.json");
+    expect(fresh.stale).toEqual(
+      stale.stale.filter((entry) => entry.path !== "design/foundations/colors.json"),
+    );
+    expect(fresh.artifacts).toEqual(stale.artifacts);
+    expect(fresh.stateRevision).toBe(stale.stateRevision);
+    // Paths that are not stale are ignored.
+    expect(freshen(stale, ["research/references.json"]).stale).toEqual(stale.stale);
   });
 });

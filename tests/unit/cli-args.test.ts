@@ -98,9 +98,10 @@ describe("parseCliArgs", () => {
     expect(version.stdout).toMatch(/^\d+\.\d+\.\d+\n$/);
   });
 
-  // Covers: R2
+  // Covers: R2, R18
   test("derives the usage text, parsing and lookup from the command registry", () => {
-    expect(COMMANDS.map((spec) => spec.name)).toEqual([
+    // P1/P2 are a fixed prefix; later specs only append commands.
+    const baseCommands: string[] = [
       "init",
       "status",
       "doctor",
@@ -108,51 +109,16 @@ describe("parseCliArgs", () => {
       "references",
       "brand",
       "research",
-    ]);
-    expect(USAGE_TEXT).toBe(
-      [
-        "Usage: heron <command> [options]",
-        "",
-        "Commands:",
-        "  init [path] [--stage <NN-slug>] [--locale <bcp47>] [--dry-run] [--json]",
-        "      Detect the product context, decide the mode and write .heron/",
-        "  status [path] [--json]",
-        "      Show mode, stage, phase, gates and stale artifacts",
-        "  doctor [path] [--json]",
-        "      Check the local environment and the .heron/ workspace",
-        "  gate <gate> approve|reject [path] [--note <text>] [--reason <text>] [--yes] [--json]",
-        "      Record a human gate decision bound to artifact hashes",
-        "  references add [path] --source <kind> [--origin <text>] [--url <url>] [--file <path>] [--screenshot]",
-        "      [--allow-local] --reason <text> --study <text>... --do-not-copy <text>... --influence <text>...",
-        "      [--crop <x,y,w,h=note>]... [--json]",
-        "      Record a visual reference with complete provenance",
-        "  references list [path] [--all] [--json]",
-        "      List references (removed ones too with --all)",
-        "  references show <REF-n> [path] [--json]",
-        "      Show one reference with its provenance, crops and security findings",
-        "  references compare <REF-n> <REF-n> [<REF-n> <REF-n>] [path] [--json]",
-        "      Compare 2 to 4 references side by side",
-        "  references remove <REF-n> [path] [--reason <text>] [--json]",
-        "      Remove a reference (kept as removed in references.json)",
-        "  references import <file.json> [path] [--allow-local] [--json]",
-        "      Import a ReferenceBatch file, all or nothing",
-        "  brand add [path] --kind <kind> --origin <origin> --value <text> [--file <path>] [--reference <REF-n>]",
-        "      [--note <text>] [--json]",
-        "      Record a brand input with its origin",
-        "  research render [path] [--json]",
-        "      Regenerate REFERENCES.md, references.json, provenance.json and the moodboard",
-        "",
-        "Gates: intake, research, direction, foundations, representative-screens, visual-review",
-        "Reference sources: manual, url, image, design-md",
-        "Brand kinds: logo, brand-color, secondary-color, font, brand-guidelines, screenshot, url, existing-product, competitor, liked-reference, disliked-reference",
-        "Brand origins: provided, derived, inferred, reference-derived",
-        "",
-        "Options:",
-        "  -h, --help     Show this help",
-        "  -v, --version  Show the Heron version",
-        "",
-      ].join("\n"),
-    );
+    ];
+    const names = COMMANDS.map((spec) => spec.name);
+    expect(names.slice(0, baseCommands.length) as string[]).toEqual(baseCommands);
+    expect(new Set(names).size).toBe(names.length);
+    const usageLines = COMMANDS.flatMap((spec) => spec.usage);
+    const section = USAGE_TEXT.split("\nCommands:\n")[1]?.split("\n\n")[0];
+    expect(USAGE_TEXT.startsWith("Usage: heron <command> [options]\n\nCommands:\n")).toBe(true);
+    expect(section?.split("\n")).toEqual(usageLines);
+    for (const name of names) expect(commandFor(name).name).toBe(name);
+    expect(USAGE_TEXT.endsWith("  -v, --version  Show the Heron version\n")).toBe(true);
     expect(commandFor("gate").name).toBe("gate");
     expect(() => commandFor("gate", [])).toThrow('Command "gate" is not registered.');
 

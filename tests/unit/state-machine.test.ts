@@ -104,10 +104,10 @@ function approvedFor(row: TransitionRule): GateName[] {
 
 describe("transition table", () => {
   test("blocks production transitions in reference-only and rejects pairs outside the table", () => {
-    // 108 unique rows by (from, event)
-    expect(TRANSITIONS.length).toBe(108);
+    // 116 unique rows by (from, event): 108 of P1 + 8 intake re-approvals in production (P4 DR7)
+    expect(TRANSITIONS.length).toBe(116);
     const keys = new Set(TRANSITIONS.map((r) => `${r.from}|${r.event}`));
-    expect(keys.size).toBe(108);
+    expect(keys.size).toBe(116);
     expect(TRANSITIONS.filter((r) => r.event.startsWith("reject-gate:")).length).toBe(52);
     expect(TRANSITIONS.filter((r) => r.event.startsWith("revise:")).length).toBe(28);
 
@@ -143,7 +143,7 @@ describe("transition table", () => {
         }
       }
     }
-    expect(outside).toBe(13 * 31 - 108);
+    expect(outside).toBe(13 * 31 - 116);
 
     for (const row of TRANSITIONS) {
       const event = eventOf(row);
@@ -168,10 +168,47 @@ describe("transition table", () => {
     }
   });
 
+  // Covers: R7
+  test("names the missing product context or the unacknowledged conflicts", () => {
+    const event: HeronEvent = { type: "approve-gate", gate: "intake" };
+    const state = stateAt("initialized", "full");
+    const reasonOf = (facts: TransitionFacts): string | null => {
+      const result = canTransition(state, event, facts);
+      return !result.ok && result.code === "PRECONDITION_UNMET" ? result.reason : null;
+    };
+    expect(reasonOf({ ...SATISFIED, productContextValid: false })).toContain(
+      "the product context is missing or out of date",
+    );
+    expect(reasonOf({ ...SATISFIED, unacknowledgedConflicts: 2 })).toContain(
+      "2 conflict(s) are not acknowledged",
+    );
+    expect(canTransition(state, event, SATISFIED).ok).toBe(true);
+  });
+
+  // Covers: R5, R7
+  test("re-approves the intake gate in place from every production phase", () => {
+    const event: HeronEvent = { type: "approve-gate", gate: "intake" };
+    const production = HERON_PHASES.slice(HERON_PHASES.indexOf("direction-selected"));
+    expect(production.length).toBe(8);
+    for (const phase of production) {
+      const result = canTransition(stateAt(phase, "full", ["intake"]), event, SATISFIED);
+      expect(result.ok).toBe(true);
+      if (result.ok) expect(result.rule.to).toBe(phase);
+      const blocked = canTransition(stateAt(phase, "full"), event, {
+        ...SATISFIED,
+        unacknowledgedConflicts: 1,
+      });
+      expect(blocked.ok).toBe(false);
+    }
+  });
+
   test("names the reference count when the research minimum is unmet", () => {
     const event: HeronEvent = { type: "approve-gate", gate: "research" };
     const state = stateAt("researching", "reference-only");
-    const unmet = canTransition(state, event, { ...SATISFIED, referencesWithProvenance: 4 });
+    const unmet = canTransition(state, event, {
+      ...SATISFIED,
+      referencesWithProvenance: 4,
+    });
     expect(unmet.ok).toBe(false);
     if (!unmet.ok && unmet.code === "PRECONDITION_UNMET") {
       expect(unmet.reason).toContain(
@@ -210,14 +247,20 @@ describe("transition table", () => {
   test("approvals guard blocks production rows when another gate is invalidated", () => {
     const state = stateAt("direction-selected", "full");
     const event: HeronEvent = { type: "approve-gate", gate: "foundations" };
-    const blocked = canTransition(state, event, { ...SATISFIED, invalidatedGates: ["intake"] });
+    const blocked = canTransition(state, event, {
+      ...SATISFIED,
+      invalidatedGates: ["intake"],
+    });
     expect(blocked.ok).toBe(false);
     if (!blocked.ok && blocked.code === "PRECONDITION_UNMET") {
       expect(blocked.precondition).toBe("approvals-valid");
     }
     // the event's own gate is excluded from the guard
     expect(
-      canTransition(state, event, { ...SATISFIED, invalidatedGates: ["foundations"] }).ok,
+      canTransition(state, event, {
+        ...SATISFIED,
+        invalidatedGates: ["foundations"],
+      }).ok,
     ).toBe(true);
     // absent invalidatedGates fails closed
     const { invalidatedGates: _omit, ...without } = SATISFIED;

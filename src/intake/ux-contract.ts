@@ -14,6 +14,7 @@ import { decodeUtf8, probeFile, type FileProbe } from "./probe.ts";
 // PROVISIONAL (D5): mirrors only the minimal ids and relations of the harness draft ux.json.
 // Replaced by the pinned harness schema in P11; unknown fields are tolerated and preserved.
 export const UX_CONTRACT_READER = "provisional-1" as const;
+export type UxReaderId = typeof UX_CONTRACT_READER;
 export const SUPPORTED_UX_SCHEMA_VERSION = 1 as const;
 
 export type UxSurfaceRef = { id: string; name?: string | undefined; [key: string]: unknown };
@@ -188,6 +189,15 @@ export function readUxContract(
   };
 }
 
+/** Switchable ux.json reader (DR10): P11 adds one backed by the pinned harness schema. */
+export type UxReader = {
+  readonly id: UxReaderId;
+  read(bytes: Uint8Array, options: { expectedStage: string | null }): UxContractReadResult;
+};
+export const PROVISIONAL_UX_READER: UxReader = { id: UX_CONTRACT_READER, read: readUxContract };
+/** The single switch point: every consumer reads ux.json through this reader. */
+export const ACTIVE_UX_READER: UxReader = PROVISIONAL_UX_READER;
+
 export type UxMarkdownReadResult = { ok: true } | { ok: false; issues: FindingIssue[] };
 
 /** Valid iff fatal UTF-8 decode succeeds and the text has >= 1 non-whitespace character (R5). */
@@ -225,7 +235,7 @@ export function checkUxFiles(
   const uxMarkdown = baseCheck(mdProbe);
   const uxJson: UxJsonCheck = {
     ...baseCheck(jsonProbe),
-    reader: UX_CONTRACT_READER,
+    reader: ACTIVE_UX_READER.id,
     summary: null,
   };
   if (mdProbe.bytes !== null) {
@@ -234,7 +244,7 @@ export function checkUxFiles(
     if (!result.ok) uxMarkdown.issues = result.issues;
   }
   if (jsonProbe.bytes !== null) {
-    const result = readUxContract(jsonProbe.bytes, { expectedStage });
+    const result = ACTIVE_UX_READER.read(jsonProbe.bytes, { expectedStage });
     uxJson.valid = result.ok;
     if (result.ok) uxJson.summary = result.summary;
     else uxJson.issues = result.issues;

@@ -7,6 +7,7 @@ import { nodeFs } from "../../src/core/store/fs-port.ts";
 import {
   readMasterIndex,
   readNavoriConfig,
+  readParts,
   readStageState,
 } from "../../src/intake/adapters/navori-master/harness.ts";
 import { navoriMasterAdapter } from "../../src/intake/adapters/navori-master/index.ts";
@@ -184,6 +185,104 @@ describe("index and state readers", () => {
     expect(readStageState(nodeFs, v3, `${MASTER}/01-mvp`, limits).status).toBe(
       "unsupported-version",
     );
+  });
+});
+
+describe("language and parts.json", () => {
+  // Covers: R15, R16
+  test("reads the harness language and a tolerant parts.json", () => {
+    const language = (value: unknown): unknown => {
+      const r = readNavoriConfig(
+        nodeFs,
+        repo({ "navori.config.json": { name: " Acme ", language: value } }),
+        limits,
+      );
+      return r.status === "ok"
+        ? [r.value.name, r.value.language, r.value.unknownLanguage]
+        : r.status;
+    };
+    expect(language("es")).toEqual(["Acme", "es", null]);
+    expect(language("en")).toEqual(["Acme", "en", null]);
+    // anything else is data, not a reader failure; the adapter decides what to report
+    expect(language("fr")).toEqual(["Acme", null, "fr"]);
+    expect(language("ES")).toEqual(["Acme", null, "ES"]);
+    expect(language(7)).toEqual(["Acme", null, null]);
+    expect(language(undefined)).toEqual(["Acme", null, null]);
+    const nameless = readNavoriConfig(
+      nodeFs,
+      repo({ "navori.config.json": { name: "  ", sdd: {} } }),
+      limits,
+    );
+    expect(nameless).toMatchObject({ status: "ok", value: { name: null, specsDir: "specs" } });
+
+    const stage = `${MASTER}/01-mvp`;
+    const parts = readParts(
+      nodeFs,
+      repo({
+        [`${stage}/parts.json`]: {
+          version: 1,
+          extra: { anything: true },
+          parts: [
+            {
+              id: "P1",
+              title: "Member experience",
+              futureField: 1,
+              seedRequirements: ["RF-1", 3, "RF-2"],
+              acceptance: [
+                { id: "A1", method: "comando", extra: 1 },
+                { id: "A2" },
+                { id: "A1" },
+                "A3",
+                null,
+              ],
+            },
+            { id: "P2", acceptance: "not a list", seedRequirements: "RF-3" },
+            { title: "no id" },
+            "garbage",
+            { id: "P1", title: "again" },
+            { id: "P3", title: 9 },
+          ],
+        },
+      }),
+      stage,
+      limits,
+    );
+    if (parts.status !== "ok") throw new Error(`expected ok, got ${parts.status}`);
+    expect(parts.value.parts).toEqual([
+      {
+        id: "P1",
+        title: "Member experience",
+        seedRequirements: ["RF-1", "RF-2"],
+        acceptance: ["A1", "A2"],
+        pointer: "/parts/0",
+      },
+      { id: "P2", title: null, seedRequirements: [], acceptance: [], pointer: "/parts/1" },
+      { id: "P3", title: null, seedRequirements: [], acceptance: [], pointer: "/parts/5" },
+    ]);
+    expect(parts.value.skipped.map((f) => [f.code, f.message])).toEqual([
+      ["HARNESS_UNREADABLE", `${stage}/parts.json could not be read: parts[2] is malformed.`],
+      ["HARNESS_UNREADABLE", `${stage}/parts.json could not be read: parts[3] is malformed.`],
+      [
+        "CONTEXT_DUPLICATE_ID",
+        `P1 appears more than once in ${stage}/parts.json (/parts/0, /parts/4); the first one is used.`,
+      ],
+    ]);
+
+    // version 2 is not used; a missing or non-array parts list is unreadable; absent is absent
+    const v2 = readParts(
+      nodeFs,
+      repo({ [`${stage}/parts.json`]: { version: 2, parts: [] } }),
+      stage,
+      limits,
+    );
+    expect(v2).toMatchObject({ status: "unsupported-version", found: 2 });
+    expect(v2.status === "unsupported-version" && v2.finding.code).toBe(
+      "HARNESS_VERSION_UNSUPPORTED",
+    );
+    expect(
+      readParts(nodeFs, repo({ [`${stage}/parts.json`]: { version: 1 } }), stage, limits).status,
+    ).toBe("unreadable");
+    expect(readParts(nodeFs, repo({}), stage, limits)).toEqual({ status: "absent" });
   });
 });
 

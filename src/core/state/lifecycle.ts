@@ -1,4 +1,9 @@
-import type { BoundArtifact, HeronMode, HeronState } from "../contracts/index.ts";
+import type {
+  BoundArtifact,
+  HeronMode,
+  HeronState,
+  RelativeArtifactPath,
+} from "../contracts/index.ts";
 import { compareStrings, propagateStale } from "./stale.ts";
 import type { TransitionMeta } from "./transitions.ts";
 
@@ -48,6 +53,13 @@ export function withArtifacts(
   }
   const next: HeronState = { ...state, artifacts: [...merged.values()].toSorted(byPath) };
   return propagateStale(next, changed, reason);
+}
+
+/** Removes the StaleEntry of each path in `paths` (just regenerated from current inputs).
+ * The single way a regenerated artifact stops being stale; never mutates and keeps the other entries. */
+export function freshen(state: HeronState, paths: readonly RelativeArtifactPath[]): HeronState {
+  const regenerated = new Set<string>(paths);
+  return { ...state, stale: state.stale.filter((entry) => !regenerated.has(entry.path)) };
 }
 
 function appendHistory(state: HeronState, mode: HeronMode, meta: TransitionMeta): HeronState {

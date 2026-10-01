@@ -1,0 +1,18 @@
+{
+  "kind": "HeronProject",
+  "penpot": {
+    "enabled": false,
+    "fileId": null,
+    "url": null,
+    "version": null
+  },
+  "schemaVersion": 1,
+  "source": {
+    "adapter": "navori-master",
+    "specsDir": "specs",
+    "stage": {
+      "dir": "01-mvp",
+      "selection": "active"
+    }
+  }
+}

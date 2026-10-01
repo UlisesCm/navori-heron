@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { RelativeArtifactPathSchema, type RelativeArtifactPath } from "./common.ts";
 import type { DocumentSpec } from "./version.ts";
 
 export const ADAPTER_IDS = ["navori-master", "filesystem", "markdown", "manual"] as const; // "markdown"/"manual" are not emitted before P4
@@ -16,6 +17,7 @@ export type HeronProject = {
     adapter: AdapterId;
     specsDir: string | null; // repo-relative; null for filesystem
     stage: { dir: string; selection: StageSelection } | null; // null for filesystem or no stage
+    inputs?: RelativeArtifactPath[] | undefined; // markdown/manual --context files, repo-relative; optional: no schema bump (DR28)
   };
   penpot: { enabled: boolean; url: string | null; fileId: string | null; version: string | null };
   product?: ProductSettings | undefined; // optional: no schema bump (DP7)
@@ -28,6 +30,7 @@ export const HeronProjectSchema: z.ZodType<HeronProject> = z.looseObject({
     adapter: z.enum(ADAPTER_IDS),
     specsDir: z.string().nullable(),
     stage: z.looseObject({ dir: z.string(), selection: z.enum(STAGE_SELECTIONS) }).nullable(),
+    inputs: z.array(RelativeArtifactPathSchema).optional(),
   }),
   penpot: z.looseObject({
     enabled: z.boolean(),

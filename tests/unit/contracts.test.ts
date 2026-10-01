@@ -1,9 +1,11 @@
 // Covers: R11, R15
 import { describe, expect, test } from "bun:test";
 import { makeFinding } from "../../src/app/result.ts";
+import { COMMANDS } from "../../src/cli/commands/index.ts";
 import {
   BRAND_INPUTS_DOCUMENT,
   CLI_COMMANDS,
+  DOCTOR_CHECK_IDS,
   CLI_ENVELOPE_DOCUMENT,
   REFERENCE_BATCH_DOCUMENT,
   RESEARCH_PROVENANCE_DOCUMENT,
@@ -24,11 +26,16 @@ import {
   MODE_DECISION_DOCUMENT,
   PRODUCTION_PHASES,
   UnsupportedSchemaVersionError,
+  INTAKE_CONFLICTS_DOCUMENT,
+  MANUAL_CONTEXT_DOCUMENT,
+  PRODUCT_CONTEXT_DOCUMENT,
+  PRODUCT_CONTEXT_SECTIONS,
   canonicalJson,
   formatUnsupportedVersionMessage,
   parseVersionedDocument,
   toJsonPointer,
   type HeronProject,
+  type DocumentSpec,
   type HeronState,
 } from "../../src/core/contracts/index.ts";
 
@@ -129,8 +136,10 @@ describe("versioned documents", () => {
     expect(err.message).toContain("/penpot/enabled");
   });
 
+  // Covers: R1, R18
   test("validates every registered document kind and its schema file name", () => {
-    expect(CONTRACT_DOCUMENTS.map((d) => d.schemaFile)).toEqual([
+    // P1/P2 are a fixed prefix; later specs only append, so nothing else is counted or listed.
+    const baseSchemaFiles = [
       "heron-project.v1.schema.json",
       "heron-state.v1.schema.json",
       "mode-decision.v1.schema.json",
@@ -139,7 +148,15 @@ describe("versioned documents", () => {
       "research-provenance.v1.schema.json",
       "brand-inputs.v1.schema.json",
       "reference-batch.v1.schema.json",
-    ]);
+    ];
+    const schemaFiles = CONTRACT_DOCUMENTS.map((d) => d.schemaFile);
+    expect(schemaFiles.slice(0, baseSchemaFiles.length)).toEqual(baseSchemaFiles);
+    expect(new Set(schemaFiles).size).toBe(schemaFiles.length);
+    expect(new Set(CONTRACT_DOCUMENTS.map((d) => d.kind)).size).toBe(CONTRACT_DOCUMENTS.length);
+    for (const doc of CONTRACT_DOCUMENTS) {
+      expect(doc.schemaFile).toMatch(/^[a-z0-9]+(?:-[a-z0-9]+)*\.v\d+\.schema\.json$/);
+      expect(doc.schemaFile.includes(`.v${doc.schemaVersion}.`)).toBe(true);
+    }
     expect(MODE_DECISION_DOCUMENT.kind).toBe("ModeDecision");
     expect(CLI_ENVELOPE_DOCUMENT.kind).toBe("CliEnvelope");
   });
@@ -207,7 +224,13 @@ describe("envelope", () => {
 });
 
 describe("canonical json and pointers", () => {
-  test("sorts keys at every depth and ends with a newline", () => {
+  // Covers: R10
+  test("keeps __proto__ keys and sorts keys at every depth", () => {
+    const parsed: unknown = JSON.parse('{"b":1,"__proto__":{"z":1,"a":2},"a":[{"y":1,"x":2}]}');
+    expect(canonicalJson(parsed)).toBe(
+      '{\n  "__proto__": {\n    "a": 2,\n    "z": 1\n  },\n  "a": [\n    {\n      "x": 2,\n      "y": 1\n    }\n  ],\n  "b": 1\n}\n',
+    );
+    expect(Object.keys(JSON.parse(canonicalJson(parsed)) as object)).toContain("__proto__");
     expect(canonicalJson({ b: [{ z: 1, a: null }], a: "x" })).toBe(
       '{\n  "a": "x",\n  "b": [\n    {\n      "a": null,\n      "z": 1\n    }\n  ]\n}\n',
     );
@@ -463,6 +486,22 @@ describe("research documents", () => {
     );
   });
 
+  // Covers: R18
+  test("keeps the append-only registries unique and well-formed", () => {
+    expect(new Set(CLI_COMMANDS).size).toBe(CLI_COMMANDS.length);
+    expect(new Set(FINDING_CODES).size).toBe(FINDING_CODES.length);
+    expect(FINDING_CODES.every((code) => FINDING_CODE_PATTERN.test(code))).toBe(true);
+    expect(new Set(DOCTOR_CHECK_IDS).size).toBe(DOCTOR_CHECK_IDS.length);
+    // Every command has its CommandSpec (the group is the first word of "references add").
+    const registered = new Set<string>(COMMANDS.map((spec) => spec.name));
+    // TODO(T12): drop PENDING_SPECS once `intake` and `conflicts` register their CommandSpec (envelope data lands in T2).
+    const PENDING_SPECS = new Set(["intake", "conflicts"]);
+    for (const command of CLI_COMMANDS) {
+      const group = command.split(" ")[0]!;
+      if (!PENDING_SPECS.has(group)) expect(registered.has(group)).toBe(true);
+    }
+  });
+
   test("grows the envelope with the research commands and data", () => {
     expect(CLI_COMMANDS).toContain("references add");
     expect(CLI_COMMANDS).toContain("research render");
@@ -539,5 +578,204 @@ describe("research documents", () => {
       CLI_ENVELOPE_DOCUMENT.schema.safeParse(researchEnvelope("references add", { nope: 1 }))
         .success,
     ).toBe(false);
+  });
+});
+
+describe("intake documents", () => {
+  const ref = { source: "MASTER.md", path: "MASTER.md", locator: "§Actors" };
+  const sourced = { sourceRef: ref, alsoIn: [], conflicts: [] };
+  const context = {
+    kind: "ProductContext",
+    schemaVersion: 1,
+    metadata: {
+      adapter: "navori-master",
+      mode: "full",
+      stage: { dir: "01-mvp", selection: "active" },
+      uxReader: "provisional-1",
+      sources: [{ source: "MASTER.md", path: "MASTER.md", status: "used" }],
+      uxExtensions: [{ key: "__proto__", value: { a: 1 } }],
+      findings: [
+        {
+          code: "SOURCE_NO_ELEMENTS",
+          severity: "info",
+          message: "m",
+          paths: [],
+          issues: [],
+        },
+      ],
+    },
+    ...Object.fromEntries(PRODUCT_CONTEXT_SECTIONS.map((section) => [section, []])),
+    product: [{ ...sourced, key: "name", value: "Membership" }],
+  };
+  const conflict = {
+    id: "CONFLICT-001",
+    kind: "permission-contradiction",
+    subject: "ACT-PARTNER · see member data",
+    status: "open",
+    files: ["MASTER.md", "ux.json"],
+    values: [
+      { sourceRef: ref, value: "cannot: See member data" },
+      {
+        sourceRef: {
+          ...ref,
+          source: "ux.json",
+          path: "ux.json",
+          locator: "/actors/1",
+        },
+        value: "See member data",
+      },
+    ],
+    impact: ["actors/ACT-PARTNER"],
+    winner: null,
+    fingerprint: HASH,
+    ack: null,
+  };
+  const conflicts = {
+    kind: "IntakeConflicts",
+    schemaVersion: 1,
+    conflicts: [conflict],
+  };
+  const manual = {
+    kind: "ManualContext",
+    schemaVersion: 1,
+    product: { name: "Membership" },
+    businessRules: [{ id: "RN-1", text: "t" }],
+  };
+
+  // Covers: R1, R5, R9, R10
+  test("round-trips the intake documents and rejects a newer schemaVersion naming the supported one", () => {
+    const cases: [DocumentSpec<unknown>, Record<string, unknown>][] = [
+      [PRODUCT_CONTEXT_DOCUMENT, context],
+      [INTAKE_CONFLICTS_DOCUMENT, conflicts],
+      [MANUAL_CONTEXT_DOCUMENT, manual],
+    ];
+    for (const [spec, doc] of cases) {
+      const parsed: unknown = parseVersionedDocument(doc, spec, "f.json");
+      expect(JSON.parse(canonicalJson(parsed))).toEqual(JSON.parse(canonicalJson(doc)));
+      let caught: unknown;
+      try {
+        parseVersionedDocument({ ...doc, schemaVersion: 2 }, spec, "f.json");
+      } catch (e) {
+        caught = e;
+      }
+      expect(caught).toBeInstanceOf(UnsupportedSchemaVersionError);
+      expect((caught as Error).message).toContain("this Heron supports schemaVersion 1");
+    }
+    expect(parses(PRODUCT_CONTEXT_DOCUMENT, { ...context, unknownKey: 1 })).toBe(true);
+    // persisted kind is text (DR26); ids, pair size and note length are enforced
+    expect(
+      parses(INTAKE_CONFLICTS_DOCUMENT, {
+        ...conflicts,
+        conflicts: [{ ...conflict, kind: "future-kind" }],
+      }),
+    ).toBe(true);
+    expect(
+      parses(INTAKE_CONFLICTS_DOCUMENT, {
+        ...conflicts,
+        conflicts: [{ ...conflict, kind: "Bad Kind" }],
+      }),
+    ).toBe(false);
+    expect(
+      parses(INTAKE_CONFLICTS_DOCUMENT, {
+        ...conflicts,
+        conflicts: [{ ...conflict, id: "C-1" }],
+      }),
+    ).toBe(false);
+    expect(
+      parses(INTAKE_CONFLICTS_DOCUMENT, {
+        ...conflicts,
+        conflicts: [{ ...conflict, values: [] }],
+      }),
+    ).toBe(false);
+    const ack = {
+      by: "ulises",
+      at: "2026-10-01T12:00:00.000Z",
+      note: "n",
+      runId: "run-20260930T120000Z-3f9a1c2b",
+    };
+    expect(
+      parses(INTAKE_CONFLICTS_DOCUMENT, {
+        ...conflicts,
+        conflicts: [{ ...conflict, ack }],
+      }),
+    ).toBe(true);
+    expect(
+      parses(INTAKE_CONFLICTS_DOCUMENT, {
+        ...conflicts,
+        conflicts: [{ ...conflict, ack: { ...ack, note: "" } }],
+      }),
+    ).toBe(false);
+    // ManualContext is an input: strict, with id patterns and no UX sections
+    expect(parses(MANUAL_CONTEXT_DOCUMENT, { ...manual, extra: 1 })).toBe(false);
+    expect(parses(MANUAL_CONTEXT_DOCUMENT, { ...manual, screens: [] })).toBe(false);
+    expect(
+      parses(MANUAL_CONTEXT_DOCUMENT, {
+        ...manual,
+        businessRules: [{ id: "RF-1", text: "t" }],
+      }),
+    ).toBe(false);
+    expect(
+      parses(MANUAL_CONTEXT_DOCUMENT, {
+        ...manual,
+        brand: [{ kind: "mascot", value: "v" }],
+      }),
+    ).toBe(false);
+    // source.inputs is optional (no bump): P1/P2 projects keep validating
+    const withInputs = {
+      ...project,
+      source: { ...project.source, adapter: "markdown", inputs: ["a.md"] },
+    };
+    expect(parses(HERON_PROJECT_DOCUMENT, withInputs)).toBe(true);
+    expect(parses(HERON_PROJECT_DOCUMENT, project)).toBe(true);
+    expect(
+      parses(HERON_PROJECT_DOCUMENT, {
+        ...withInputs,
+        source: { ...withInputs.source, inputs: ["../x"] },
+      }),
+    ).toBe(false);
+  });
+
+  // Covers: R5, R6, R8
+  test("grows the envelope with the intake commands and finding codes", () => {
+    const counts = Object.fromEntries(PRODUCT_CONTEXT_SECTIONS.map((section) => [section, 0]));
+    const stage = {
+      number: 1,
+      slug: "mvp",
+      dir: "01-mvp",
+      state: "active",
+      selection: "active",
+    };
+    const payloads: [string, unknown][] = [
+      [
+        "intake",
+        {
+          mode: "full",
+          adapter: "navori-master",
+          stage,
+          dryRun: false,
+          written: true,
+          stateRevision: 2,
+          counts,
+          conflicts: [
+            {
+              id: "CONFLICT-001",
+              kind: "value-mismatch",
+              subject: "s",
+              acknowledged: false,
+            },
+          ],
+        },
+      ],
+      ["conflicts list", { tracked: true, conflicts: [conflict] }],
+      ["conflicts ack", { conflict, stateRevision: 3, unacknowledged: 0 }],
+    ];
+    for (const [command, data] of payloads) {
+      expect(CLI_COMMANDS).toContain(command as never);
+      expect(CLI_ENVELOPE_DOCUMENT.schema.safeParse(researchEnvelope(command, data)).success).toBe(
+        true,
+      );
+    }
+    expect(FINDING_CODES.slice(-13)[0]).toBe("PRODUCT_CONTEXT_STALE");
+    expect(FINDING_CODES.at(-1)).toBe("LOWER_TIER_ITEMS_SKIPPED");
   });
 });

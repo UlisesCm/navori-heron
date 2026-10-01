@@ -4,7 +4,7 @@ Lotes de 1–3 tareas. Cada test lleva `// Covers: R<n>` en la primera línea y 
 
 ## Lote 0 — Base compartida con 0003
 
-- [ ] **T0** (R8, R18) — `freshen` único y aserciones derivadas de los registros en los tests que 0003 y 0004 modifican.
+- [x] **T0** (R8, R18) — `freshen` único y aserciones derivadas de los registros en los tests que 0003 y 0004 modifican.
   - **Archivos:** `src/core/state/lifecycle.ts`, `tests/unit/lifecycle.test.ts`, `tests/unit/contracts.test.ts`, `tests/unit/cli-args.test.ts`, `tests/e2e/status.test.ts`, `tests/e2e/doctor.test.ts`
   - **Interfaces:** freshen; CONTRACT_DOCUMENTS; CLI_COMMANDS; COMMANDS; FINDING_CODES; DOCTOR_CHECK_IDS
   - **Patrón:** src/core/state/lifecycle.ts
@@ -16,7 +16,7 @@ Lotes de 1–3 tareas. Cada test lleva `// Covers: R<n>` en la primera línea y 
 
 ## Lote 1 — Fixtures, golden de P2 y contratos
 
-- [ ] **T1** (R11, R13, R18) — Fixture `membership-product` completo, fixture `conflict`, manifiestos SYNTHETIC y golden de P2 generado con el código de P2 antes de tocar contratos.
+- [x] **T1** (R11, R13, R18) — Fixture `membership-product` completo, fixture `conflict`, manifiestos SYNTHETIC y golden de P2 generado con el código de P2 antes de tocar contratos.
   - **Archivos:** `fixtures/membership-product/`, `fixtures/conflict/`, `fixtures/no-ux/SYNTHETIC`, `fixtures/ux-only-md/SYNTHETIC`, `fixtures/ux-only-json/SYNTHETIC`, `fixtures/ux-invalid/SYNTHETIC`, `fixtures/closed-stage/SYNTHETIC`, `fixtures/README.md`, `tests/helpers/fixtures.ts`, `tests/assets/p2-workspaces/membership-product/.heron/`, `tests/assets/p2-workspaces/README.md`, `tests/e2e/p2-compat.test.ts`
   - **Interfaces:** FixtureName; copyP2Workspace
   - **Patrón:** tests/e2e/p1-compat.test.ts
@@ -26,7 +26,7 @@ Lotes de 1–3 tareas. Cada test lleva `// Covers: R<n>` en la primera línea y 
   - **Nota:** el golden se genera con `git worktree add {tmp}/heron-p2 b8ee0a9` sobre una copia del fixture ya reescrito y sin decisiones de gate (DR24).
   - **Fuera de alcance:** el test de SYNTHETIC (T14); el caso de intake sobre el golden (T13).
 
-- [ ] **T2** (R1, R5, R6, R8, R9, R10) — Contratos de P4, códigos de finding, `source.inputs` y corrección de `canonicalJson` para claves `__proto__`.
+- [x] **T2** (R1, R5, R6, R8, R9, R10) — Contratos de P4, códigos de finding, `source.inputs` y corrección de `canonicalJson` para claves `__proto__`.
   - **Archivos:** `src/core/contracts/product-context.ts`, `src/core/contracts/intake-data.ts`, `src/core/contracts/cli-envelope.ts`, `src/core/contracts/version.ts`, `src/core/contracts/index.ts`, `src/core/contracts/common.ts`, `src/core/contracts/canonical-json.ts`, `src/core/contracts/heron-project.ts`, `schemas/`, `tests/unit/contracts.test.ts`
   - **Interfaces:** ProductContext; ProductContextSchema; PRODUCT_CONTEXT_DOCUMENT; IntakeConflicts; INTAKE_CONFLICTS_DOCUMENT; ManualContext; MANUAL_CONTEXT_DOCUMENT; SourceRef; Extension; CONFLICT_KINDS; CONFLICT_KIND_PATTERN; IntakeData; ConflictsListData; ConflictsAckData; canonicalJson
   - **Patrón:** src/core/contracts/research.ts
@@ -37,7 +37,7 @@ Lotes de 1–3 tareas. Cada test lleva `// Covers: R<n>` en la primera línea y 
 
 ## Lote 2 — Lectores y extracción
 
-- [ ] **T3** (R2, R16) — Normalización de texto, lectura de fuentes, extractor Markdown por rol (plantillas reales es ∪ en) y tipos nuevos del puerto.
+- [x] **T3** (R2, R16) — Normalización de texto, lectura de fuentes, extractor Markdown por rol (plantillas reales es ∪ en) y tipos nuevos del puerto.
   - **Archivos:** `src/intake/text.ts`, `src/intake/sources.ts`, `src/intake/markdown.ts`, `src/intake/ports.ts`, `tests/unit/intake/markdown.test.ts`, `tests/helpers/intake.ts`
   - **Interfaces:** normalizeText; stripInline; actorKeys; readSource; listContextMarkdown; MAX_CONTEXT_FILES; parseMarkdown; sectionAnchor; ROLE_HEADINGS; extractRoleSections; Candidate; ContextDraft; AdapterSelection
   - **Patrón:** src/intake/probe.ts
@@ -47,7 +47,7 @@ Lotes de 1–3 tareas. Cada test lleva `// Covers: R<n>` en la primera línea y 
   - **Nota:** en `ports.ts` solo se agregan tipos; la firma de `load` cambia en T8.
   - **Fuera de alcance:** `DECISIONS.md`, `UX.md` y `parts.json` (T4).
 
-- [ ] **T4** (R2, R15, R16) — `DECISIONS.md` y `UX.md` por `ux-kind`, nombre e idioma de `navori.config.json` y `parts.json` tolerante con ids de criterio.
+- [x] **T4** (R2, R15, R16) — `DECISIONS.md` y `UX.md` por `ux-kind`, nombre e idioma de `navori.config.json` y `parts.json` tolerante con ids de criterio.
   - **Archivos:** `src/intake/adapters/navori-master/decisions.ts`, `src/intake/ux-markdown.ts`, `src/intake/adapters/navori-master/harness.ts`, `tests/unit/intake/navori-master.test.ts`, `tests/unit/harness-readers.test.ts`
   - **Interfaces:** parseDecisions; extractUxMarkdown; readParts; NavoriConfigView; PartView
   - **Patrón:** src/intake/adapters/navori-master/harness.ts
@@ -56,7 +56,7 @@ Lotes de 1–3 tareas. Cada test lleva `// Covers: R<n>` en la primera línea y 
   - **Done:** comando `bun test tests/unit/intake/navori-master.test.ts tests/unit/harness-readers.test.ts`, esperado exit 0; casos de test "parses decisions and UX.md ux-kind sections", "reads the harness language and a tolerant parts.json"; base de P4.A1.
   - **Fuera de alcance:** cambiar el locale de los artefactos (DR33).
 
-- [ ] **T5** (R10) — Lector UX conmutable y mapeo de `ux.json` a candidatos con extensiones en orden de fuente.
+- [x] **T5** (R10) — Lector UX conmutable y mapeo de `ux.json` a candidatos con extensiones en orden de fuente.
   - **Archivos:** `src/intake/ux-contract.ts`, `src/intake/ux-model.ts`, `tests/contracts/ux-contract.test.ts`
   - **Interfaces:** UxReader; PROVISIONAL_UX_READER; ACTIVE_UX_READER; uxCandidates; extensionsOf; KNOWN_UX_FIELDS
   - **Patrón:** src/intake/ux-contract.ts
@@ -67,16 +67,17 @@ Lotes de 1–3 tareas. Cada test lleva `// Covers: R<n>` en la primera línea y 
 
 ## Lote 3 — Precedencia y conflictos
 
-- [ ] **T6** (R3, R4) — Fusión por precedencia RN-7, omisión de ítems de menor rango en secciones por nombre y construcción de las 19 secciones.
+- [x] **T6** (R3, R4) — Fusión por precedencia RN-7, omisión de ítems de menor rango en secciones por nombre y construcción de las 19 secciones.
   - **Archivos:** `src/intake/precedence.ts`, `src/intake/product-context.ts`, `tests/unit/intake/precedence.test.ts`, `tests/helpers/intake.ts`
   - **Interfaces:** SOURCE_PRECEDENCE; sourceRank; COMPARABLE_FIELDS; NAME_KEYED_SECTIONS; mergeCandidates; buildProductContext; countSections
   - **Patrón:** src/core/state/transitions.ts
   - **Lectura:** `specs/0004-product-context/design.md` (§ Contracts › 1, 6; § Decisions DR1, DR3, DR13, DR21), `src/core/state/stale.ts` (`compareStrings`)
   - **Librerías:** ninguna
   - **Done:** comando `bun test tests/unit/intake/precedence.test.ts`, esperado exit 0; casos de test "applies source precedence and records the winning source"; cubre P4.A2.
+  - **Nota:** al fusionar los estados globales de `UX.md` (`global: true`) con los de `ux.json` (`global: false`, con `screens`) bajo la misma clave normalizada, unir los campos `global` y `screens` en lugar de que gane solo el de mayor rango.
   - **Fuera de alcance:** ids de conflicto (T7).
 
-- [ ] **T7** (R5, R7) — Conflictos por par con fingerprint estable, reapertura de resueltos, reconocimiento, detalle de `intake-context-valid` y re-aprobación de `intake` en sitio desde producción.
+- [x] **T7** (R5, R7) — Conflictos por par con fingerprint estable, reapertura de resueltos, reconocimiento, detalle de `intake-context-valid` y re-aprobación de `intake` en sitio desde producción.
   - **Archivos:** `src/intake/conflicts.ts`, `src/intake/product-context.ts`, `src/core/state/transitions.ts`, `tests/unit/intake/conflicts.test.ts`, `tests/unit/state-machine.test.ts`
   - **Interfaces:** detectConflicts; reconcileConflicts; acknowledgeConflict; unacknowledgedCount; conflictFingerprint; withConflictIds
   - **Patrón:** src/core/state/gates.ts
@@ -135,6 +136,7 @@ Lotes de 1–3 tareas. Cada test lleva `// Covers: R<n>` en la primera línea y 
   - **Librerías:** ninguna
   - **Done:** comando `bun test tests/e2e/conflicts.test.ts tests/e2e/gate.test.ts tests/e2e/status.test.ts tests/e2e/intake.test.ts tests/perf/init.perf.test.ts`, esperado exit 0; casos de test "approves intake with valid context, recording approvedBy, artifact hashes, and committing only state.json", "lists and acknowledges conflicts with a note and an identity", "blocks the intake gate while a conflict is not acknowledged", "reports open conflicts and a stale product context", "does not report stale when an unused or non-contributing source changes", "absorbs a product context change in a production phase and re-approves intake in place", "status p95 under 2000 ms with a product context and 50 context files"; cubre P4.A3 y P4.A8.
   - **Nota:** cambia `tests/e2e/gate.test.ts:46` (detalle de `intake-context-valid`, DR17).
+  - **Nota:** eliminar la allowlist `PENDING_SPECS` del test de registros (`tests/unit/contracts.test.ts`, agregada en T2 con `TODO(T11)`) una vez que `intake` y `conflicts` tengan su `CommandSpec`: exime por nombre de grupo y podría ocultar una spec faltante.
   - **Fuera de alcance:** `init --adapter` (T13).
 
 - [ ] **T13** (R9, R18) — `heron init --adapter auto|markdown|manual --context <archivo>...` y compatibilidad con un workspace de P2.

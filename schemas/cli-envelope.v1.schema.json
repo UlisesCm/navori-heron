@@ -50,7 +50,10 @@
             "references remove",
             "references import",
             "brand add",
-            "research render"
+            "research render",
+            "intake",
+            "conflicts list",
+            "conflicts ack"
           ],
           "type": "string"
         },
@@ -3940,6 +3943,645 @@
             {
               "additionalProperties": false,
               "properties": {
+                "adapter": {
+                  "enum": [
+                    "navori-master",
+                    "filesystem",
+                    "markdown",
+                    "manual"
+                  ],
+                  "type": "string"
+                },
+                "conflicts": {
+                  "items": {
+                    "additionalProperties": false,
+                    "properties": {
+                      "acknowledged": {
+                        "type": "boolean"
+                      },
+                      "id": {
+                        "pattern": "^CONFLICT-\\d{3,}$",
+                        "type": "string"
+                      },
+                      "kind": {
+                        "type": "string"
+                      },
+                      "subject": {
+                        "type": "string"
+                      }
+                    },
+                    "required": [
+                      "id",
+                      "kind",
+                      "subject",
+                      "acknowledged"
+                    ],
+                    "type": "object"
+                  },
+                  "type": "array"
+                },
+                "counts": {
+                  "additionalProperties": false,
+                  "properties": {
+                    "actors": {
+                      "maximum": 9007199254740991,
+                      "minimum": 0,
+                      "type": "integer"
+                    },
+                    "brand": {
+                      "maximum": 9007199254740991,
+                      "minimum": 0,
+                      "type": "integer"
+                    },
+                    "businessRules": {
+                      "maximum": 9007199254740991,
+                      "minimum": 0,
+                      "type": "integer"
+                    },
+                    "capabilities": {
+                      "maximum": 9007199254740991,
+                      "minimum": 0,
+                      "type": "integer"
+                    },
+                    "constraints": {
+                      "maximum": 9007199254740991,
+                      "minimum": 0,
+                      "type": "integer"
+                    },
+                    "decisions": {
+                      "maximum": 9007199254740991,
+                      "minimum": 0,
+                      "type": "integer"
+                    },
+                    "entities": {
+                      "maximum": 9007199254740991,
+                      "minimum": 0,
+                      "type": "integer"
+                    },
+                    "flows": {
+                      "maximum": 9007199254740991,
+                      "minimum": 0,
+                      "type": "integer"
+                    },
+                    "functionalComponents": {
+                      "maximum": 9007199254740991,
+                      "minimum": 0,
+                      "type": "integer"
+                    },
+                    "functionalRequirements": {
+                      "maximum": 9007199254740991,
+                      "minimum": 0,
+                      "type": "integer"
+                    },
+                    "journeys": {
+                      "maximum": 9007199254740991,
+                      "minimum": 0,
+                      "type": "integer"
+                    },
+                    "nonFunctionalRequirements": {
+                      "maximum": 9007199254740991,
+                      "minimum": 0,
+                      "type": "integer"
+                    },
+                    "patterns": {
+                      "maximum": 9007199254740991,
+                      "minimum": 0,
+                      "type": "integer"
+                    },
+                    "product": {
+                      "maximum": 9007199254740991,
+                      "minimum": 0,
+                      "type": "integer"
+                    },
+                    "screens": {
+                      "maximum": 9007199254740991,
+                      "minimum": 0,
+                      "type": "integer"
+                    },
+                    "states": {
+                      "maximum": 9007199254740991,
+                      "minimum": 0,
+                      "type": "integer"
+                    },
+                    "surfaces": {
+                      "maximum": 9007199254740991,
+                      "minimum": 0,
+                      "type": "integer"
+                    },
+                    "traceability": {
+                      "maximum": 9007199254740991,
+                      "minimum": 0,
+                      "type": "integer"
+                    },
+                    "unresolvedQuestions": {
+                      "maximum": 9007199254740991,
+                      "minimum": 0,
+                      "type": "integer"
+                    }
+                  },
+                  "required": [
+                    "product",
+                    "actors",
+                    "capabilities",
+                    "businessRules",
+                    "functionalRequirements",
+                    "nonFunctionalRequirements",
+                    "surfaces",
+                    "journeys",
+                    "flows",
+                    "screens",
+                    "states",
+                    "functionalComponents",
+                    "patterns",
+                    "entities",
+                    "constraints",
+                    "brand",
+                    "decisions",
+                    "traceability",
+                    "unresolvedQuestions"
+                  ],
+                  "type": "object"
+                },
+                "dryRun": {
+                  "type": "boolean"
+                },
+                "mode": {
+                  "enum": [
+                    "full",
+                    "reference-only"
+                  ],
+                  "type": "string"
+                },
+                "stage": {
+                  "anyOf": [
+                    {
+                      "additionalProperties": {},
+                      "properties": {
+                        "dir": {
+                          "type": "string"
+                        },
+                        "number": {
+                          "maximum": 9007199254740991,
+                          "minimum": -9007199254740991,
+                          "type": "integer"
+                        },
+                        "selection": {
+                          "enum": [
+                            "explicit",
+                            "active",
+                            "last-closed"
+                          ],
+                          "type": "string"
+                        },
+                        "slug": {
+                          "type": "string"
+                        },
+                        "state": {
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "number",
+                        "slug",
+                        "dir",
+                        "state",
+                        "selection"
+                      ],
+                      "type": "object"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                },
+                "stateRevision": {
+                  "anyOf": [
+                    {
+                      "maximum": 9007199254740991,
+                      "minimum": -9007199254740991,
+                      "type": "integer"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                },
+                "written": {
+                  "type": "boolean"
+                }
+              },
+              "required": [
+                "mode",
+                "adapter",
+                "stage",
+                "dryRun",
+                "written",
+                "stateRevision",
+                "counts",
+                "conflicts"
+              ],
+              "type": "object"
+            },
+            {
+              "additionalProperties": false,
+              "properties": {
+                "conflicts": {
+                  "items": {
+                    "additionalProperties": {},
+                    "properties": {
+                      "ack": {
+                        "anyOf": [
+                          {
+                            "additionalProperties": {},
+                            "properties": {
+                              "at": {
+                                "pattern": "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}\\.\\d{3}Z$",
+                                "type": "string"
+                              },
+                              "by": {
+                                "minLength": 1,
+                                "type": "string"
+                              },
+                              "note": {
+                                "maxLength": 2000,
+                                "minLength": 1,
+                                "type": "string"
+                              },
+                              "runId": {
+                                "pattern": "^run-\\d{8}T\\d{6}Z-[0-9a-f]{8}$",
+                                "type": "string"
+                              }
+                            },
+                            "required": [
+                              "by",
+                              "at",
+                              "note",
+                              "runId"
+                            ],
+                            "type": "object"
+                          },
+                          {
+                            "type": "null"
+                          }
+                        ]
+                      },
+                      "files": {
+                        "items": {
+                          "maxLength": 512,
+                          "type": "string"
+                        },
+                        "type": "array"
+                      },
+                      "fingerprint": {
+                        "pattern": "^[0-9a-f]{64}$",
+                        "type": "string"
+                      },
+                      "id": {
+                        "pattern": "^CONFLICT-\\d{3,}$",
+                        "type": "string"
+                      },
+                      "impact": {
+                        "items": {
+                          "type": "string"
+                        },
+                        "type": "array"
+                      },
+                      "kind": {
+                        "pattern": "^[a-z][a-z0-9-]*$",
+                        "type": "string"
+                      },
+                      "status": {
+                        "enum": [
+                          "open",
+                          "resolved"
+                        ],
+                        "type": "string"
+                      },
+                      "subject": {
+                        "type": "string"
+                      },
+                      "values": {
+                        "items": {
+                          "additionalProperties": {},
+                          "properties": {
+                            "sourceRef": {
+                              "additionalProperties": {},
+                              "properties": {
+                                "locator": {
+                                  "type": "string"
+                                },
+                                "path": {
+                                  "maxLength": 512,
+                                  "type": "string"
+                                },
+                                "source": {
+                                  "enum": [
+                                    "DECISIONS.md",
+                                    "MASTER.md",
+                                    "parts.json",
+                                    "ux.json",
+                                    "UX.md",
+                                    "DIGEST.md",
+                                    "CODEBASE.md",
+                                    "context",
+                                    "manual",
+                                    "navori.config.json"
+                                  ],
+                                  "type": "string"
+                                }
+                              },
+                              "required": [
+                                "source",
+                                "path",
+                                "locator"
+                              ],
+                              "type": "object"
+                            },
+                            "value": {
+                              "type": "string"
+                            }
+                          },
+                          "required": [
+                            "sourceRef",
+                            "value"
+                          ],
+                          "type": "object"
+                        },
+                        "maxItems": 2,
+                        "minItems": 2,
+                        "type": "array"
+                      },
+                      "winner": {
+                        "anyOf": [
+                          {
+                            "additionalProperties": {},
+                            "properties": {
+                              "locator": {
+                                "type": "string"
+                              },
+                              "path": {
+                                "maxLength": 512,
+                                "type": "string"
+                              },
+                              "source": {
+                                "enum": [
+                                  "DECISIONS.md",
+                                  "MASTER.md",
+                                  "parts.json",
+                                  "ux.json",
+                                  "UX.md",
+                                  "DIGEST.md",
+                                  "CODEBASE.md",
+                                  "context",
+                                  "manual",
+                                  "navori.config.json"
+                                ],
+                                "type": "string"
+                              }
+                            },
+                            "required": [
+                              "source",
+                              "path",
+                              "locator"
+                            ],
+                            "type": "object"
+                          },
+                          {
+                            "type": "null"
+                          }
+                        ]
+                      }
+                    },
+                    "required": [
+                      "id",
+                      "kind",
+                      "subject",
+                      "status",
+                      "files",
+                      "values",
+                      "impact",
+                      "winner",
+                      "fingerprint",
+                      "ack"
+                    ],
+                    "type": "object"
+                  },
+                  "type": "array"
+                },
+                "tracked": {
+                  "type": "boolean"
+                }
+              },
+              "required": [
+                "tracked",
+                "conflicts"
+              ],
+              "type": "object"
+            },
+            {
+              "additionalProperties": false,
+              "properties": {
+                "conflict": {
+                  "additionalProperties": {},
+                  "properties": {
+                    "ack": {
+                      "anyOf": [
+                        {
+                          "additionalProperties": {},
+                          "properties": {
+                            "at": {
+                              "pattern": "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}\\.\\d{3}Z$",
+                              "type": "string"
+                            },
+                            "by": {
+                              "minLength": 1,
+                              "type": "string"
+                            },
+                            "note": {
+                              "maxLength": 2000,
+                              "minLength": 1,
+                              "type": "string"
+                            },
+                            "runId": {
+                              "pattern": "^run-\\d{8}T\\d{6}Z-[0-9a-f]{8}$",
+                              "type": "string"
+                            }
+                          },
+                          "required": [
+                            "by",
+                            "at",
+                            "note",
+                            "runId"
+                          ],
+                          "type": "object"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    },
+                    "files": {
+                      "items": {
+                        "maxLength": 512,
+                        "type": "string"
+                      },
+                      "type": "array"
+                    },
+                    "fingerprint": {
+                      "pattern": "^[0-9a-f]{64}$",
+                      "type": "string"
+                    },
+                    "id": {
+                      "pattern": "^CONFLICT-\\d{3,}$",
+                      "type": "string"
+                    },
+                    "impact": {
+                      "items": {
+                        "type": "string"
+                      },
+                      "type": "array"
+                    },
+                    "kind": {
+                      "pattern": "^[a-z][a-z0-9-]*$",
+                      "type": "string"
+                    },
+                    "status": {
+                      "enum": [
+                        "open",
+                        "resolved"
+                      ],
+                      "type": "string"
+                    },
+                    "subject": {
+                      "type": "string"
+                    },
+                    "values": {
+                      "items": {
+                        "additionalProperties": {},
+                        "properties": {
+                          "sourceRef": {
+                            "additionalProperties": {},
+                            "properties": {
+                              "locator": {
+                                "type": "string"
+                              },
+                              "path": {
+                                "maxLength": 512,
+                                "type": "string"
+                              },
+                              "source": {
+                                "enum": [
+                                  "DECISIONS.md",
+                                  "MASTER.md",
+                                  "parts.json",
+                                  "ux.json",
+                                  "UX.md",
+                                  "DIGEST.md",
+                                  "CODEBASE.md",
+                                  "context",
+                                  "manual",
+                                  "navori.config.json"
+                                ],
+                                "type": "string"
+                              }
+                            },
+                            "required": [
+                              "source",
+                              "path",
+                              "locator"
+                            ],
+                            "type": "object"
+                          },
+                          "value": {
+                            "type": "string"
+                          }
+                        },
+                        "required": [
+                          "sourceRef",
+                          "value"
+                        ],
+                        "type": "object"
+                      },
+                      "maxItems": 2,
+                      "minItems": 2,
+                      "type": "array"
+                    },
+                    "winner": {
+                      "anyOf": [
+                        {
+                          "additionalProperties": {},
+                          "properties": {
+                            "locator": {
+                              "type": "string"
+                            },
+                            "path": {
+                              "maxLength": 512,
+                              "type": "string"
+                            },
+                            "source": {
+                              "enum": [
+                                "DECISIONS.md",
+                                "MASTER.md",
+                                "parts.json",
+                                "ux.json",
+                                "UX.md",
+                                "DIGEST.md",
+                                "CODEBASE.md",
+                                "context",
+                                "manual",
+                                "navori.config.json"
+                              ],
+                              "type": "string"
+                            }
+                          },
+                          "required": [
+                            "source",
+                            "path",
+                            "locator"
+                          ],
+                          "type": "object"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    }
+                  },
+                  "required": [
+                    "id",
+                    "kind",
+                    "subject",
+                    "status",
+                    "files",
+                    "values",
+                    "impact",
+                    "winner",
+                    "fingerprint",
+                    "ack"
+                  ],
+                  "type": "object"
+                },
+                "stateRevision": {
+                  "maximum": 9007199254740991,
+                  "minimum": -9007199254740991,
+                  "type": "integer"
+                },
+                "unacknowledged": {
+                  "maximum": 9007199254740991,
+                  "minimum": 0,
+                  "type": "integer"
+                }
+              },
+              "required": [
+                "conflict",
+                "stateRevision",
+                "unacknowledged"
+              ],
+              "type": "object"
+            },
+            {
+              "additionalProperties": false,
+              "properties": {
                 "decision": {
                   "additionalProperties": {},
                   "properties": {
@@ -4933,7 +5575,20 @@
               "ADAPTER_NOT_AVAILABLE",
               "LOCALE_INVALID",
               "LOCALE_FALLBACK",
-              "ASSETS_LARGE"
+              "ASSETS_LARGE",
+              "PRODUCT_CONTEXT_STALE",
+              "CONFLICT_OPEN",
+              "CONFLICT_NOT_FOUND",
+              "CONFLICT_ALREADY_ACKNOWLEDGED",
+              "NOTE_REQUIRED",
+              "CONTEXT_INPUT_INVALID",
+              "CONTEXT_SECTION_UNREADABLE",
+              "CONTEXT_DUPLICATE_ID",
+              "UX_REFERENCE_UNRESOLVED",
+              "REFERENCES_NOT_CHECKED",
+              "ADAPTER_REFERENCE_ONLY",
+              "SOURCE_NO_ELEMENTS",
+              "LOWER_TIER_ITEMS_SKIPPED"
             ],
             "type": "string"
           },

@@ -9,7 +9,10 @@ export type DocumentKind =
   | "ResearchReferences"
   | "ResearchProvenance"
   | "BrandInputs"
-  | "ReferenceBatch";
+  | "ReferenceBatch"
+  | "ProductContext"
+  | "IntakeConflicts"
+  | "ManualContext";
 
 export interface DocumentSpec<T> {
   readonly kind: DocumentKind;
