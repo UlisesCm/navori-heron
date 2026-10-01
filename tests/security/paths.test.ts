@@ -157,6 +157,49 @@ describe("input file paths", () => {
       }
       expect(readFileSync(join(outside, "a.png")).equals(original)).toBe(true);
 
+      // The same rows via brand add --file: nothing is written and every escape is refused with exit 3.
+      const brandAdd = (file: string): string[] => [
+        "brand",
+        "add",
+        root,
+        "--kind",
+        "logo",
+        "--origin",
+        "provided",
+        "--value",
+        "Logo",
+        "--file",
+        file,
+      ];
+      const heronBefore = hashTree(root, { exclude: [] });
+      const brandRejected: [string, string, string][] = [
+        ["parent segment", "../x.png", '".." segment'],
+        ["file symlink out of the repo", "link.png", "symlink that leaves the product repository"],
+        [
+          "directory symlink out of the repo",
+          "dir-link/a.png",
+          "symlink that leaves the product repository",
+        ],
+        [
+          "explicit external symlink",
+          join(outside, "link.png"),
+          "outside the product repository and is a symlink",
+        ],
+        ["fifo", "pipe.png", "is not a regular file"],
+      ];
+      for (const [label, file, message] of brandRejected) {
+        const run = await runCliCaptured(brandAdd(file), ctx());
+        expect({ label, code: run.code }).toEqual({ label, code: ExitCode.Blocked });
+        expect(run.stderr).toContain(message);
+        expect(hashTree(root, { exclude: [] })).toEqual(heronBefore);
+      }
+      const brandOk = await runCliCaptured(brandAdd(join(outside, "a.png")), ctx());
+      expect(brandOk.code).toBe(ExitCode.Ok);
+      expect(brandOk.stdout).toContain("File: a.png (external)");
+      for (const text of [...heronTexts(root), brandOk.stdout, brandOk.stderr]) {
+        expect(text).not.toContain(outside);
+      }
+
       const missing = await runCliCaptured(imageAdd(root, "nope.png"), ctx());
       expect(missing.code).toBe(ExitCode.Usage);
       expect(missing.stderr).toBe("File not found: nope.png\n");

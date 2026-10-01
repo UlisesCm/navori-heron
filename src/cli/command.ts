@@ -1,10 +1,22 @@
 import { parseArgs, type ParseArgsOptionsConfig } from "node:util";
 import type { AppContext } from "../app/context.ts";
-import type { ExitCode, GateName, ReferenceInput } from "../core/contracts/index.ts";
+import type {
+  BrandInputDraft,
+  ExitCode,
+  GateName,
+  ReferenceInput,
+} from "../core/contracts/index.ts";
 import type { CliIo } from "./io.ts";
 
 /** Grows with each command group (P2 adds references, brand and research). */
-export type CommandName = "init" | "status" | "doctor" | "gate" | "references";
+export type CommandName =
+  | "init"
+  | "status"
+  | "doctor"
+  | "gate"
+  | "references"
+  | "brand"
+  | "research";
 export type InitParsed = {
   command: "init";
   path: string;
@@ -52,12 +64,24 @@ export type ReferencesParsed =
       allowLocal: boolean;
       json: boolean;
     };
+/** `heron brand add`: the only brand action P2 needs (R14). */
+export type BrandParsed = {
+  command: "brand";
+  action: "add";
+  path: string;
+  input: BrandInputDraft;
+  json: boolean;
+};
+/** `heron research render`: the only research action P2 needs. */
+export type ResearchParsed = { command: "research"; action: "render"; path: string; json: boolean };
 export type ParsedCommand =
   | InitParsed
   | StatusParsed
   | DoctorParsed
   | GateParsed
   | ReferencesParsed
+  | BrandParsed
+  | ResearchParsed
   | { command: "help" }
   | { command: "version" };
 

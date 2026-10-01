@@ -104,7 +104,7 @@ Lotes de 1–3 tareas. Cada test lleva `// Covers: R<n>` y usa el nombre exacto 
   - **Nota:** extender `tests/e2e/p1-compat.test.ts` para que, sobre los goldens de P1, `references add --source manual` funcione y un re-`init` conserve los artefactos de research (pendiente de la revisión del lote 2).
   - **Fuera de alcance:** `brand` y `research render` (T11).
 
-- [ ] **T11** (R13, R14, R16) — `heron brand add` y `heron research render`, más `status` con las órdenes de P2 y el aviso de assets grandes.
+- [x] **T11** (R13, R14, R16) — `heron brand add` y `heron research render`, más `status` con las órdenes de P2 y el aviso de assets grandes.
   - **Archivos:** `src/app/brand.ts`, `src/app/research.ts`, `src/app/status.ts`, `src/cli/commands/brand.ts`, `src/cli/commands/research.ts`, `src/cli/commands/index.ts`, `src/cli/render-research.ts`, `tests/e2e/brand.test.ts`, `tests/e2e/research-render.test.ts`, `tests/e2e/status.test.ts`
   - **Interfaces:** runBrandAdd; runResearchRender; brandCommand; researchCommand
   - **Patrón:** src/app/init.ts

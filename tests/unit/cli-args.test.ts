@@ -106,6 +106,8 @@ describe("parseCliArgs", () => {
       "doctor",
       "gate",
       "references",
+      "brand",
+      "research",
     ]);
     expect(USAGE_TEXT).toBe(
       [
@@ -134,9 +136,16 @@ describe("parseCliArgs", () => {
         "      Remove a reference (kept as removed in references.json)",
         "  references import <file.json> [path] [--allow-local] [--json]",
         "      Import a ReferenceBatch file, all or nothing",
+        "  brand add [path] --kind <kind> --origin <origin> --value <text> [--file <path>] [--reference <REF-n>]",
+        "      [--note <text>] [--json]",
+        "      Record a brand input with its origin",
+        "  research render [path] [--json]",
+        "      Regenerate REFERENCES.md, references.json, provenance.json and the moodboard",
         "",
         "Gates: intake, research, direction, foundations, representative-screens, visual-review",
         "Reference sources: manual, url, image, design-md",
+        "Brand kinds: logo, brand-color, secondary-color, font, brand-guidelines, screenshot, url, existing-product, competitor, liked-reference, disliked-reference",
+        "Brand origins: provided, derived, inferred, reference-derived",
         "",
         "Options:",
         "  -h, --help     Show this help",

@@ -1,3 +1,4 @@
+import { join } from "node:path";
 import {
   BRAND_INPUTS_DOCUMENT,
   RESEARCH_PROVENANCE_DOCUMENT,
@@ -12,6 +13,7 @@ import {
   type ResearchReferences,
 } from "../core/contracts/index.ts";
 import type { FileStore, StoreTransaction } from "../core/store/file-store.ts";
+import type { ReadonlyFs } from "../core/store/fs-port.ts";
 import { sha256Hex } from "../core/store/hash.ts";
 import { RESEARCH_FILES } from "../research/layout.ts";
 import { missingProvenance } from "../research/provenance.ts";
@@ -106,4 +108,27 @@ export function stageResearchOutputs(
     locale: rendered.locale,
     fallback: rendered.fallback,
   };
+}
+
+/** Bytes of `research/assets/**` + `brand/assets/**` under `.heron/`; symlinks and anything unreadable are skipped. */
+export function assetBytes(fs: ReadonlyFs, heronDir: string): number {
+  const walk = (dir: string): number => {
+    let names: string[];
+    try {
+      names = fs.readdirSync(dir);
+    } catch {
+      return 0; // directory absent: no assets yet
+    }
+    let total = 0;
+    for (const name of names) {
+      const path = join(dir, name);
+      const stat = fs.lstatSync(path);
+      if (stat.isSymbolicLink()) continue;
+      total += stat.isDirectory() ? walk(path) : stat.isFile() ? stat.size : 0;
+    }
+    return total;
+  };
+  return (
+    walk(join(heronDir, RESEARCH_FILES.assets)) + walk(join(heronDir, RESEARCH_FILES.brandAssets))
+  );
 }

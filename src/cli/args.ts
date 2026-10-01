@@ -1,5 +1,5 @@
 import { availableReferenceSources } from "../app/references.ts";
-import { GATE_NAMES } from "../core/contracts/index.ts";
+import { BRAND_KINDS, BRAND_ORIGINS, GATE_NAMES } from "../core/contracts/index.ts";
 import { UsageError, type CommandName, type CommandSpec, type ParsedCommand } from "./command.ts";
 import { COMMANDS } from "./commands/index.ts";
 
@@ -41,6 +41,8 @@ ${COMMANDS.flatMap((spec) => spec.usage).join("\n")}
 
 Gates: ${GATE_NAMES.join(", ")}
 Reference sources: ${availableReferenceSources().join(", ")}
+Brand kinds: ${BRAND_KINDS.join(", ")}
+Brand origins: ${BRAND_ORIGINS.join(", ")}
 
 Options:
   -h, --help     Show this help

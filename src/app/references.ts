@@ -105,7 +105,7 @@ const CAPTURE_EXIT: Readonly<Record<CaptureFailureCode, Exclude<ExitCode, 0>>> =
   IMAGE_ENGINE_UNAVAILABLE: ExitCode.DependencyUnavailable,
 };
 
-function captureFailureResult<T>(found: CaptureFailure): UseCaseResult<T> {
+export function captureFailureResult<T>(found: CaptureFailure): UseCaseResult<T> {
   return failure(
     CAPTURE_EXIT[found.code],
     makeFinding(found.code, "error", found.message, found.paths),

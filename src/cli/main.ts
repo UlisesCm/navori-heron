@@ -12,11 +12,20 @@ function errorFinding(code: Finding["code"], message: string): Finding {
   return { code, severity: "error", message, paths: [], issues: [] };
 }
 
-/** The envelope's command name: `references` is reported per action ("references add"). */
+/** The envelope's command name: `references`, `brand` and `research` are reported per action ("references add"). */
 function envelopeCommand(
   parsed: Exclude<ParsedCommand, { command: "help" | "version" }>,
 ): CliCommand {
-  return parsed.command === "references" ? `references ${parsed.action}` : parsed.command;
+  switch (parsed.command) {
+    case "references":
+      return `references ${parsed.action}`;
+    case "brand":
+      return "brand add";
+    case "research":
+      return "research render";
+    default:
+      return parsed.command;
+  }
 }
 
 /** Text mode: result to stdout, failures to stderr. --json: exactly one CliEnvelope + "\n" to stdout, nothing else.

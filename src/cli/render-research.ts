@@ -1,4 +1,6 @@
 import type {
+  BrandAddData,
+  Finding,
   ReferencesAddData,
   ReferencesCompareData,
   ReferencesImportData,
@@ -6,10 +8,12 @@ import type {
   ReferencesRemoveData,
   ReferencesShowData,
   ResearchCounts,
+  ResearchRenderData,
   ResearchReference,
   SecurityFinding,
 } from "../core/contracts/index.ts";
-import { MODE_LABELS } from "./render.ts";
+import { splitNotices, type TextOutput } from "./output.ts";
+import { MODE_LABELS, renderFindings } from "./render.ts";
 
 /** Free text of a reference (user input or fetched content) made safe for a terminal: control characters, including
  * ESC, are shown as \xNN so stored content can never drive the terminal. */
@@ -191,4 +195,48 @@ export function renderReferencesRemoveText(data: ReferencesRemoveData): string {
     provenanceLine(data.counts, false),
     `State revision: ${data.stateRevision}`,
   ].join("\n");
+}
+
+export function renderBrandAddText(data: BrandAddData): string {
+  const { input } = data;
+  const lines = [
+    `Brand input ${input.id} added (${input.kind}, ${input.origin}).`,
+    `Value: ${safeText(input.value)}`,
+  ];
+  if (input.file !== null)
+    lines.push(`File: ${safeText(input.file.name)} (${input.file.location})`);
+  if (input.image !== null) {
+    const { image } = input;
+    lines.push(
+      `Image: ${image.path} (${image.width}x${image.height}, ${image.bytes} bytes)`,
+      `Removed metadata: ${image.removedMetadata.length === 0 ? "none" : image.removedMetadata.join(", ")}`,
+    );
+  }
+  if (input.derivedFrom !== null) lines.push(`Derived from: ${input.derivedFrom}`);
+  if (input.note !== null) lines.push(`Note: ${safeText(input.note)}`);
+  lines.push(`State revision: ${data.stateRevision}`);
+  return lines.join("\n");
+}
+
+export function renderResearchRenderText(data: ResearchRenderData): string {
+  const { counts } = data;
+  return [
+    `Research outputs (${data.mode}, locale ${data.locale}):`,
+    ...data.outputs.map(
+      (output) => `- ${output.path}: ${output.written ? "written" : "unchanged"}`,
+    ),
+    `References: ${counts.active} active, ${counts.removed} removed; brand inputs: ${counts.brandInputs}`,
+    "Open in a browser: .heron/research/moodboards/index.html",
+    `State revision: ${data.stateRevision}`,
+  ].join("\n");
+}
+
+/** Text first, then the findings that are not notices; notices go to stderr. */
+export function withFindings(text: string, findings: readonly Finding[]): TextOutput {
+  const { notices, rest } = splitNotices(findings);
+  const tail = renderFindings(rest);
+  return {
+    stdout: tail === "" ? text : `${text}\n\n${tail}`,
+    stderr: renderFindings(notices),
+  };
 }
