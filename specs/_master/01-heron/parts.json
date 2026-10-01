@@ -487,7 +487,13 @@
         {
           "id": "A8",
           "description": "Todo brand input exige un `origin` válido; sin él sale con código 2",
-          "evidence": null,
+          "evidence": {
+            "kind": "run",
+            "command": "bun test tests/e2e/brand.test.ts -t \"requires an origin for every brand input\"",
+            "result": "exit 0; 1 pass,0 fail",
+            "commit": "a1863f69ad42c4ec04081845cd968b8d6f94140f",
+            "date": "2026-10-01"
+          },
           "method": "test",
           "test": {
             "file": "tests/e2e/brand.test.ts",
