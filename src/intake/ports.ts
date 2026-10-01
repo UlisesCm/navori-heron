@@ -1,14 +1,51 @@
-import type { AdapterId, DetectionReport } from "../core/contracts/index.ts";
+import type {
+  AdapterId,
+  ContextSourceRecord,
+  DetectionReport,
+  Extension,
+  Finding,
+  ProductContextMetadata,
+  ProductContextSection,
+  ProductContextSectionMap,
+  RelativeArtifactPath,
+  SourceRef,
+  Sourced,
+} from "../core/contracts/index.ts";
 import type { ReadonlyFs } from "../core/store/fs-port.ts";
 
 export type InputLimits = { maxInputBytes: number };
 export const DEFAULT_INPUT_LIMITS: InputLimits = { maxInputBytes: 16_777_216 };
+
+/** Explicit `markdown`/`manual` selection persisted by `heron init` (DR28). */
+export type AdapterSelection = { adapter: "markdown" | "manual"; inputs: RelativeArtifactPath[] };
 
 export type DetectRequest = {
   root: string;
   stage: string | null;
   fs: ReadonlyFs;
   limits: InputLimits;
+  selection?: AdapterSelection | null;
+};
+
+/** One element proposed by a source, before precedence: `key` groups "the same datum" across sources (DR3),
+ * `order` is its appearance index within its source. */
+export type Candidate = {
+  [S in ProductContextSection]: {
+    section: S;
+    key: string;
+    value: Omit<ProductContextSectionMap[S], keyof Sourced>;
+    ref: SourceRef;
+    order: number;
+  };
+}[ProductContextSection];
+
+/** What an adapter reads from its sources, in draft order (DR3), before merging. */
+export type ContextDraft = {
+  sources: ContextSourceRecord[];
+  candidates: Candidate[];
+  uxReader: ProductContextMetadata["uxReader"];
+  uxExtensions: Extension[];
+  findings: Finding[];
 };
 
 export type StageSummary = { dir: string; state: string };

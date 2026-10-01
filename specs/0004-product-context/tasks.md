@@ -37,7 +37,7 @@ Lotes de 1–3 tareas. Cada test lleva `// Covers: R<n>` en la primera línea y 
 
 ## Lote 2 — Lectores y extracción
 
-- [ ] **T3** (R2, R16) — Normalización de texto, lectura de fuentes, extractor Markdown por rol (plantillas reales es ∪ en) y tipos nuevos del puerto.
+- [x] **T3** (R2, R16) — Normalización de texto, lectura de fuentes, extractor Markdown por rol (plantillas reales es ∪ en) y tipos nuevos del puerto.
   - **Archivos:** `src/intake/text.ts`, `src/intake/sources.ts`, `src/intake/markdown.ts`, `src/intake/ports.ts`, `tests/unit/intake/markdown.test.ts`, `tests/helpers/intake.ts`
   - **Interfaces:** normalizeText; stripInline; actorKeys; readSource; listContextMarkdown; MAX_CONTEXT_FILES; parseMarkdown; sectionAnchor; ROLE_HEADINGS; extractRoleSections; Candidate; ContextDraft; AdapterSelection
   - **Patrón:** src/intake/probe.ts
