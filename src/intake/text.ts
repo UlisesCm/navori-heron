@@ -40,3 +40,9 @@ export function actorKeys(cell: string): { keys: string[]; pinnedId: string | nu
     .filter((part) => part.length > 0);
   return { keys: [...new Set(keys)], pinnedId };
 }
+
+/** Locale-independent code-unit ordering (same contract as `compareStrings` in core/state, which intake may not import). */
+export function compareText(a: string, b: string): number {
+  if (a === b) return 0;
+  return a < b ? -1 : 1;
+}

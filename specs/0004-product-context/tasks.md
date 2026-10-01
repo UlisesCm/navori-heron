@@ -67,7 +67,7 @@ Lotes de 1–3 tareas. Cada test lleva `// Covers: R<n>` en la primera línea y 
 
 ## Lote 3 — Precedencia y conflictos
 
-- [ ] **T6** (R3, R4) — Fusión por precedencia RN-7, omisión de ítems de menor rango en secciones por nombre y construcción de las 19 secciones.
+- [x] **T6** (R3, R4) — Fusión por precedencia RN-7, omisión de ítems de menor rango en secciones por nombre y construcción de las 19 secciones.
   - **Archivos:** `src/intake/precedence.ts`, `src/intake/product-context.ts`, `tests/unit/intake/precedence.test.ts`, `tests/helpers/intake.ts`
   - **Interfaces:** SOURCE_PRECEDENCE; sourceRank; COMPARABLE_FIELDS; NAME_KEYED_SECTIONS; mergeCandidates; buildProductContext; countSections
   - **Patrón:** src/core/state/transitions.ts

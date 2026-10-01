@@ -51,3 +51,41 @@ export function draftOf(
     ...overrides,
   };
 }
+
+/** Business-rule/requirement value with the given id and text. */
+export function requirementValue(
+  id: string,
+  text: string,
+): Extract<Candidate, { section: "businessRules" }>["value"] {
+  return { id, text, derivedFrom: [] };
+}
+
+/** Actor value; every list defaults to empty. */
+export function actorValue(
+  name: string,
+  overrides: Partial<Extract<Candidate, { section: "actors" }>["value"]> = {},
+): Extract<Candidate, { section: "actors" }>["value"] {
+  return {
+    id: null,
+    name,
+    goal: null,
+    can: [],
+    cannot: [],
+    capabilities: [],
+    forbiddenActions: [],
+    constraints: [],
+    surfaces: [],
+    relations: [],
+    extensions: [],
+    ...overrides,
+  };
+}
+
+/** Global/per-screen state value. */
+export function stateValue(
+  name: string,
+  global: boolean,
+  screens: string[] = [],
+): Extract<Candidate, { section: "states" }>["value"] {
+  return { name, global, screens };
+}
