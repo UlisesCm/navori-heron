@@ -77,7 +77,7 @@ Lotes de 1–3 tareas. Cada test lleva `// Covers: R<n>` en la primera línea y 
   - **Nota:** al fusionar los estados globales de `UX.md` (`global: true`) con los de `ux.json` (`global: false`, con `screens`) bajo la misma clave normalizada, unir los campos `global` y `screens` en lugar de que gane solo el de mayor rango.
   - **Fuera de alcance:** ids de conflicto (T7).
 
-- [ ] **T7** (R5, R7) — Conflictos por par con fingerprint estable, reapertura de resueltos, reconocimiento, detalle de `intake-context-valid` y re-aprobación de `intake` en sitio desde producción.
+- [x] **T7** (R5, R7) — Conflictos por par con fingerprint estable, reapertura de resueltos, reconocimiento, detalle de `intake-context-valid` y re-aprobación de `intake` en sitio desde producción.
   - **Archivos:** `src/intake/conflicts.ts`, `src/intake/product-context.ts`, `src/core/state/transitions.ts`, `tests/unit/intake/conflicts.test.ts`, `tests/unit/state-machine.test.ts`
   - **Interfaces:** detectConflicts; reconcileConflicts; acknowledgeConflict; unacknowledgedCount; conflictFingerprint; withConflictIds
   - **Patrón:** src/core/state/gates.ts

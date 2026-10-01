@@ -94,11 +94,11 @@ function predicate(
 
 const FACT_CHECKS: Partial<Record<PreconditionId, (facts: TransitionFacts) => PreconditionResult>> =
   {
-    "intake-context-valid": predicate(["productContextValid", "unacknowledgedConflicts"], (f) =>
-      f.productContextValid === true && f.unacknowledgedConflicts === 0
-        ? null
-        : "the product context is invalid or has unacknowledged conflicts",
-    ),
+    "intake-context-valid": predicate(["productContextValid", "unacknowledgedConflicts"], (f) => {
+      if (f.productContextValid !== true) return "the product context is missing or out of date";
+      const open = f.unacknowledgedConflicts ?? 0;
+      return open === 0 ? null : `${open} conflict(s) are not acknowledged`;
+    }),
     "reference-has-provenance": predicate(["referenceComplete"], (f) =>
       f.referenceComplete === true ? null : "the reference lacks provenance",
     ),
@@ -200,7 +200,9 @@ function parseEventKey(key: TransitionEventKey): HeronEvent {
   if (kind === "approve-gate" && gate !== undefined) return { type: "approve-gate", gate };
   if (kind === "reject-gate" && gate !== undefined) return { type: "reject-gate", gate };
   if (kind === "revise" && phase !== undefined) return { type: "revise", target: phase };
-  return { type: key as Exclude<HeronEvent["type"], "approve-gate" | "reject-gate" | "revise"> };
+  return {
+    type: key as Exclude<HeronEvent["type"], "approve-gate" | "reject-gate" | "revise">,
+  };
 }
 
 /** Latest recorded decision of a gate (local copy of gates.latestDecision to avoid a cycle). */
@@ -280,13 +282,24 @@ const FORWARD_ROWS: readonly Row[] = [
     "representative-screens-cover-categories",
   ],
   ["penpot-synced", "approve-gate:visual-review", "penpot-synced", "penpot-sync-clean"],
+  // Intake re-approval in place from every production phase (P4 DR7).
+  ...PRODUCTION_PHASES.map((phase): Row => [
+    phase,
+    "approve-gate:intake",
+    phase,
+    "intake-context-valid",
+  ]),
 ];
 
 /** Phase where each gate is pending (loop target) and where a rejection revokes to. */
 const REJECTION_SPEC: Readonly<
   Record<
     GateName,
-    { pending: HeronPhase; revokeTo: HeronPhase; extraLoops?: readonly HeronPhase[] }
+    {
+      pending: HeronPhase;
+      revokeTo: HeronPhase;
+      extraLoops?: readonly HeronPhase[];
+    }
   >
 > = {
   intake: {
@@ -296,8 +309,14 @@ const REJECTION_SPEC: Readonly<
   },
   research: { pending: "researching", revokeTo: "researching" },
   direction: { pending: "directions-ready", revokeTo: "directions-ready" },
-  foundations: { pending: "direction-selected", revokeTo: "direction-selected" },
-  "representative-screens": { pending: "foundations-ready", revokeTo: "foundations-ready" },
+  foundations: {
+    pending: "direction-selected",
+    revokeTo: "direction-selected",
+  },
+  "representative-screens": {
+    pending: "foundations-ready",
+    revokeTo: "foundations-ready",
+  },
   "visual-review": { pending: "screens-ready", revokeTo: "screens-ready" },
 };
 

@@ -4,6 +4,8 @@ import {
   type AdapterId,
   type Conflict,
   type ConflictKind,
+  type IntakeConflicts,
+  type SourceRef,
   type HeronMode,
   type ProductContext,
   type ProductContextCounts,
@@ -26,6 +28,8 @@ export type DefinedIds = {
   parts: Map<string, Set<string>> | null;
   decisions: Set<string> | null;
   masterActors: boolean;
+  /** Actors `ux.json` declares, including those the merge skipped for lacking a `MASTER.md` pair. */
+  uxActors: { id: string; name: string; ref: SourceRef }[];
 };
 export type DetectedConflict = Omit<Conflict, "id" | "status" | "ack" | "kind"> & {
   kind: ConflictKind;
@@ -77,6 +81,18 @@ function definedIds(draft: ContextDraft): DefinedIds {
     parts,
     decisions,
     masterActors: from("MASTER.md", ["actors"]).length > 0,
+    uxActors: from("ux.json", ["actors"]).flatMap((c) => {
+      const value = c.value as { id?: unknown; name?: unknown };
+      return typeof value.id === "string"
+        ? [
+            {
+              id: value.id,
+              name: typeof value.name === "string" ? value.name : value.id,
+              ref: c.ref,
+            },
+          ]
+        : [];
+    }),
   };
 }
 
@@ -135,4 +151,37 @@ export function countSections(context: ProductContext): ProductContextCounts {
   return Object.fromEntries(
     PRODUCT_CONTEXT_SECTIONS.map((section) => [section, context[section].length]),
   ) as ProductContextCounts;
+}
+
+/** Stable identifier of an element inside its section: the id, else the key, name, requirement or text. */
+export function elementKey(element: ProductContext[ProductContextSection][number]): string {
+  const fields = element as Record<string, unknown>;
+  for (const field of ["id", "key", "name", "requirement", "text"]) {
+    const value = fields[field];
+    if (typeof value === "string" && value !== "") return value;
+  }
+  return "";
+}
+
+/** Sets each element's `conflicts` to the ids of the open conflicts whose impact names it (sorted). */
+export function withConflictIds(
+  context: ProductContext,
+  conflicts: IntakeConflicts,
+): ProductContext {
+  const open = conflicts.conflicts.filter((conflict) => conflict.status === "open");
+  const sections = Object.fromEntries(
+    PRODUCT_CONTEXT_SECTIONS.map((section) => [
+      section,
+      (context[section] as readonly { conflicts: string[] }[]).map((element) => {
+        const at = `${section}/${elementKey(element as ProductContext[typeof section][number])}`;
+        const ids = open
+          .filter((conflict) => conflict.impact.includes(at))
+          .map((conflict) => conflict.id)
+          .toSorted(compareText);
+        return { ...element, conflicts: ids };
+      }),
+    ]),
+  );
+  // Each section keeps its own element type; the map above only rewrites `conflicts`.
+  return { ...context, ...sections } as ProductContext;
 }
