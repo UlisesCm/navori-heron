@@ -1,0 +1,205 @@
+{
+  "$id": "intake-conflicts.v1.schema.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": {},
+  "properties": {
+    "conflicts": {
+      "items": {
+        "additionalProperties": {},
+        "properties": {
+          "ack": {
+            "anyOf": [
+              {
+                "additionalProperties": {},
+                "properties": {
+                  "at": {
+                    "pattern": "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}\\.\\d{3}Z$",
+                    "type": "string"
+                  },
+                  "by": {
+                    "minLength": 1,
+                    "type": "string"
+                  },
+                  "note": {
+                    "maxLength": 2000,
+                    "minLength": 1,
+                    "type": "string"
+                  },
+                  "runId": {
+                    "pattern": "^run-\\d{8}T\\d{6}Z-[0-9a-f]{8}$",
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "by",
+                  "at",
+                  "note",
+                  "runId"
+                ],
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "files": {
+            "items": {
+              "maxLength": 512,
+              "type": "string"
+            },
+            "type": "array"
+          },
+          "fingerprint": {
+            "pattern": "^[0-9a-f]{64}$",
+            "type": "string"
+          },
+          "id": {
+            "pattern": "^CONFLICT-\\d{3,}$",
+            "type": "string"
+          },
+          "impact": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          },
+          "kind": {
+            "pattern": "^[a-z][a-z0-9-]*$",
+            "type": "string"
+          },
+          "status": {
+            "enum": [
+              "open",
+              "resolved"
+            ],
+            "type": "string"
+          },
+          "subject": {
+            "type": "string"
+          },
+          "values": {
+            "items": {
+              "additionalProperties": {},
+              "properties": {
+                "sourceRef": {
+                  "additionalProperties": {},
+                  "properties": {
+                    "locator": {
+                      "type": "string"
+                    },
+                    "path": {
+                      "maxLength": 512,
+                      "type": "string"
+                    },
+                    "source": {
+                      "enum": [
+                        "DECISIONS.md",
+                        "MASTER.md",
+                        "parts.json",
+                        "ux.json",
+                        "UX.md",
+                        "DIGEST.md",
+                        "CODEBASE.md",
+                        "context",
+                        "manual",
+                        "navori.config.json"
+                      ],
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "source",
+                    "path",
+                    "locator"
+                  ],
+                  "type": "object"
+                },
+                "value": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "sourceRef",
+                "value"
+              ],
+              "type": "object"
+            },
+            "maxItems": 2,
+            "minItems": 2,
+            "type": "array"
+          },
+          "winner": {
+            "anyOf": [
+              {
+                "additionalProperties": {},
+                "properties": {
+                  "locator": {
+                    "type": "string"
+                  },
+                  "path": {
+                    "maxLength": 512,
+                    "type": "string"
+                  },
+                  "source": {
+                    "enum": [
+                      "DECISIONS.md",
+                      "MASTER.md",
+                      "parts.json",
+                      "ux.json",
+                      "UX.md",
+                      "DIGEST.md",
+                      "CODEBASE.md",
+                      "context",
+                      "manual",
+                      "navori.config.json"
+                    ],
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "source",
+                  "path",
+                  "locator"
+                ],
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "required": [
+          "id",
+          "kind",
+          "subject",
+          "status",
+          "files",
+          "values",
+          "impact",
+          "winner",
+          "fingerprint",
+          "ack"
+        ],
+        "type": "object"
+      },
+      "type": "array"
+    },
+    "kind": {
+      "const": "IntakeConflicts",
+      "type": "string"
+    },
+    "schemaVersion": {
+      "const": 1,
+      "type": "number"
+    }
+  },
+  "required": [
+    "kind",
+    "schemaVersion",
+    "conflicts"
+  ],
+  "title": "IntakeConflicts",
+  "type": "object"
+}

@@ -1,0 +1,2782 @@
+{
+  "$id": "product-context.v1.schema.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": {},
+  "properties": {
+    "actors": {
+      "items": {
+        "additionalProperties": {},
+        "properties": {
+          "alsoIn": {
+            "items": {
+              "additionalProperties": {},
+              "properties": {
+                "locator": {
+                  "type": "string"
+                },
+                "path": {
+                  "maxLength": 512,
+                  "type": "string"
+                },
+                "source": {
+                  "enum": [
+                    "DECISIONS.md",
+                    "MASTER.md",
+                    "parts.json",
+                    "ux.json",
+                    "UX.md",
+                    "DIGEST.md",
+                    "CODEBASE.md",
+                    "context",
+                    "manual",
+                    "navori.config.json"
+                  ],
+                  "type": "string"
+                }
+              },
+              "required": [
+                "source",
+                "path",
+                "locator"
+              ],
+              "type": "object"
+            },
+            "type": "array"
+          },
+          "can": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          },
+          "cannot": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          },
+          "capabilities": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          },
+          "conflicts": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          },
+          "constraints": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          },
+          "extensions": {
+            "items": {
+              "additionalProperties": {},
+              "properties": {
+                "key": {
+                  "type": "string"
+                },
+                "value": {}
+              },
+              "required": [
+                "key",
+                "value"
+              ],
+              "type": "object"
+            },
+            "type": "array"
+          },
+          "forbiddenActions": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          },
+          "goal": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "id": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "name": {
+            "type": "string"
+          },
+          "relations": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          },
+          "sourceRef": {
+            "additionalProperties": {},
+            "properties": {
+              "locator": {
+                "type": "string"
+              },
+              "path": {
+                "maxLength": 512,
+                "type": "string"
+              },
+              "source": {
+                "enum": [
+                  "DECISIONS.md",
+                  "MASTER.md",
+                  "parts.json",
+                  "ux.json",
+                  "UX.md",
+                  "DIGEST.md",
+                  "CODEBASE.md",
+                  "context",
+                  "manual",
+                  "navori.config.json"
+                ],
+                "type": "string"
+              }
+            },
+            "required": [
+              "source",
+              "path",
+              "locator"
+            ],
+            "type": "object"
+          },
+          "surfaces": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          }
+        },
+        "required": [
+          "sourceRef",
+          "alsoIn",
+          "conflicts",
+          "id",
+          "name",
+          "goal",
+          "can",
+          "cannot",
+          "capabilities",
+          "forbiddenActions",
+          "constraints",
+          "surfaces",
+          "relations",
+          "extensions"
+        ],
+        "type": "object"
+      },
+      "type": "array"
+    },
+    "brand": {
+      "items": {
+        "additionalProperties": {},
+        "properties": {
+          "alsoIn": {
+            "items": {
+              "additionalProperties": {},
+              "properties": {
+                "locator": {
+                  "type": "string"
+                },
+                "path": {
+                  "maxLength": 512,
+                  "type": "string"
+                },
+                "source": {
+                  "enum": [
+                    "DECISIONS.md",
+                    "MASTER.md",
+                    "parts.json",
+                    "ux.json",
+                    "UX.md",
+                    "DIGEST.md",
+                    "CODEBASE.md",
+                    "context",
+                    "manual",
+                    "navori.config.json"
+                  ],
+                  "type": "string"
+                }
+              },
+              "required": [
+                "source",
+                "path",
+                "locator"
+              ],
+              "type": "object"
+            },
+            "type": "array"
+          },
+          "conflicts": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          },
+          "kind": {
+            "enum": [
+              "logo",
+              "brand-color",
+              "secondary-color",
+              "font",
+              "brand-guidelines",
+              "screenshot",
+              "url",
+              "existing-product",
+              "competitor",
+              "liked-reference",
+              "disliked-reference"
+            ],
+            "type": "string"
+          },
+          "sourceRef": {
+            "additionalProperties": {},
+            "properties": {
+              "locator": {
+                "type": "string"
+              },
+              "path": {
+                "maxLength": 512,
+                "type": "string"
+              },
+              "source": {
+                "enum": [
+                  "DECISIONS.md",
+                  "MASTER.md",
+                  "parts.json",
+                  "ux.json",
+                  "UX.md",
+                  "DIGEST.md",
+                  "CODEBASE.md",
+                  "context",
+                  "manual",
+                  "navori.config.json"
+                ],
+                "type": "string"
+              }
+            },
+            "required": [
+              "source",
+              "path",
+              "locator"
+            ],
+            "type": "object"
+          },
+          "value": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "sourceRef",
+          "alsoIn",
+          "conflicts",
+          "kind",
+          "value"
+        ],
+        "type": "object"
+      },
+      "type": "array"
+    },
+    "businessRules": {
+      "items": {
+        "additionalProperties": {},
+        "properties": {
+          "alsoIn": {
+            "items": {
+              "additionalProperties": {},
+              "properties": {
+                "locator": {
+                  "type": "string"
+                },
+                "path": {
+                  "maxLength": 512,
+                  "type": "string"
+                },
+                "source": {
+                  "enum": [
+                    "DECISIONS.md",
+                    "MASTER.md",
+                    "parts.json",
+                    "ux.json",
+                    "UX.md",
+                    "DIGEST.md",
+                    "CODEBASE.md",
+                    "context",
+                    "manual",
+                    "navori.config.json"
+                  ],
+                  "type": "string"
+                }
+              },
+              "required": [
+                "source",
+                "path",
+                "locator"
+              ],
+              "type": "object"
+            },
+            "type": "array"
+          },
+          "conflicts": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          },
+          "derivedFrom": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          },
+          "id": {
+            "type": "string"
+          },
+          "sourceRef": {
+            "additionalProperties": {},
+            "properties": {
+              "locator": {
+                "type": "string"
+              },
+              "path": {
+                "maxLength": 512,
+                "type": "string"
+              },
+              "source": {
+                "enum": [
+                  "DECISIONS.md",
+                  "MASTER.md",
+                  "parts.json",
+                  "ux.json",
+                  "UX.md",
+                  "DIGEST.md",
+                  "CODEBASE.md",
+                  "context",
+                  "manual",
+                  "navori.config.json"
+                ],
+                "type": "string"
+              }
+            },
+            "required": [
+              "source",
+              "path",
+              "locator"
+            ],
+            "type": "object"
+          },
+          "text": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "sourceRef",
+          "alsoIn",
+          "conflicts",
+          "id",
+          "text",
+          "derivedFrom"
+        ],
+        "type": "object"
+      },
+      "type": "array"
+    },
+    "capabilities": {
+      "items": {
+        "additionalProperties": {},
+        "properties": {
+          "alsoIn": {
+            "items": {
+              "additionalProperties": {},
+              "properties": {
+                "locator": {
+                  "type": "string"
+                },
+                "path": {
+                  "maxLength": 512,
+                  "type": "string"
+                },
+                "source": {
+                  "enum": [
+                    "DECISIONS.md",
+                    "MASTER.md",
+                    "parts.json",
+                    "ux.json",
+                    "UX.md",
+                    "DIGEST.md",
+                    "CODEBASE.md",
+                    "context",
+                    "manual",
+                    "navori.config.json"
+                  ],
+                  "type": "string"
+                }
+              },
+              "required": [
+                "source",
+                "path",
+                "locator"
+              ],
+              "type": "object"
+            },
+            "type": "array"
+          },
+          "conflicts": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          },
+          "id": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "priority": {
+            "enum": [
+              "must",
+              "should",
+              "could"
+            ],
+            "type": "string"
+          },
+          "sourceRef": {
+            "additionalProperties": {},
+            "properties": {
+              "locator": {
+                "type": "string"
+              },
+              "path": {
+                "maxLength": 512,
+                "type": "string"
+              },
+              "source": {
+                "enum": [
+                  "DECISIONS.md",
+                  "MASTER.md",
+                  "parts.json",
+                  "ux.json",
+                  "UX.md",
+                  "DIGEST.md",
+                  "CODEBASE.md",
+                  "context",
+                  "manual",
+                  "navori.config.json"
+                ],
+                "type": "string"
+              }
+            },
+            "required": [
+              "source",
+              "path",
+              "locator"
+            ],
+            "type": "object"
+          },
+          "text": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "sourceRef",
+          "alsoIn",
+          "conflicts",
+          "id",
+          "priority",
+          "text"
+        ],
+        "type": "object"
+      },
+      "type": "array"
+    },
+    "constraints": {
+      "items": {
+        "additionalProperties": {},
+        "properties": {
+          "alsoIn": {
+            "items": {
+              "additionalProperties": {},
+              "properties": {
+                "locator": {
+                  "type": "string"
+                },
+                "path": {
+                  "maxLength": 512,
+                  "type": "string"
+                },
+                "source": {
+                  "enum": [
+                    "DECISIONS.md",
+                    "MASTER.md",
+                    "parts.json",
+                    "ux.json",
+                    "UX.md",
+                    "DIGEST.md",
+                    "CODEBASE.md",
+                    "context",
+                    "manual",
+                    "navori.config.json"
+                  ],
+                  "type": "string"
+                }
+              },
+              "required": [
+                "source",
+                "path",
+                "locator"
+              ],
+              "type": "object"
+            },
+            "type": "array"
+          },
+          "conflicts": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          },
+          "id": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "kind": {
+            "enum": [
+              "out-of-scope",
+              "surface",
+              "actor",
+              "heron-must-preserve",
+              "heron-may-improve",
+              "heron-owns",
+              "declared"
+            ],
+            "type": "string"
+          },
+          "sourceRef": {
+            "additionalProperties": {},
+            "properties": {
+              "locator": {
+                "type": "string"
+              },
+              "path": {
+                "maxLength": 512,
+                "type": "string"
+              },
+              "source": {
+                "enum": [
+                  "DECISIONS.md",
+                  "MASTER.md",
+                  "parts.json",
+                  "ux.json",
+                  "UX.md",
+                  "DIGEST.md",
+                  "CODEBASE.md",
+                  "context",
+                  "manual",
+                  "navori.config.json"
+                ],
+                "type": "string"
+              }
+            },
+            "required": [
+              "source",
+              "path",
+              "locator"
+            ],
+            "type": "object"
+          },
+          "subject": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "text": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "sourceRef",
+          "alsoIn",
+          "conflicts",
+          "kind",
+          "id",
+          "subject",
+          "text"
+        ],
+        "type": "object"
+      },
+      "type": "array"
+    },
+    "decisions": {
+      "items": {
+        "additionalProperties": {},
+        "properties": {
+          "alsoIn": {
+            "items": {
+              "additionalProperties": {},
+              "properties": {
+                "locator": {
+                  "type": "string"
+                },
+                "path": {
+                  "maxLength": 512,
+                  "type": "string"
+                },
+                "source": {
+                  "enum": [
+                    "DECISIONS.md",
+                    "MASTER.md",
+                    "parts.json",
+                    "ux.json",
+                    "UX.md",
+                    "DIGEST.md",
+                    "CODEBASE.md",
+                    "context",
+                    "manual",
+                    "navori.config.json"
+                  ],
+                  "type": "string"
+                }
+              },
+              "required": [
+                "source",
+                "path",
+                "locator"
+              ],
+              "type": "object"
+            },
+            "type": "array"
+          },
+          "chosen": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "conflicts": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          },
+          "date": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "discarded": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          },
+          "id": {
+            "type": "string"
+          },
+          "question": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "sourceRef": {
+            "additionalProperties": {},
+            "properties": {
+              "locator": {
+                "type": "string"
+              },
+              "path": {
+                "maxLength": 512,
+                "type": "string"
+              },
+              "source": {
+                "enum": [
+                  "DECISIONS.md",
+                  "MASTER.md",
+                  "parts.json",
+                  "ux.json",
+                  "UX.md",
+                  "DIGEST.md",
+                  "CODEBASE.md",
+                  "context",
+                  "manual",
+                  "navori.config.json"
+                ],
+                "type": "string"
+              }
+            },
+            "required": [
+              "source",
+              "path",
+              "locator"
+            ],
+            "type": "object"
+          }
+        },
+        "required": [
+          "sourceRef",
+          "alsoIn",
+          "conflicts",
+          "id",
+          "question",
+          "chosen",
+          "discarded",
+          "date"
+        ],
+        "type": "object"
+      },
+      "type": "array"
+    },
+    "entities": {
+      "items": {
+        "additionalProperties": {},
+        "properties": {
+          "alsoIn": {
+            "items": {
+              "additionalProperties": {},
+              "properties": {
+                "locator": {
+                  "type": "string"
+                },
+                "path": {
+                  "maxLength": 512,
+                  "type": "string"
+                },
+                "source": {
+                  "enum": [
+                    "DECISIONS.md",
+                    "MASTER.md",
+                    "parts.json",
+                    "ux.json",
+                    "UX.md",
+                    "DIGEST.md",
+                    "CODEBASE.md",
+                    "context",
+                    "manual",
+                    "navori.config.json"
+                  ],
+                  "type": "string"
+                }
+              },
+              "required": [
+                "source",
+                "path",
+                "locator"
+              ],
+              "type": "object"
+            },
+            "type": "array"
+          },
+          "conflicts": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          },
+          "details": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          },
+          "name": {
+            "type": "string"
+          },
+          "sourceRef": {
+            "additionalProperties": {},
+            "properties": {
+              "locator": {
+                "type": "string"
+              },
+              "path": {
+                "maxLength": 512,
+                "type": "string"
+              },
+              "source": {
+                "enum": [
+                  "DECISIONS.md",
+                  "MASTER.md",
+                  "parts.json",
+                  "ux.json",
+                  "UX.md",
+                  "DIGEST.md",
+                  "CODEBASE.md",
+                  "context",
+                  "manual",
+                  "navori.config.json"
+                ],
+                "type": "string"
+              }
+            },
+            "required": [
+              "source",
+              "path",
+              "locator"
+            ],
+            "type": "object"
+          }
+        },
+        "required": [
+          "sourceRef",
+          "alsoIn",
+          "conflicts",
+          "name",
+          "details"
+        ],
+        "type": "object"
+      },
+      "type": "array"
+    },
+    "flows": {
+      "items": {
+        "additionalProperties": {},
+        "properties": {
+          "actor": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "alsoIn": {
+            "items": {
+              "additionalProperties": {},
+              "properties": {
+                "locator": {
+                  "type": "string"
+                },
+                "path": {
+                  "maxLength": 512,
+                  "type": "string"
+                },
+                "source": {
+                  "enum": [
+                    "DECISIONS.md",
+                    "MASTER.md",
+                    "parts.json",
+                    "ux.json",
+                    "UX.md",
+                    "DIGEST.md",
+                    "CODEBASE.md",
+                    "context",
+                    "manual",
+                    "navori.config.json"
+                  ],
+                  "type": "string"
+                }
+              },
+              "required": [
+                "source",
+                "path",
+                "locator"
+              ],
+              "type": "object"
+            },
+            "type": "array"
+          },
+          "alternateStates": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          },
+          "conflicts": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          },
+          "decisions": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          },
+          "errors": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          },
+          "extensions": {
+            "items": {
+              "additionalProperties": {},
+              "properties": {
+                "key": {
+                  "type": "string"
+                },
+                "value": {}
+              },
+              "required": [
+                "key",
+                "value"
+              ],
+              "type": "object"
+            },
+            "type": "array"
+          },
+          "id": {
+            "type": "string"
+          },
+          "name": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "preconditions": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          },
+          "purpose": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "requirements": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          },
+          "result": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "screens": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          },
+          "sourceRef": {
+            "additionalProperties": {},
+            "properties": {
+              "locator": {
+                "type": "string"
+              },
+              "path": {
+                "maxLength": 512,
+                "type": "string"
+              },
+              "source": {
+                "enum": [
+                  "DECISIONS.md",
+                  "MASTER.md",
+                  "parts.json",
+                  "ux.json",
+                  "UX.md",
+                  "DIGEST.md",
+                  "CODEBASE.md",
+                  "context",
+                  "manual",
+                  "navori.config.json"
+                ],
+                "type": "string"
+              }
+            },
+            "required": [
+              "source",
+              "path",
+              "locator"
+            ],
+            "type": "object"
+          },
+          "steps": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          },
+          "trigger": {
+            "type": [
+              "string",
+              "null"
+            ]
+          }
+        },
+        "required": [
+          "sourceRef",
+          "alsoIn",
+          "conflicts",
+          "id",
+          "name",
+          "actor",
+          "purpose",
+          "trigger",
+          "preconditions",
+          "steps",
+          "decisions",
+          "alternateStates",
+          "errors",
+          "result",
+          "screens",
+          "requirements",
+          "extensions"
+        ],
+        "type": "object"
+      },
+      "type": "array"
+    },
+    "functionalComponents": {
+      "items": {
+        "additionalProperties": {},
+        "properties": {
+          "actions": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          },
+          "alsoIn": {
+            "items": {
+              "additionalProperties": {},
+              "properties": {
+                "locator": {
+                  "type": "string"
+                },
+                "path": {
+                  "maxLength": 512,
+                  "type": "string"
+                },
+                "source": {
+                  "enum": [
+                    "DECISIONS.md",
+                    "MASTER.md",
+                    "parts.json",
+                    "ux.json",
+                    "UX.md",
+                    "DIGEST.md",
+                    "CODEBASE.md",
+                    "context",
+                    "manual",
+                    "navori.config.json"
+                  ],
+                  "type": "string"
+                }
+              },
+              "required": [
+                "source",
+                "path",
+                "locator"
+              ],
+              "type": "object"
+            },
+            "type": "array"
+          },
+          "conflicts": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          },
+          "extensions": {
+            "items": {
+              "additionalProperties": {},
+              "properties": {
+                "key": {
+                  "type": "string"
+                },
+                "value": {}
+              },
+              "required": [
+                "key",
+                "value"
+              ],
+              "type": "object"
+            },
+            "type": "array"
+          },
+          "id": {
+            "type": "string"
+          },
+          "information": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          },
+          "name": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "responsibility": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "screens": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          },
+          "sourceRef": {
+            "additionalProperties": {},
+            "properties": {
+              "locator": {
+                "type": "string"
+              },
+              "path": {
+                "maxLength": 512,
+                "type": "string"
+              },
+              "source": {
+                "enum": [
+                  "DECISIONS.md",
+                  "MASTER.md",
+                  "parts.json",
+                  "ux.json",
+                  "UX.md",
+                  "DIGEST.md",
+                  "CODEBASE.md",
+                  "context",
+                  "manual",
+                  "navori.config.json"
+                ],
+                "type": "string"
+              }
+            },
+            "required": [
+              "source",
+              "path",
+              "locator"
+            ],
+            "type": "object"
+          },
+          "states": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          },
+          "variations": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          }
+        },
+        "required": [
+          "sourceRef",
+          "alsoIn",
+          "conflicts",
+          "id",
+          "name",
+          "responsibility",
+          "information",
+          "actions",
+          "states",
+          "screens",
+          "variations",
+          "extensions"
+        ],
+        "type": "object"
+      },
+      "type": "array"
+    },
+    "functionalRequirements": {
+      "items": {
+        "additionalProperties": {},
+        "properties": {
+          "alsoIn": {
+            "items": {
+              "additionalProperties": {},
+              "properties": {
+                "locator": {
+                  "type": "string"
+                },
+                "path": {
+                  "maxLength": 512,
+                  "type": "string"
+                },
+                "source": {
+                  "enum": [
+                    "DECISIONS.md",
+                    "MASTER.md",
+                    "parts.json",
+                    "ux.json",
+                    "UX.md",
+                    "DIGEST.md",
+                    "CODEBASE.md",
+                    "context",
+                    "manual",
+                    "navori.config.json"
+                  ],
+                  "type": "string"
+                }
+              },
+              "required": [
+                "source",
+                "path",
+                "locator"
+              ],
+              "type": "object"
+            },
+            "type": "array"
+          },
+          "conflicts": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          },
+          "derivedFrom": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          },
+          "id": {
+            "type": "string"
+          },
+          "sourceRef": {
+            "additionalProperties": {},
+            "properties": {
+              "locator": {
+                "type": "string"
+              },
+              "path": {
+                "maxLength": 512,
+                "type": "string"
+              },
+              "source": {
+                "enum": [
+                  "DECISIONS.md",
+                  "MASTER.md",
+                  "parts.json",
+                  "ux.json",
+                  "UX.md",
+                  "DIGEST.md",
+                  "CODEBASE.md",
+                  "context",
+                  "manual",
+                  "navori.config.json"
+                ],
+                "type": "string"
+              }
+            },
+            "required": [
+              "source",
+              "path",
+              "locator"
+            ],
+            "type": "object"
+          },
+          "text": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "sourceRef",
+          "alsoIn",
+          "conflicts",
+          "id",
+          "text",
+          "derivedFrom"
+        ],
+        "type": "object"
+      },
+      "type": "array"
+    },
+    "journeys": {
+      "items": {
+        "additionalProperties": {},
+        "properties": {
+          "actor": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "alsoIn": {
+            "items": {
+              "additionalProperties": {},
+              "properties": {
+                "locator": {
+                  "type": "string"
+                },
+                "path": {
+                  "maxLength": 512,
+                  "type": "string"
+                },
+                "source": {
+                  "enum": [
+                    "DECISIONS.md",
+                    "MASTER.md",
+                    "parts.json",
+                    "ux.json",
+                    "UX.md",
+                    "DIGEST.md",
+                    "CODEBASE.md",
+                    "context",
+                    "manual",
+                    "navori.config.json"
+                  ],
+                  "type": "string"
+                }
+              },
+              "required": [
+                "source",
+                "path",
+                "locator"
+              ],
+              "type": "object"
+            },
+            "type": "array"
+          },
+          "conflicts": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          },
+          "exceptions": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          },
+          "expectedResult": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "extensions": {
+            "items": {
+              "additionalProperties": {},
+              "properties": {
+                "key": {
+                  "type": "string"
+                },
+                "value": {}
+              },
+              "required": [
+                "key",
+                "value"
+              ],
+              "type": "object"
+            },
+            "type": "array"
+          },
+          "flows": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          },
+          "goal": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "id": {
+            "type": "string"
+          },
+          "initialState": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "name": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "requirements": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          },
+          "sourceRef": {
+            "additionalProperties": {},
+            "properties": {
+              "locator": {
+                "type": "string"
+              },
+              "path": {
+                "maxLength": 512,
+                "type": "string"
+              },
+              "source": {
+                "enum": [
+                  "DECISIONS.md",
+                  "MASTER.md",
+                  "parts.json",
+                  "ux.json",
+                  "UX.md",
+                  "DIGEST.md",
+                  "CODEBASE.md",
+                  "context",
+                  "manual",
+                  "navori.config.json"
+                ],
+                "type": "string"
+              }
+            },
+            "required": [
+              "source",
+              "path",
+              "locator"
+            ],
+            "type": "object"
+          },
+          "trigger": {
+            "type": [
+              "string",
+              "null"
+            ]
+          }
+        },
+        "required": [
+          "sourceRef",
+          "alsoIn",
+          "conflicts",
+          "id",
+          "name",
+          "actor",
+          "goal",
+          "trigger",
+          "initialState",
+          "expectedResult",
+          "flows",
+          "requirements",
+          "exceptions",
+          "extensions"
+        ],
+        "type": "object"
+      },
+      "type": "array"
+    },
+    "kind": {
+      "const": "ProductContext",
+      "type": "string"
+    },
+    "metadata": {
+      "additionalProperties": {},
+      "properties": {
+        "adapter": {
+          "enum": [
+            "navori-master",
+            "filesystem",
+            "markdown",
+            "manual"
+          ],
+          "type": "string"
+        },
+        "findings": {
+          "items": {
+            "additionalProperties": {},
+            "properties": {
+              "code": {
+                "pattern": "^[A-Z][A-Z0-9_]*$",
+                "type": "string"
+              },
+              "issues": {
+                "items": {
+                  "additionalProperties": {},
+                  "properties": {
+                    "message": {
+                      "type": "string"
+                    },
+                    "pointer": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "pointer",
+                    "message"
+                  ],
+                  "type": "object"
+                },
+                "type": "array"
+              },
+              "message": {
+                "type": "string"
+              },
+              "paths": {
+                "items": {
+                  "type": "string"
+                },
+                "type": "array"
+              },
+              "severity": {
+                "enum": [
+                  "info",
+                  "warning",
+                  "error"
+                ],
+                "type": "string"
+              }
+            },
+            "required": [
+              "code",
+              "severity",
+              "message",
+              "paths",
+              "issues"
+            ],
+            "type": "object"
+          },
+          "type": "array"
+        },
+        "mode": {
+          "enum": [
+            "full",
+            "reference-only"
+          ],
+          "type": "string"
+        },
+        "sources": {
+          "items": {
+            "additionalProperties": {},
+            "properties": {
+              "path": {
+                "maxLength": 512,
+                "type": "string"
+              },
+              "source": {
+                "enum": [
+                  "DECISIONS.md",
+                  "MASTER.md",
+                  "parts.json",
+                  "ux.json",
+                  "UX.md",
+                  "DIGEST.md",
+                  "CODEBASE.md",
+                  "context",
+                  "manual",
+                  "navori.config.json"
+                ],
+                "type": "string"
+              },
+              "status": {
+                "enum": [
+                  "used",
+                  "read",
+                  "unused",
+                  "absent",
+                  "unreadable"
+                ],
+                "type": "string"
+              }
+            },
+            "required": [
+              "source",
+              "path",
+              "status"
+            ],
+            "type": "object"
+          },
+          "type": "array"
+        },
+        "stage": {
+          "anyOf": [
+            {
+              "additionalProperties": {},
+              "properties": {
+                "dir": {
+                  "type": "string"
+                },
+                "selection": {
+                  "enum": [
+                    "explicit",
+                    "active",
+                    "last-closed"
+                  ],
+                  "type": "string"
+                }
+              },
+              "required": [
+                "dir",
+                "selection"
+              ],
+              "type": "object"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "uxExtensions": {
+          "items": {
+            "additionalProperties": {},
+            "properties": {
+              "key": {
+                "type": "string"
+              },
+              "value": {}
+            },
+            "required": [
+              "key",
+              "value"
+            ],
+            "type": "object"
+          },
+          "type": "array"
+        },
+        "uxReader": {
+          "anyOf": [
+            {
+              "const": "provisional-1",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        }
+      },
+      "required": [
+        "adapter",
+        "mode",
+        "stage",
+        "uxReader",
+        "sources",
+        "uxExtensions",
+        "findings"
+      ],
+      "type": "object"
+    },
+    "nonFunctionalRequirements": {
+      "items": {
+        "additionalProperties": {},
+        "properties": {
+          "alsoIn": {
+            "items": {
+              "additionalProperties": {},
+              "properties": {
+                "locator": {
+                  "type": "string"
+                },
+                "path": {
+                  "maxLength": 512,
+                  "type": "string"
+                },
+                "source": {
+                  "enum": [
+                    "DECISIONS.md",
+                    "MASTER.md",
+                    "parts.json",
+                    "ux.json",
+                    "UX.md",
+                    "DIGEST.md",
+                    "CODEBASE.md",
+                    "context",
+                    "manual",
+                    "navori.config.json"
+                  ],
+                  "type": "string"
+                }
+              },
+              "required": [
+                "source",
+                "path",
+                "locator"
+              ],
+              "type": "object"
+            },
+            "type": "array"
+          },
+          "conflicts": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          },
+          "derivedFrom": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          },
+          "id": {
+            "type": "string"
+          },
+          "sourceRef": {
+            "additionalProperties": {},
+            "properties": {
+              "locator": {
+                "type": "string"
+              },
+              "path": {
+                "maxLength": 512,
+                "type": "string"
+              },
+              "source": {
+                "enum": [
+                  "DECISIONS.md",
+                  "MASTER.md",
+                  "parts.json",
+                  "ux.json",
+                  "UX.md",
+                  "DIGEST.md",
+                  "CODEBASE.md",
+                  "context",
+                  "manual",
+                  "navori.config.json"
+                ],
+                "type": "string"
+              }
+            },
+            "required": [
+              "source",
+              "path",
+              "locator"
+            ],
+            "type": "object"
+          },
+          "text": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "sourceRef",
+          "alsoIn",
+          "conflicts",
+          "id",
+          "text",
+          "derivedFrom"
+        ],
+        "type": "object"
+      },
+      "type": "array"
+    },
+    "patterns": {
+      "items": {
+        "additionalProperties": {},
+        "properties": {
+          "alsoIn": {
+            "items": {
+              "additionalProperties": {},
+              "properties": {
+                "locator": {
+                  "type": "string"
+                },
+                "path": {
+                  "maxLength": 512,
+                  "type": "string"
+                },
+                "source": {
+                  "enum": [
+                    "DECISIONS.md",
+                    "MASTER.md",
+                    "parts.json",
+                    "ux.json",
+                    "UX.md",
+                    "DIGEST.md",
+                    "CODEBASE.md",
+                    "context",
+                    "manual",
+                    "navori.config.json"
+                  ],
+                  "type": "string"
+                }
+              },
+              "required": [
+                "source",
+                "path",
+                "locator"
+              ],
+              "type": "object"
+            },
+            "type": "array"
+          },
+          "conflicts": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          },
+          "extensions": {
+            "items": {
+              "additionalProperties": {},
+              "properties": {
+                "key": {
+                  "type": "string"
+                },
+                "value": {}
+              },
+              "required": [
+                "key",
+                "value"
+              ],
+              "type": "object"
+            },
+            "type": "array"
+          },
+          "id": {
+            "type": "string"
+          },
+          "name": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "purpose": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "requirements": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          },
+          "rules": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          },
+          "screens": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          },
+          "sourceRef": {
+            "additionalProperties": {},
+            "properties": {
+              "locator": {
+                "type": "string"
+              },
+              "path": {
+                "maxLength": 512,
+                "type": "string"
+              },
+              "source": {
+                "enum": [
+                  "DECISIONS.md",
+                  "MASTER.md",
+                  "parts.json",
+                  "ux.json",
+                  "UX.md",
+                  "DIGEST.md",
+                  "CODEBASE.md",
+                  "context",
+                  "manual",
+                  "navori.config.json"
+                ],
+                "type": "string"
+              }
+            },
+            "required": [
+              "source",
+              "path",
+              "locator"
+            ],
+            "type": "object"
+          },
+          "states": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          }
+        },
+        "required": [
+          "sourceRef",
+          "alsoIn",
+          "conflicts",
+          "id",
+          "name",
+          "purpose",
+          "screens",
+          "states",
+          "rules",
+          "requirements",
+          "extensions"
+        ],
+        "type": "object"
+      },
+      "type": "array"
+    },
+    "product": {
+      "items": {
+        "additionalProperties": {},
+        "properties": {
+          "alsoIn": {
+            "items": {
+              "additionalProperties": {},
+              "properties": {
+                "locator": {
+                  "type": "string"
+                },
+                "path": {
+                  "maxLength": 512,
+                  "type": "string"
+                },
+                "source": {
+                  "enum": [
+                    "DECISIONS.md",
+                    "MASTER.md",
+                    "parts.json",
+                    "ux.json",
+                    "UX.md",
+                    "DIGEST.md",
+                    "CODEBASE.md",
+                    "context",
+                    "manual",
+                    "navori.config.json"
+                  ],
+                  "type": "string"
+                }
+              },
+              "required": [
+                "source",
+                "path",
+                "locator"
+              ],
+              "type": "object"
+            },
+            "type": "array"
+          },
+          "conflicts": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          },
+          "key": {
+            "enum": [
+              "name",
+              "summary",
+              "language"
+            ],
+            "type": "string"
+          },
+          "sourceRef": {
+            "additionalProperties": {},
+            "properties": {
+              "locator": {
+                "type": "string"
+              },
+              "path": {
+                "maxLength": 512,
+                "type": "string"
+              },
+              "source": {
+                "enum": [
+                  "DECISIONS.md",
+                  "MASTER.md",
+                  "parts.json",
+                  "ux.json",
+                  "UX.md",
+                  "DIGEST.md",
+                  "CODEBASE.md",
+                  "context",
+                  "manual",
+                  "navori.config.json"
+                ],
+                "type": "string"
+              }
+            },
+            "required": [
+              "source",
+              "path",
+              "locator"
+            ],
+            "type": "object"
+          },
+          "value": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "sourceRef",
+          "alsoIn",
+          "conflicts",
+          "key",
+          "value"
+        ],
+        "type": "object"
+      },
+      "type": "array"
+    },
+    "schemaVersion": {
+      "const": 1,
+      "type": "number"
+    },
+    "screens": {
+      "items": {
+        "additionalProperties": {},
+        "properties": {
+          "actions": {
+            "items": {
+              "additionalProperties": {},
+              "properties": {
+                "label": {
+                  "type": "string"
+                },
+                "priority": {
+                  "anyOf": [
+                    {
+                      "enum": [
+                        "primary",
+                        "secondary",
+                        "destructive"
+                      ],
+                      "type": "string"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                }
+              },
+              "required": [
+                "label",
+                "priority"
+              ],
+              "type": "object"
+            },
+            "type": "array"
+          },
+          "actors": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          },
+          "alsoIn": {
+            "items": {
+              "additionalProperties": {},
+              "properties": {
+                "locator": {
+                  "type": "string"
+                },
+                "path": {
+                  "maxLength": 512,
+                  "type": "string"
+                },
+                "source": {
+                  "enum": [
+                    "DECISIONS.md",
+                    "MASTER.md",
+                    "parts.json",
+                    "ux.json",
+                    "UX.md",
+                    "DIGEST.md",
+                    "CODEBASE.md",
+                    "context",
+                    "manual",
+                    "navori.config.json"
+                  ],
+                  "type": "string"
+                }
+              },
+              "required": [
+                "source",
+                "path",
+                "locator"
+              ],
+              "type": "object"
+            },
+            "type": "array"
+          },
+          "conditions": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          },
+          "conflicts": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          },
+          "events": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          },
+          "extensions": {
+            "items": {
+              "additionalProperties": {},
+              "properties": {
+                "key": {
+                  "type": "string"
+                },
+                "value": {}
+              },
+              "required": [
+                "key",
+                "value"
+              ],
+              "type": "object"
+            },
+            "type": "array"
+          },
+          "flows": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          },
+          "id": {
+            "type": "string"
+          },
+          "information": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          },
+          "journeys": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          },
+          "name": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "navigation": {
+            "additionalProperties": {},
+            "properties": {
+              "from": {
+                "items": {
+                  "type": "string"
+                },
+                "type": "array"
+              },
+              "to": {
+                "items": {
+                  "type": "string"
+                },
+                "type": "array"
+              }
+            },
+            "required": [
+              "from",
+              "to"
+            ],
+            "type": "object"
+          },
+          "permissions": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          },
+          "purpose": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "requirements": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          },
+          "sourceRef": {
+            "additionalProperties": {},
+            "properties": {
+              "locator": {
+                "type": "string"
+              },
+              "path": {
+                "maxLength": 512,
+                "type": "string"
+              },
+              "source": {
+                "enum": [
+                  "DECISIONS.md",
+                  "MASTER.md",
+                  "parts.json",
+                  "ux.json",
+                  "UX.md",
+                  "DIGEST.md",
+                  "CODEBASE.md",
+                  "context",
+                  "manual",
+                  "navori.config.json"
+                ],
+                "type": "string"
+              }
+            },
+            "required": [
+              "source",
+              "path",
+              "locator"
+            ],
+            "type": "object"
+          },
+          "states": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          },
+          "surface": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "sourceRef",
+          "alsoIn",
+          "conflicts",
+          "id",
+          "name",
+          "surface",
+          "actors",
+          "purpose",
+          "requirements",
+          "journeys",
+          "flows",
+          "information",
+          "actions",
+          "states",
+          "conditions",
+          "navigation",
+          "permissions",
+          "events",
+          "extensions"
+        ],
+        "type": "object"
+      },
+      "type": "array"
+    },
+    "states": {
+      "items": {
+        "additionalProperties": {},
+        "properties": {
+          "alsoIn": {
+            "items": {
+              "additionalProperties": {},
+              "properties": {
+                "locator": {
+                  "type": "string"
+                },
+                "path": {
+                  "maxLength": 512,
+                  "type": "string"
+                },
+                "source": {
+                  "enum": [
+                    "DECISIONS.md",
+                    "MASTER.md",
+                    "parts.json",
+                    "ux.json",
+                    "UX.md",
+                    "DIGEST.md",
+                    "CODEBASE.md",
+                    "context",
+                    "manual",
+                    "navori.config.json"
+                  ],
+                  "type": "string"
+                }
+              },
+              "required": [
+                "source",
+                "path",
+                "locator"
+              ],
+              "type": "object"
+            },
+            "type": "array"
+          },
+          "conflicts": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          },
+          "global": {
+            "type": "boolean"
+          },
+          "name": {
+            "type": "string"
+          },
+          "screens": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          },
+          "sourceRef": {
+            "additionalProperties": {},
+            "properties": {
+              "locator": {
+                "type": "string"
+              },
+              "path": {
+                "maxLength": 512,
+                "type": "string"
+              },
+              "source": {
+                "enum": [
+                  "DECISIONS.md",
+                  "MASTER.md",
+                  "parts.json",
+                  "ux.json",
+                  "UX.md",
+                  "DIGEST.md",
+                  "CODEBASE.md",
+                  "context",
+                  "manual",
+                  "navori.config.json"
+                ],
+                "type": "string"
+              }
+            },
+            "required": [
+              "source",
+              "path",
+              "locator"
+            ],
+            "type": "object"
+          }
+        },
+        "required": [
+          "sourceRef",
+          "alsoIn",
+          "conflicts",
+          "name",
+          "global",
+          "screens"
+        ],
+        "type": "object"
+      },
+      "type": "array"
+    },
+    "surfaces": {
+      "items": {
+        "additionalProperties": {},
+        "properties": {
+          "actors": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          },
+          "alsoIn": {
+            "items": {
+              "additionalProperties": {},
+              "properties": {
+                "locator": {
+                  "type": "string"
+                },
+                "path": {
+                  "maxLength": 512,
+                  "type": "string"
+                },
+                "source": {
+                  "enum": [
+                    "DECISIONS.md",
+                    "MASTER.md",
+                    "parts.json",
+                    "ux.json",
+                    "UX.md",
+                    "DIGEST.md",
+                    "CODEBASE.md",
+                    "context",
+                    "manual",
+                    "navori.config.json"
+                  ],
+                  "type": "string"
+                }
+              },
+              "required": [
+                "source",
+                "path",
+                "locator"
+              ],
+              "type": "object"
+            },
+            "type": "array"
+          },
+          "capabilities": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          },
+          "conflicts": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          },
+          "constraints": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          },
+          "extensions": {
+            "items": {
+              "additionalProperties": {},
+              "properties": {
+                "key": {
+                  "type": "string"
+                },
+                "value": {}
+              },
+              "required": [
+                "key",
+                "value"
+              ],
+              "type": "object"
+            },
+            "type": "array"
+          },
+          "id": {
+            "type": "string"
+          },
+          "name": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "purpose": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "requirements": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          },
+          "sourceRef": {
+            "additionalProperties": {},
+            "properties": {
+              "locator": {
+                "type": "string"
+              },
+              "path": {
+                "maxLength": 512,
+                "type": "string"
+              },
+              "source": {
+                "enum": [
+                  "DECISIONS.md",
+                  "MASTER.md",
+                  "parts.json",
+                  "ux.json",
+                  "UX.md",
+                  "DIGEST.md",
+                  "CODEBASE.md",
+                  "context",
+                  "manual",
+                  "navori.config.json"
+                ],
+                "type": "string"
+              }
+            },
+            "required": [
+              "source",
+              "path",
+              "locator"
+            ],
+            "type": "object"
+          }
+        },
+        "required": [
+          "sourceRef",
+          "alsoIn",
+          "conflicts",
+          "id",
+          "name",
+          "purpose",
+          "actors",
+          "capabilities",
+          "constraints",
+          "requirements",
+          "extensions"
+        ],
+        "type": "object"
+      },
+      "type": "array"
+    },
+    "traceability": {
+      "items": {
+        "additionalProperties": {},
+        "properties": {
+          "alsoIn": {
+            "items": {
+              "additionalProperties": {},
+              "properties": {
+                "locator": {
+                  "type": "string"
+                },
+                "path": {
+                  "maxLength": 512,
+                  "type": "string"
+                },
+                "source": {
+                  "enum": [
+                    "DECISIONS.md",
+                    "MASTER.md",
+                    "parts.json",
+                    "ux.json",
+                    "UX.md",
+                    "DIGEST.md",
+                    "CODEBASE.md",
+                    "context",
+                    "manual",
+                    "navori.config.json"
+                  ],
+                  "type": "string"
+                }
+              },
+              "required": [
+                "source",
+                "path",
+                "locator"
+              ],
+              "type": "object"
+            },
+            "type": "array"
+          },
+          "conflicts": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          },
+          "flows": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          },
+          "journeys": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          },
+          "parts": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          },
+          "patterns": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          },
+          "requirement": {
+            "type": "string"
+          },
+          "screens": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          },
+          "sourceRef": {
+            "additionalProperties": {},
+            "properties": {
+              "locator": {
+                "type": "string"
+              },
+              "path": {
+                "maxLength": 512,
+                "type": "string"
+              },
+              "source": {
+                "enum": [
+                  "DECISIONS.md",
+                  "MASTER.md",
+                  "parts.json",
+                  "ux.json",
+                  "UX.md",
+                  "DIGEST.md",
+                  "CODEBASE.md",
+                  "context",
+                  "manual",
+                  "navori.config.json"
+                ],
+                "type": "string"
+              }
+            },
+            "required": [
+              "source",
+              "path",
+              "locator"
+            ],
+            "type": "object"
+          }
+        },
+        "required": [
+          "sourceRef",
+          "alsoIn",
+          "conflicts",
+          "requirement",
+          "parts",
+          "journeys",
+          "flows",
+          "screens",
+          "patterns"
+        ],
+        "type": "object"
+      },
+      "type": "array"
+    },
+    "unresolvedQuestions": {
+      "items": {
+        "additionalProperties": {},
+        "properties": {
+          "alsoIn": {
+            "items": {
+              "additionalProperties": {},
+              "properties": {
+                "locator": {
+                  "type": "string"
+                },
+                "path": {
+                  "maxLength": 512,
+                  "type": "string"
+                },
+                "source": {
+                  "enum": [
+                    "DECISIONS.md",
+                    "MASTER.md",
+                    "parts.json",
+                    "ux.json",
+                    "UX.md",
+                    "DIGEST.md",
+                    "CODEBASE.md",
+                    "context",
+                    "manual",
+                    "navori.config.json"
+                  ],
+                  "type": "string"
+                }
+              },
+              "required": [
+                "source",
+                "path",
+                "locator"
+              ],
+              "type": "object"
+            },
+            "type": "array"
+          },
+          "conflicts": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          },
+          "sourceRef": {
+            "additionalProperties": {},
+            "properties": {
+              "locator": {
+                "type": "string"
+              },
+              "path": {
+                "maxLength": 512,
+                "type": "string"
+              },
+              "source": {
+                "enum": [
+                  "DECISIONS.md",
+                  "MASTER.md",
+                  "parts.json",
+                  "ux.json",
+                  "UX.md",
+                  "DIGEST.md",
+                  "CODEBASE.md",
+                  "context",
+                  "manual",
+                  "navori.config.json"
+                ],
+                "type": "string"
+              }
+            },
+            "required": [
+              "source",
+              "path",
+              "locator"
+            ],
+            "type": "object"
+          },
+          "text": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "sourceRef",
+          "alsoIn",
+          "conflicts",
+          "text"
+        ],
+        "type": "object"
+      },
+      "type": "array"
+    }
+  },
+  "required": [
+    "kind",
+    "schemaVersion",
+    "metadata",
+    "product",
+    "actors",
+    "capabilities",
+    "businessRules",
+    "functionalRequirements",
+    "nonFunctionalRequirements",
+    "surfaces",
+    "journeys",
+    "flows",
+    "screens",
+    "states",
+    "functionalComponents",
+    "patterns",
+    "entities",
+    "constraints",
+    "brand",
+    "decisions",
+    "traceability",
+    "unresolvedQuestions"
+  ],
+  "title": "ProductContext",
+  "type": "object"
+}

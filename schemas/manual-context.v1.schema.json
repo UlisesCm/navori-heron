@@ -1,0 +1,269 @@
+{
+  "$id": "manual-context.v1.schema.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "properties": {
+    "actors": {
+      "items": {
+        "additionalProperties": false,
+        "properties": {
+          "can": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          },
+          "cannot": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          },
+          "name": {
+            "minLength": 1,
+            "type": "string"
+          }
+        },
+        "required": [
+          "name"
+        ],
+        "type": "object"
+      },
+      "type": "array"
+    },
+    "brand": {
+      "items": {
+        "additionalProperties": false,
+        "properties": {
+          "kind": {
+            "enum": [
+              "logo",
+              "brand-color",
+              "secondary-color",
+              "font",
+              "brand-guidelines",
+              "screenshot",
+              "url",
+              "existing-product",
+              "competitor",
+              "liked-reference",
+              "disliked-reference"
+            ],
+            "type": "string"
+          },
+          "value": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "kind",
+          "value"
+        ],
+        "type": "object"
+      },
+      "type": "array"
+    },
+    "businessRules": {
+      "items": {
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "pattern": "^RN-\\d+$",
+            "type": "string"
+          },
+          "text": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "text"
+        ],
+        "type": "object"
+      },
+      "type": "array"
+    },
+    "capabilities": {
+      "items": {
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "pattern": "^[MSC]\\d+$",
+            "type": "string"
+          },
+          "priority": {
+            "enum": [
+              "must",
+              "should",
+              "could"
+            ],
+            "type": "string"
+          },
+          "text": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "priority",
+          "text"
+        ],
+        "type": "object"
+      },
+      "type": "array"
+    },
+    "constraints": {
+      "items": {
+        "additionalProperties": false,
+        "properties": {
+          "text": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "text"
+        ],
+        "type": "object"
+      },
+      "type": "array"
+    },
+    "decisions": {
+      "items": {
+        "additionalProperties": false,
+        "properties": {
+          "chosen": {
+            "type": "string"
+          },
+          "date": {
+            "type": "string"
+          },
+          "discarded": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          },
+          "id": {
+            "pattern": "^D\\d+$",
+            "type": "string"
+          },
+          "question": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "id"
+        ],
+        "type": "object"
+      },
+      "type": "array"
+    },
+    "entities": {
+      "items": {
+        "additionalProperties": false,
+        "properties": {
+          "details": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          },
+          "name": {
+            "minLength": 1,
+            "type": "string"
+          }
+        },
+        "required": [
+          "name"
+        ],
+        "type": "object"
+      },
+      "type": "array"
+    },
+    "functionalRequirements": {
+      "items": {
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "pattern": "^RF-\\d+$",
+            "type": "string"
+          },
+          "text": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "text"
+        ],
+        "type": "object"
+      },
+      "type": "array"
+    },
+    "kind": {
+      "const": "ManualContext",
+      "type": "string"
+    },
+    "nonFunctionalRequirements": {
+      "items": {
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "pattern": "^RNF-\\d+$",
+            "type": "string"
+          },
+          "text": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "text"
+        ],
+        "type": "object"
+      },
+      "type": "array"
+    },
+    "product": {
+      "additionalProperties": false,
+      "properties": {
+        "name": {
+          "minLength": 1,
+          "type": "string"
+        },
+        "summary": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "name"
+      ],
+      "type": "object"
+    },
+    "schemaVersion": {
+      "const": 1,
+      "type": "number"
+    },
+    "unresolvedQuestions": {
+      "items": {
+        "additionalProperties": false,
+        "properties": {
+          "text": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "text"
+        ],
+        "type": "object"
+      },
+      "type": "array"
+    }
+  },
+  "required": [
+    "kind",
+    "schemaVersion",
+    "product"
+  ],
+  "title": "ManualContext",
+  "type": "object"
+}

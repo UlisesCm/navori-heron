@@ -16,7 +16,7 @@ Lotes de 1–3 tareas. Cada test lleva `// Covers: R<n>` en la primera línea y 
 
 ## Lote 1 — Fixtures, golden de P2 y contratos
 
-- [ ] **T1** (R11, R13, R18) — Fixture `membership-product` completo, fixture `conflict`, manifiestos SYNTHETIC y golden de P2 generado con el código de P2 antes de tocar contratos.
+- [x] **T1** (R11, R13, R18) — Fixture `membership-product` completo, fixture `conflict`, manifiestos SYNTHETIC y golden de P2 generado con el código de P2 antes de tocar contratos.
   - **Archivos:** `fixtures/membership-product/`, `fixtures/conflict/`, `fixtures/no-ux/SYNTHETIC`, `fixtures/ux-only-md/SYNTHETIC`, `fixtures/ux-only-json/SYNTHETIC`, `fixtures/ux-invalid/SYNTHETIC`, `fixtures/closed-stage/SYNTHETIC`, `fixtures/README.md`, `tests/helpers/fixtures.ts`, `tests/assets/p2-workspaces/membership-product/.heron/`, `tests/assets/p2-workspaces/README.md`, `tests/e2e/p2-compat.test.ts`
   - **Interfaces:** FixtureName; copyP2Workspace
   - **Patrón:** tests/e2e/p1-compat.test.ts
@@ -26,7 +26,7 @@ Lotes de 1–3 tareas. Cada test lleva `// Covers: R<n>` en la primera línea y 
   - **Nota:** el golden se genera con `git worktree add {tmp}/heron-p2 b8ee0a9` sobre una copia del fixture ya reescrito y sin decisiones de gate (DR24).
   - **Fuera de alcance:** el test de SYNTHETIC (T14); el caso de intake sobre el golden (T13).
 
-- [ ] **T2** (R1, R5, R6, R8, R9, R10) — Contratos de P4, códigos de finding, `source.inputs` y corrección de `canonicalJson` para claves `__proto__`.
+- [x] **T2** (R1, R5, R6, R8, R9, R10) — Contratos de P4, códigos de finding, `source.inputs` y corrección de `canonicalJson` para claves `__proto__`.
   - **Archivos:** `src/core/contracts/product-context.ts`, `src/core/contracts/intake-data.ts`, `src/core/contracts/cli-envelope.ts`, `src/core/contracts/version.ts`, `src/core/contracts/index.ts`, `src/core/contracts/common.ts`, `src/core/contracts/canonical-json.ts`, `src/core/contracts/heron-project.ts`, `schemas/`, `tests/unit/contracts.test.ts`
   - **Interfaces:** ProductContext; ProductContextSchema; PRODUCT_CONTEXT_DOCUMENT; IntakeConflicts; INTAKE_CONFLICTS_DOCUMENT; ManualContext; MANUAL_CONTEXT_DOCUMENT; SourceRef; Extension; CONFLICT_KINDS; CONFLICT_KIND_PATTERN; IntakeData; ConflictsListData; ConflictsAckData; canonicalJson
   - **Patrón:** src/core/contracts/research.ts

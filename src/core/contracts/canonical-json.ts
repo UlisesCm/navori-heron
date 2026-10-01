@@ -12,9 +12,15 @@ function normalize(value: unknown, at: string): unknown {
   }
   if (Array.isArray(value)) return value.map((v, i) => normalize(v, `${at}[${i}]`));
   if (typeof value === "object") {
+    // Own data properties (not `out[key] = …`): a "__proto__" key must stay a key (DR25).
     const out: Record<string, unknown> = {};
     for (const key of Object.keys(value).toSorted()) {
-      out[key] = normalize((value as Record<string, unknown>)[key], `${at}.${key}`);
+      Object.defineProperty(out, key, {
+        value: normalize((value as Record<string, unknown>)[key], `${at}.${key}`),
+        enumerable: true,
+        writable: true,
+        configurable: true,
+      });
     }
     return out;
   }

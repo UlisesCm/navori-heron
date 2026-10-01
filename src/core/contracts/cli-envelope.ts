@@ -10,6 +10,14 @@ import {
 } from "./common.ts";
 import { ADAPTER_IDS, type AdapterId } from "./heron-project.ts";
 import {
+  ConflictsAckDataSchema,
+  ConflictsListDataSchema,
+  IntakeDataSchema,
+  type ConflictsAckData,
+  type ConflictsListData,
+  type IntakeData,
+} from "./intake-data.ts";
+import {
   BoundArtifactSchema,
   GATE_NAMES,
   HERON_PHASES,
@@ -60,6 +68,9 @@ export const CLI_COMMANDS = [
   "references import",
   "brand add",
   "research render",
+  "intake",
+  "conflicts list",
+  "conflicts ack",
 ] as const;
 export type CliCommand = (typeof CLI_COMMANDS)[number];
 
@@ -136,6 +147,9 @@ export type CliEnvelope = {
     | ReferencesShowData
     | BrandAddData
     | ResearchRenderData
+    | IntakeData
+    | ConflictsListData
+    | ConflictsAckData
     | null;
   findings: Finding[];
   runId: RunId;
@@ -219,6 +233,9 @@ export const CliEnvelopeSchema: z.ZodType<CliEnvelope> = z.object({
       ReferencesShowDataSchema,
       BrandAddDataSchema,
       ResearchRenderDataSchema,
+      IntakeDataSchema,
+      ConflictsListDataSchema,
+      ConflictsAckDataSchema,
       InitDataSchema,
       StatusDataSchema,
       DoctorDataSchema,
