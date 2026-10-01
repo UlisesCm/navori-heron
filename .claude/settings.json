@@ -40,6 +40,12 @@
           },
           {
             "type": "command",
+            "command": "bash \"$CLAUDE_PROJECT_DIR/.claude/hooks/quality-gate-pre-commit.sh\"",
+            "timeout": 600,
+            "statusMessage": "navori: quality-gate fast"
+          },
+          {
+            "type": "command",
             "command": "bash \"$CLAUDE_PROJECT_DIR/.claude/scripts/check-jscpd.sh\"",
             "timeout": 600,
             "statusMessage": "navori/jscpd: dup check"
@@ -280,7 +286,16 @@
       "Bash(semgrep:*)",
       "Bash(tgrep search *)",
       "Bash(tgrep status:*)",
-      "Bash(tgrep --version)"
+      "Bash(tgrep --version)",
+      "Bash(bun run check:*)",
+      "Bash(bun run build:*)",
+      "Bash(bun run test:*)",
+      "Bash(bun run lint:*)",
+      "Bash(bun lint:*)",
+      "Bash(bun run typecheck:*)",
+      "Bash(bun typecheck:*)",
+      "Bash(bun run format:*)",
+      "Bash(bun format:*)"
     ],
     "ask": [
       "Bash(rm -rf *)",

@@ -122,10 +122,11 @@ Use `codegraph_explore` for structural discovery when available. Pass the curren
 Use `tgrep search -n [flags] -- PATTERN ROOT`; without `-n` piped output has no line numbers. Prefer `-F` for literals. Scope by directory or `-t TYPE`; broad queries start with `-l`, then selected files and `-C 2`. Positive `-g` forces a scan. Use `--hidden` only for intended hidden paths. A disk index refreshes only under `tgrep serve`; otherwise it silently misses changes since indexing. If `tgrep status` shows `Server: not running`, use `--no-index` or warn. Exit 1 means no matches, 2 means error. Preserve stderr. If unavailable, use native Grep. Do not install, start servers or reindex during ordinary discovery.
 <!-- /navori:managed id="tgrep-search-v2" -->
 
-<!-- navori:managed id="skills-index" hash="fd2c6999" version="0.11.0" source="@navori/core" -->
+<!-- navori:managed id="skills-index" hash="5077ce54" version="0.11.0" source="@navori/core" -->
 ## Skills disponibles
 
 Skills que los agentes pueden aplicar. Toda skill vive en `.claude/skills/<id>/SKILL.md` — el directorio no es opcional: es la única forma que Claude Code descubre, también para las tuyas. El listado nativo del host entrega el "cuándo usar" de cada una.
+Las `project-local` son tuyas — navori las indexa pero nunca toca su contenido.
 
 - `verify-before-done` — navori
 - `debug-failure` — navori
@@ -145,17 +146,20 @@ Skills que los agentes pueden aplicar. Toda skill vive en `.claude/skills/<id>/S
 - `plan-advanced` — navori (workflow)
 - `master-plan` — navori (workflow)
 - `context-intake` — navori (workflow)
+- `heron-architecture` — project-local (`.claude/skills/heron-architecture`)
+- `heron-design-tokens` — project-local (`.claude/skills/heron-design-tokens`)
+- `heron-accessibility` — project-local (`.claude/skills/heron-accessibility`)
 <!-- /navori:managed id="skills-index" -->
 
-<!-- navori:managed id="contexto-proyecto" hash="0ea1836b" version="0.11.0" source="@navori/core" -->
+<!-- navori:managed id="contexto-proyecto" hash="0c965770" version="0.11.0" source="@navori/core" -->
 ## Contexto del proyecto
 
 Reglas activas derivadas de tu config (`project.*`). Aplican a todos los agentes.
 
 - **Etapa:** greenfield — favorece velocidad y menos ceremonia, pero el quality gate igual debe pasar.
 - **Rigor de revisión:** pragmático — el reviewer bloquea solo issues ≥80; el resto queda como nota informativa.
-- **Arquitectura:** el código nuevo DEBE seguir `ej: axios → service → adapter → component; forms = mantine + zod`. El reviewer marca las desviaciones como HIGH.
-- **Áreas críticas** (revisión extra, severidad +1): ej: src/auth, src/billing.
+- **Arquitectura:** el código nuevo DEBE seguir `bin → cli|web → app (run* → UseCaseResult) → dominio puro (core/state, tokens, design, validation, export, penpot/compiler) y puertos→adapters (intake, research, agents, penpot); contratos Zod versionados en core/contracts; solo core/store toca el filesystem; fronteras en tests/repo/boundaries.test.ts`. El reviewer marca las desviaciones como HIGH.
+- **Áreas críticas** (revisión extra, severidad +1): src/core/store, src/core/state, src/core/contracts, src/security, src/intake/adapters/navori-master, src/agents/adapters, src/penpot, src/web/auth, tests/repo/boundaries.test.ts.
 - **Tests:** exige tests para lógica no trivial; opcionales para código simple.
 <!-- /navori:managed id="contexto-proyecto" -->
 
