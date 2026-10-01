@@ -54,8 +54,8 @@ function idOf(candidate: Candidate): string | null {
   return typeof id === "string" ? id : null;
 }
 
-/** Ids each defining source declares, taken from the unmerged candidates. Part acceptance ids are
- * not part of the draft, so every part maps to an empty set (T8 supplies them when it has them). */
+/** Ids each defining source declares, taken from the unmerged candidates. Parts and their criterion
+ * ids (`P<n>.A<m>`) come from `draft.parts`; parts only cited by traceability map to an empty set. */
 function definedIds(draft: ContextDraft): DefinedIds {
   const from = (source: SourceKind, sections: readonly ProductContextSection[]): Candidate[] =>
     draft.candidates.filter((c) => c.ref.source === source && sections.includes(c.section));
@@ -70,11 +70,15 @@ function definedIds(draft: ContextDraft): DefinedIds {
     ? new Set(from("DECISIONS.md", ["decisions"]).map((c) => c.key))
     : null;
   const parts = present(draft, "parts.json")
-    ? new Map(
-        from("parts.json", ["traceability"])
+    ? new Map<string, Set<string>>([
+        ...from("parts.json", ["traceability"])
           .flatMap((c) => (c.value as { parts: string[] }).parts)
           .map((id): [string, Set<string>] => [id, new Set()]),
-      )
+        ...(draft.parts ?? []).map((part): [string, Set<string>] => [
+          part.id,
+          new Set(part.criteria.map((criterion) => `${part.id}.${criterion}`)),
+        ]),
+      ])
     : null;
   return {
     requirements,

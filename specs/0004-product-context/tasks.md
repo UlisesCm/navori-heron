@@ -88,17 +88,17 @@ Lotes de 1–3 tareas. Cada test lleva `// Covers: R<n>` en la primera línea y 
 
 ## Lote 4 — Adapters
 
-- [ ] **T8** (R1, R2, R3, R13, R15) — `load` real de `navori-master` sobre todas sus fuentes; P4.A1 y P4.A3 sobre los fixtures.
+- [x] **T8** (R1, R2, R3, R13, R15) — `load` real de `navori-master` sobre todas sus fuentes; P4.A1 y P4.A3 sobre los fixtures.
   - **Archivos:** `src/intake/ports.ts`, `src/intake/adapters/navori-master/index.ts`, `tests/contracts/product-context.test.ts`, `tests/unit/intake/precedence.test.ts`
   - **Interfaces:** loadNavoriMaster; LoadRequest; AdapterLoadResult
   - **Patrón:** src/intake/adapters/navori-master/index.ts
   - **Lectura:** `specs/0004-product-context/design.md` (§ Contracts › 6, 7, 8; § Decisions DR2, DR8, DR9, DR12; § Failure modes), `src/intake/ports.ts`
   - **Librerías:** ninguna
   - **Done:** comando `bun test tests/contracts/product-context.test.ts tests/unit/intake/precedence.test.ts`, esperado exit 0; casos de test "maps membership-product into ProductContext v1 with its nineteen sections", "every element points to the source text it came from", "reads the harness language and tolerates unknown sections and fields", "records a CONFLICT and blocks the intake gate until acknowledged"; cubre P4.A1 y P4.A3.
-  - **Nota:** la unión de fallos de `AdapterLoadResult` conserva `LOAD_NOT_AVAILABLE` hasta T9 (el adapter `filesystem` aún es stub).
+  - **Nota:** la unión de fallos de `AdapterLoadResult` conservó `LOAD_NOT_AVAILABLE` hasta T9, que lo retiró (el adapter `filesystem` ya no es stub).
   - **Fuera de alcance:** `filesystem` (T9), `markdown`/`manual` (T10).
 
-- [ ] **T9** (R3, R9) — `load` real de `filesystem`, `adapterFor` y retiro del stub de P1.
+- [x] **T9** (R3, R9) — `load` real de `filesystem`, `adapterFor` y retiro del stub de P1.
   - **Archivos:** `src/intake/adapters/filesystem/index.ts`, `src/intake/detect.ts`, `src/intake/ports.ts`, `tests/unit/intake/adapters.test.ts`
   - **Interfaces:** adapterFor; filesystemAdapter
   - **Patrón:** src/intake/adapters/filesystem/index.ts
@@ -107,7 +107,7 @@ Lotes de 1–3 tareas. Cada test lleva `// Covers: R<n>` en la primera línea y 
   - **Done:** comando `bun test tests/unit/intake/adapters.test.ts`, esperado exit 0 y ningún `loadNotAvailable` en `src/`; casos de test "keeps UX sections empty in reference-only"; base de P4.A4.
   - **Fuera de alcance:** selección explícita (T10).
 
-- [ ] **T10** (R9) — Adapters `markdown` y `manual`, validación de insumos y selección explícita en `detectProject`.
+- [x] **T10** (R9) — Adapters `markdown` y `manual`, validación de insumos y selección explícita en `detectProject`.
   - **Archivos:** `src/intake/inputs.ts`, `src/intake/adapters/markdown/index.ts`, `src/intake/adapters/manual/index.ts`, `src/intake/detect.ts`, `src/core/state/mode.ts`, `tests/unit/intake/adapters.test.ts`, `tests/unit/mode.test.ts`, `tests/assets/intake/product-brief.md`, `tests/assets/intake/manual-context.json`
   - **Interfaces:** markdownAdapter; manualAdapter; validateSelection; parseManualContext; MAX_CONTEXT_INPUTS; OPT_IN_ADAPTERS; detectProject; describeModeBlock
   - **Patrón:** src/intake/adapters/filesystem/index.ts

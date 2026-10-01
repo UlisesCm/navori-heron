@@ -11,7 +11,6 @@ import {
   readStageState,
 } from "../../src/intake/adapters/navori-master/harness.ts";
 import { navoriMasterAdapter } from "../../src/intake/adapters/navori-master/index.ts";
-import { filesystemAdapter } from "../../src/intake/adapters/filesystem/index.ts";
 import { detectProject } from "../../src/intake/detect.ts";
 import { DEFAULT_INPUT_LIMITS, type DetectRequest } from "../../src/intake/ports.ts";
 
@@ -413,18 +412,5 @@ describe("adapters", () => {
     expect(plain.report.uxJson.valid).toBe(true);
     const none = detectProject(req(repo({})), []);
     expect(none).toMatchObject({ kind: "detected", report: { adapter: "filesystem" } });
-  });
-
-  test("load is not available until P4", () => {
-    // Covers: R1
-    const request = req(repo({}));
-    const d = filesystemAdapter.detect(request);
-    if (d.kind !== "detected") throw new Error("expected detected");
-    for (const adapter of [filesystemAdapter, navoriMasterAdapter]) {
-      expect(adapter.load({ ...request, report: d.report })).toMatchObject({
-        ok: false,
-        code: "LOAD_NOT_AVAILABLE",
-      });
-    }
   });
 });

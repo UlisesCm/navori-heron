@@ -567,6 +567,7 @@ export declare function mergeCandidates(candidates: readonly Candidate[], source
 // src/intake/product-context.ts
 export type BuildMeta = { adapter: AdapterId; mode: HeronMode; stage: { dir: string; selection: StageSelection } | null };
 export type DefinedIds = { requirements: Set<string> | null; parts: Map<string, Set<string>> | null; decisions: Set<string> | null; masterActors: boolean }; // parts: P<n> -> A<m> ids; null = defining source absent
+// internal additive field: uxActors: { id: string; name: string; ref: SourceRef }[] — actors ux.json declares (incl. unpaired ones), needed for actor-unknown
 export type DetectedConflict = Omit<Conflict, "id" | "status" | "ack" | "kind"> & { kind: ConflictKind };
 export declare function buildProductContext(draft: ContextDraft, meta: BuildMeta): { context: ProductContext; mismatches: ValueMismatch[]; defined: DefinedIds };
 export declare function withConflictIds(context: ProductContext, conflicts: IntakeConflicts): ProductContext;

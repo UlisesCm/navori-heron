@@ -235,11 +235,7 @@ function referenceConflicts(context: ProductContext, defined: DefinedIds): Detec
     } else if (defined.parts !== null && (PART_ID.test(id) || CRITERION_ID.test(id))) {
       const part = id.split(".")[0] ?? id;
       const criteria = defined.parts.get(part);
-      // Criteria sets may be empty (not populated yet): an unknown criterion is only claimed against a populated part.
-      if (
-        criteria === undefined ||
-        (CRITERION_ID.test(id) && criteria.size > 0 && !criteria.has(id))
-      ) {
+      if (criteria === undefined || (CRITERION_ID.test(id) && !criteria.has(id))) {
         definer = "parts.json";
       }
     } else if (DECISION_ID.test(id) && defined.decisions !== null && !defined.decisions.has(id)) {

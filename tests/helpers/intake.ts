@@ -1,10 +1,13 @@
 import type {
+  HeronMode,
   ProductContextSection,
   RelativeArtifactPath,
   SourceKind,
   SourceRef,
 } from "../../src/core/contracts/index.ts";
-import type { Candidate, ContextDraft } from "../../src/intake/ports.ts";
+import { nodeFs } from "../../src/core/store/fs-port.ts";
+import { navoriMasterAdapter } from "../../src/intake/adapters/navori-master/index.ts";
+import { DEFAULT_INPUT_LIMITS, type Candidate, type ContextDraft } from "../../src/intake/ports.ts";
 
 const STAGE = "specs/_master/01-mvp";
 const PATHS: Readonly<Record<SourceKind, RelativeArtifactPath>> = {
@@ -88,4 +91,14 @@ export function stateValue(
   screens: string[] = [],
 ): Extract<Candidate, { section: "states" }>["value"] {
   return { name, global, screens };
+}
+
+/** Detects and loads the navori-master draft of the repository at `root`; throws when it cannot. */
+export function loadMasterDraft(root: string, mode: HeronMode = "full"): ContextDraft {
+  const request = { root, stage: null, fs: nodeFs, limits: DEFAULT_INPUT_LIMITS };
+  const detected = navoriMasterAdapter.detect(request);
+  if (detected.kind !== "detected") throw new Error(`navori-master not detected in ${root}`);
+  const loaded = navoriMasterAdapter.load({ ...request, report: detected.report, mode });
+  if (!loaded.ok) throw new Error(loaded.message);
+  return loaded.draft;
 }

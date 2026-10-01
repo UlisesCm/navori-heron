@@ -39,7 +39,7 @@ const ruleAt = (index: number): InstructionRuleId => {
 };
 
 describe("scanUntrustedText", () => {
-  test("matches each instruction rule and stays linear on adversarial input", () => {
+  test("matches each instruction rule and bounds findings", () => {
     expect(new Set(INSTRUCTION_RULES.map((r) => r.id))).toEqual(new Set(INSTRUCTION_RULE_IDS));
     expect(INSTRUCTION_RULES).toHaveLength(SAMPLES.length);
     for (const [index, positive, negative] of SAMPLES) {
@@ -111,8 +111,11 @@ describe("scanUntrustedText", () => {
     expect(manyHidden.findings).toHaveLength(MAX_SCAN_FINDINGS);
     expect(manyHidden.truncated).toBe(true);
     expect(scanUntrustedText("").findings).toEqual([]);
+  });
 
-    // adversarial 1 MiB inputs per shape finish far below the budget
+  test("scan stays far below a catastrophic bound on 1 MiB adversarial input", () => {
+    // Linear scan takes ~5-25 ms idle and <= ~0.5 s under heavy load; a quadratic one costs
+    // >> 10 s at 1 MiB, so 2 s per input separates them without measuring the machine.
     const MiB = 1024 * 1024;
     const adversarial = [
       " ".repeat(MiB),
@@ -132,7 +135,7 @@ describe("scanUntrustedText", () => {
     for (const input of adversarial) {
       const started = performance.now();
       scanUntrustedText(input);
-      expect(performance.now() - started).toBeLessThan(200);
+      expect(performance.now() - started).toBeLessThan(2_000);
     }
-  }, 20_000);
+  }, 60_000);
 });

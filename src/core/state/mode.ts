@@ -1,5 +1,6 @@
 import {
   FINDING_CODES,
+  type AdapterId,
   type DetectionReport,
   type Finding,
   type ModeDecision,
@@ -61,7 +62,11 @@ function sortFindings<F extends StoredFinding>(findings: F[]): F[] {
   );
 }
 
+/** Only these adapters read UX files, so only they can reach `full` (DR22). */
+const UX_CAPABLE_ADAPTERS: readonly AdapterId[] = ["navori-master", "filesystem"];
+
 /** Pure. Rules, all applied, findings accumulated:
+ * 0. adapter markdown or manual -> reference-only (DR22), whatever the report says; no further rules apply.
  * 1. stageStatus "none" or "unknown" -> reference-only, STAGE_UNAVAILABLE ("selected" and "not-applicable" go on).
  * 2. For each present UX file with valid = false -> UX_CONTRACT_INVALID (one finding per file, with issues).
  * 3. Exactly one UX file present -> UX_INCONSISTENT naming the missing file, unless harness.ux = "md" and only UX.md is present.
@@ -69,6 +74,18 @@ function sortFindings<F extends StoredFinding>(findings: F[]): F[] {
  * 5. Declaration vs presence (none: neither; md: UX.md only; md-json: both) differs -> UX_DECLARATION_MISMATCH and reference-only (DP11, D27).
  * 6. Both absent -> UX_FILES_MISSING. 7. Otherwise, both present and valid -> full with reason UX_COMPLETE. */
 export function detectMode(report: DetectionReport): ModeDecision {
+  if (!UX_CAPABLE_ADAPTERS.includes(report.adapter)) {
+    return {
+      kind: "ModeDecision",
+      schemaVersion: 1,
+      mode: "reference-only",
+      reasons: [
+        { code: "UX_FILES_MISSING", message: `The ${report.adapter} adapter has no UX contract.` },
+      ],
+      findings: [],
+      detection: report,
+    };
+  }
   const reasons: ModeReason[] = [];
   const findings: Finding[] = [];
   const { uxMarkdown: md, uxJson: json } = report;
@@ -151,6 +168,9 @@ export function describeModeBlock(decision: StoredModeDecision): string {
   const has = (code: ModeReason["code"]): boolean => decision.reasons.some((r) => r.code === code);
   const { uxMarkdown: md, uxJson: json } = decision.detection;
   if (decision.mode === "full") return "production is available";
+  if (!UX_CAPABLE_ADAPTERS.includes(decision.detection.adapter)) {
+    return `the ${decision.detection.adapter} adapter has no UX contract`;
+  }
   if (has("STAGE_UNAVAILABLE")) return "no stage is selected";
   if (has("UX_DECLARED_MD_ONLY")) return "the harness declared UX.md only";
   if (has("UX_CONTRACT_INVALID")) {

@@ -1,23 +1,37 @@
 import type {
+  ContextSourceRecord,
   DetectedArtifact,
   DetectionReport,
   Finding,
   HarnessArtifactName,
   HarnessDeclaration,
+  RelativeArtifactPath,
+  SourceKind,
 } from "../../../core/contracts/index.ts";
+import { candidateSink } from "../../candidates.ts";
+import { createDraftKit, type DraftKit, type Extraction } from "../../draft-kit.ts";
+import { extractRoleSections, type MarkdownDoc } from "../../markdown.ts";
 import {
-  loadNotAvailable,
   type AdapterDetection,
+  type AdapterLoadResult,
+  type ContextDraft,
   type DetectRequest,
+  type LoadRequest,
   type ProductContextAdapter,
 } from "../../ports.ts";
 import { probeFile } from "../../probe.ts";
+import { listContextMarkdown } from "../../sources.ts";
 import { checkUxFiles } from "../../ux-contract.ts";
+import { extractUxMarkdown } from "../../ux-markdown.ts";
+import { parseDecisions } from "./decisions.ts";
 import {
+  CONFIG_PATH,
   HARNESS_UX_DECLARATIONS,
   readMasterIndex,
   readNavoriConfig,
+  readParts,
   readStageState,
+  type HarnessReadResult,
 } from "./harness.ts";
 import { selectStage } from "./stage.ts";
 
@@ -150,9 +164,159 @@ function detectNavoriMaster(request: DetectRequest): AdapterDetection {
   };
 }
 
+const role = (path: RelativeArtifactPath, source: SourceKind) => (doc: MarkdownDoc) =>
+  extractRoleSections(doc, { source, path });
+
+/** Reads the sources of the selected stage in draft order (DR3, § Contracts 7) and turns them into
+ * candidates; merging, precedence and conflicts belong to `buildProductContext`. A source that cannot be
+ * read is reported and skipped, never thrown. `ux.json` and `UX.md` contribute only in `full`
+ * (otherwise a present file is `unused`); `ux.json` bytes that differ from `report.uxJson.sha256` fail
+ * with INPUTS_CHANGED. */
+export function loadNavoriMaster(request: LoadRequest): AdapterLoadResult {
+  const { fs, root, limits, report, mode } = request;
+  const { stage, specsDir } = report;
+  // Invariant: `detect` always sets `specsDir` on a navori-master report (only an absent index is not-detected).
+  if (!report.navoriMaster || specsDir === null) {
+    throw new Error("loadNavoriMaster requires a navori-master detection report");
+  }
+  if (stage === null) {
+    // No stage (empty or unreadable index): the stage-scoped sources are not part of the draft; the
+    // root-level navori.config.json is still read. The detection findings explain the missing stage.
+    const kit = createDraftKit(request);
+    configSource(kit, request);
+    return kit.finish();
+  }
+  const dir = `${specsDir}/_master/${stage.dir}`;
+  const kit = createDraftKit(request);
+  const { take, markdown, findings } = kit;
+  let parts: ContextDraft["parts"];
+  const full = mode === "full";
+
+  const decisionsPath = `${dir}/DECISIONS.md`;
+  markdown(decisionsPath, "DECISIONS.md", (doc) => parseDecisions(doc, decisionsPath));
+  const masterPath = `${dir}/MASTER.md`;
+  markdown(masterPath, "MASTER.md", role(masterPath, "MASTER.md"));
+
+  const partsPath = `${dir}/parts.json`;
+  const partsRead = readParts(fs, root, dir, limits);
+  if (partsRead.status === "ok") {
+    parts = partsRead.value.parts.map((part) => ({
+      id: part.id,
+      criteria: part.acceptance,
+    }));
+    take(
+      { source: "parts.json", path: partsPath, status: "read" },
+      partsCandidates(partsRead.value.parts, partsPath, partsRead.value.skipped),
+    );
+  } else {
+    take(...unsettled("parts.json", partsPath, partsRead, findings));
+  }
+
+  const changed = kit.uxJson(
+    { path: `${dir}/ux.json`, expectedStage: stage.dir, detectedSha256: report.uxJson.sha256 },
+    full,
+  );
+  if (changed !== null) return changed;
+
+  const uxMarkdownPath = `${dir}/UX.md`;
+  markdown(uxMarkdownPath, "UX.md", (doc) => extractUxMarkdown(doc, uxMarkdownPath), full);
+
+  for (const [name, source] of [
+    ["DIGEST.md", "DIGEST.md"],
+    ["CODEBASE.md", "CODEBASE.md"],
+  ] as const) {
+    const path = `${dir}/context/${name}`;
+    markdown(path, source, role(path, source));
+  }
+  const listed = listContextMarkdown(fs, root, `${dir}/context/md`, limits);
+  findings.push(...listed.findings);
+  for (const path of listed.paths) markdown(path, "context", role(path, "context"));
+
+  configSource(kit, request);
+
+  return kit.finish(parts);
+}
+
+/** `navori.config.json` (product name and language), the last source of the draft (DR3). */
+function configSource(kit: DraftKit, { fs, root, limits }: LoadRequest): void {
+  const { take, findings } = kit;
+  const config = readNavoriConfig(fs, root, limits);
+  if (config.status === "ok") {
+    const sink = candidateSink({
+      source: "navori.config.json",
+      path: CONFIG_PATH,
+    });
+    if (config.value.name !== null) {
+      sink.add("product", "name", { key: "name", value: config.value.name }, "/name");
+    }
+    if (config.value.language !== null) {
+      sink.add(
+        "product",
+        "language",
+        { key: "language", value: config.value.language },
+        "/language",
+      );
+    }
+    take(
+      { source: "navori.config.json", path: CONFIG_PATH, status: "read" },
+      { candidates: sink.items, findings: [] },
+    );
+  } else {
+    take(...unsettled("navori.config.json", CONFIG_PATH, config, findings));
+  }
+}
+
+/** One traceability candidate per seeded requirement, listing the parts that seed it (file order). */
+function partsCandidates(
+  parts: { id: string; seedRequirements: string[]; pointer: string }[],
+  path: RelativeArtifactPath,
+  skipped: Finding[],
+): Extraction {
+  const sink = candidateSink({ source: "parts.json", path });
+  const byRequirement = new Map<string, { parts: string[]; pointer: string }>();
+  for (const part of parts) {
+    for (const requirement of part.seedRequirements) {
+      const entry = byRequirement.get(requirement) ?? {
+        parts: [],
+        pointer: part.pointer,
+      };
+      if (!entry.parts.includes(part.id)) entry.parts.push(part.id);
+      byRequirement.set(requirement, entry);
+    }
+  }
+  for (const [requirement, entry] of byRequirement) {
+    sink.add(
+      "traceability",
+      requirement,
+      {
+        requirement,
+        parts: entry.parts,
+        journeys: [],
+        flows: [],
+        screens: [],
+        patterns: [],
+      },
+      `${entry.pointer}/seedRequirements`,
+    );
+  }
+  return { candidates: sink.items, findings: skipped };
+}
+
+/** Record and findings of a harness JSON source that did not parse: absent, or unreadable with its finding. */
+function unsettled<T>(
+  source: SourceKind,
+  path: RelativeArtifactPath,
+  result: Exclude<HarnessReadResult<T>, { status: "ok" }>,
+  findings: Finding[],
+): [ContextSourceRecord, null] {
+  if (result.status === "absent") return [{ source, path, status: "absent" }, null];
+  findings.push(result.finding);
+  return [{ source, path, status: "unreadable" }, null];
+}
+
 /** Detected iff navori.config.json and {specsDir}/_master/index.json both exist. Never throws on hostile input. */
 export const navoriMasterAdapter: ProductContextAdapter = {
   id: "navori-master",
   detect: detectNavoriMaster,
-  load: () => loadNotAvailable("navori-master"),
+  load: loadNavoriMaster,
 };

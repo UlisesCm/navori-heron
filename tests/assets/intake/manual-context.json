@@ -1,0 +1,11 @@
+{
+  "kind": "ManualContext",
+  "schemaVersion": 1,
+  "product": { "name": "Club", "summary": "A small club app." },
+  "actors": [{ "name": "Member", "can": ["Book a class"], "cannot": ["See other members' data"] }],
+  "capabilities": [{ "id": "M1", "priority": "must", "text": "Members can book a class." }],
+  "businessRules": [{ "id": "RN-1", "text": "A member holds at most three active bookings." }],
+  "entities": [{ "name": "Booking", "details": ["class", "member"] }],
+  "decisions": [{ "id": "D1", "question": "Payments?", "chosen": "Out of scope" }],
+  "unresolvedQuestions": [{ "text": "Which time zone do classes use?" }]
+}

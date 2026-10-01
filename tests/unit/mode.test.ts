@@ -139,3 +139,31 @@ describe("detectMode", () => {
     expect(describeModeBlock(detectMode(report("valid", "valid")))).toBe("production is available");
   });
 });
+
+const asAdapter = (adapter: DetectionReport["adapter"]): DetectionReport => ({
+  ...report("valid", "valid"),
+  adapter,
+});
+
+describe("opt-in adapters", () => {
+  test("only the filesystem and navori-master adapters can reach full", () => {
+    // Covers: R9
+    for (const adapter of ["navori-master", "filesystem"] as const) {
+      expect(detectMode(asAdapter(adapter)).mode).toBe("full");
+    }
+    for (const adapter of ["markdown", "manual"] as const) {
+      const decision = detectMode(asAdapter(adapter));
+      expect(decision.mode).toBe("reference-only");
+      expect(decision.reasons.map((r) => r.code)).toEqual(["UX_FILES_MISSING"]);
+    }
+  });
+
+  test("explains reference-only for the markdown and manual adapters", () => {
+    // Covers: R9
+    for (const adapter of ["markdown", "manual"] as const) {
+      expect(describeModeBlock(detectMode(asAdapter(adapter)))).toBe(
+        `the ${adapter} adapter has no UX contract`,
+      );
+    }
+  });
+});
