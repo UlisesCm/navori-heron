@@ -104,9 +104,10 @@ const FACT_CHECKS: Partial<Record<PreconditionId, (facts: TransitionFacts) => Pr
     ),
     "research-minimum-references": predicate(["referencesWithProvenance"], (f) => {
       const min = f.minReferences ?? 5;
-      return (f.referencesWithProvenance ?? 0) >= min
+      const found = f.referencesWithProvenance ?? 0;
+      return found >= min
         ? null
-        : `at least ${min} references with provenance are required`;
+        : `at least ${min} references with provenance are required (found ${found})`;
     }),
     "three-valid-directions": predicate(["validDirections"], (f) =>
       f.validDirections === 3 ? null : "exactly 3 valid directions are required",

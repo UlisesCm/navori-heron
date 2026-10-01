@@ -64,6 +64,22 @@ export const FINDING_CODES = [
   "USAGE",
   "UNEXPECTED_ERROR",
   "PENPOT_REQUIRED_FOR_DIRECTION", // D26: emitted by the direction-selectable precondition
+  "PROVENANCE_INCOMPLETE",
+  "REFERENCE_INPUT_INVALID",
+  "REFERENCE_NOT_FOUND",
+  "BATCH_INVALID",
+  "CROP_INVALID",
+  "BRAND_INPUT_INVALID",
+  "INVALID_URL",
+  "SSRF_BLOCKED",
+  "FETCH_FAILED",
+  "UNSUPPORTED_MEDIA_TYPE",
+  "IMAGE_UNREADABLE",
+  "IMAGE_ENGINE_UNAVAILABLE",
+  "ADAPTER_NOT_AVAILABLE",
+  "LOCALE_INVALID",
+  "LOCALE_FALLBACK",
+  "ASSETS_LARGE",
 ] as const;
 export type FindingCode = (typeof FINDING_CODES)[number];
 export type FindingSeverity = "info" | "warning" | "error";

@@ -1,0 +1,107 @@
+{
+  "$id": "reference-batch.v1.schema.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "properties": {
+    "kind": {
+      "const": "ReferenceBatch",
+      "type": "string"
+    },
+    "references": {
+      "items": {
+        "additionalProperties": false,
+        "properties": {
+          "crops": {
+            "items": {
+              "additionalProperties": false,
+              "properties": {
+                "height": {
+                  "maximum": 9007199254740991,
+                  "minimum": -9007199254740991,
+                  "type": "integer"
+                },
+                "note": {
+                  "type": "string"
+                },
+                "width": {
+                  "maximum": 9007199254740991,
+                  "minimum": -9007199254740991,
+                  "type": "integer"
+                },
+                "x": {
+                  "maximum": 9007199254740991,
+                  "minimum": -9007199254740991,
+                  "type": "integer"
+                },
+                "y": {
+                  "maximum": 9007199254740991,
+                  "minimum": -9007199254740991,
+                  "type": "integer"
+                }
+              },
+              "required": [
+                "x",
+                "y",
+                "width",
+                "height",
+                "note"
+              ],
+              "type": "object"
+            },
+            "type": "array"
+          },
+          "doNotCopy": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          },
+          "file": {
+            "type": "string"
+          },
+          "influences": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          },
+          "origin": {
+            "type": "string"
+          },
+          "reason": {
+            "type": "string"
+          },
+          "screenshot": {
+            "type": "boolean"
+          },
+          "source": {
+            "type": "string"
+          },
+          "studies": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          },
+          "url": {
+            "type": "string"
+          }
+        },
+        "type": "object"
+      },
+      "maxItems": 200,
+      "type": "array"
+    },
+    "schemaVersion": {
+      "const": 1,
+      "type": "number"
+    }
+  },
+  "required": [
+    "kind",
+    "schemaVersion",
+    "references"
+  ],
+  "title": "ReferenceBatch",
+  "type": "object"
+}

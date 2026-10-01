@@ -42,7 +42,15 @@
             "init",
             "status",
             "doctor",
-            "gate"
+            "gate",
+            "references add",
+            "references list",
+            "references show",
+            "references compare",
+            "references remove",
+            "references import",
+            "brand add",
+            "research render"
           ],
           "type": "string"
         },
@@ -56,6 +64,3879 @@
       "anyOf": [
         {
           "anyOf": [
+            {
+              "additionalProperties": false,
+              "properties": {
+                "batch": {
+                  "additionalProperties": false,
+                  "properties": {
+                    "file": {
+                      "type": "string"
+                    },
+                    "items": {
+                      "maximum": 9007199254740991,
+                      "minimum": 0,
+                      "type": "integer"
+                    }
+                  },
+                  "required": [
+                    "file",
+                    "items"
+                  ],
+                  "type": "object"
+                },
+                "counts": {
+                  "additionalProperties": false,
+                  "properties": {
+                    "active": {
+                      "maximum": 9007199254740991,
+                      "minimum": 0,
+                      "type": "integer"
+                    },
+                    "brandInputs": {
+                      "maximum": 9007199254740991,
+                      "minimum": 0,
+                      "type": "integer"
+                    },
+                    "minimum": {
+                      "maximum": 9007199254740991,
+                      "minimum": 0,
+                      "type": "integer"
+                    },
+                    "removed": {
+                      "maximum": 9007199254740991,
+                      "minimum": 0,
+                      "type": "integer"
+                    },
+                    "withProvenance": {
+                      "maximum": 9007199254740991,
+                      "minimum": 0,
+                      "type": "integer"
+                    }
+                  },
+                  "required": [
+                    "active",
+                    "removed",
+                    "withProvenance",
+                    "minimum",
+                    "brandInputs"
+                  ],
+                  "type": "object"
+                },
+                "phase": {
+                  "additionalProperties": false,
+                  "properties": {
+                    "from": {
+                      "enum": [
+                        "initialized",
+                        "intake-ready",
+                        "researching",
+                        "research-ready",
+                        "directions-ready",
+                        "direction-selected",
+                        "foundations-ready",
+                        "representative-screens-ready",
+                        "system-ready",
+                        "screens-ready",
+                        "penpot-synced",
+                        "validated",
+                        "exported"
+                      ],
+                      "type": "string"
+                    },
+                    "to": {
+                      "enum": [
+                        "initialized",
+                        "intake-ready",
+                        "researching",
+                        "research-ready",
+                        "directions-ready",
+                        "direction-selected",
+                        "foundations-ready",
+                        "representative-screens-ready",
+                        "system-ready",
+                        "screens-ready",
+                        "penpot-synced",
+                        "validated",
+                        "exported"
+                      ],
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "from",
+                    "to"
+                  ],
+                  "type": "object"
+                },
+                "references": {
+                  "items": {
+                    "additionalProperties": {},
+                    "properties": {
+                      "capture": {
+                        "oneOf": [
+                          {
+                            "additionalProperties": {},
+                            "properties": {
+                              "kind": {
+                                "const": "manual",
+                                "type": "string"
+                              }
+                            },
+                            "required": [
+                              "kind"
+                            ],
+                            "type": "object"
+                          },
+                          {
+                            "additionalProperties": {},
+                            "properties": {
+                              "content": {
+                                "additionalProperties": {},
+                                "properties": {
+                                  "bytes": {
+                                    "maximum": 9007199254740991,
+                                    "minimum": 0,
+                                    "type": "integer"
+                                  },
+                                  "mediaType": {
+                                    "minLength": 1,
+                                    "type": "string"
+                                  },
+                                  "path": {
+                                    "maxLength": 512,
+                                    "type": "string"
+                                  },
+                                  "sha256": {
+                                    "pattern": "^[0-9a-f]{64}$",
+                                    "type": "string"
+                                  },
+                                  "trust": {
+                                    "const": "untrusted",
+                                    "type": "string"
+                                  }
+                                },
+                                "required": [
+                                  "path",
+                                  "sha256",
+                                  "mediaType",
+                                  "bytes",
+                                  "trust"
+                                ],
+                                "type": "object"
+                              },
+                              "fetch": {
+                                "additionalProperties": {},
+                                "properties": {
+                                  "address": {
+                                    "type": "string"
+                                  },
+                                  "finalUrl": {
+                                    "type": "string"
+                                  },
+                                  "local": {
+                                    "type": "boolean"
+                                  },
+                                  "redirects": {
+                                    "items": {
+                                      "type": "string"
+                                    },
+                                    "maxItems": 3,
+                                    "type": "array"
+                                  },
+                                  "requestedUrl": {
+                                    "type": "string"
+                                  },
+                                  "status": {
+                                    "maximum": 9007199254740991,
+                                    "minimum": -9007199254740991,
+                                    "type": "integer"
+                                  }
+                                },
+                                "required": [
+                                  "requestedUrl",
+                                  "finalUrl",
+                                  "status",
+                                  "redirects",
+                                  "address",
+                                  "local"
+                                ],
+                                "type": "object"
+                              },
+                              "kind": {
+                                "const": "url",
+                                "type": "string"
+                              }
+                            },
+                            "required": [
+                              "kind",
+                              "fetch",
+                              "content"
+                            ],
+                            "type": "object"
+                          },
+                          {
+                            "additionalProperties": {},
+                            "properties": {
+                              "file": {
+                                "additionalProperties": {},
+                                "properties": {
+                                  "location": {
+                                    "enum": [
+                                      "repo",
+                                      "external"
+                                    ],
+                                    "type": "string"
+                                  },
+                                  "name": {
+                                    "maxLength": 255,
+                                    "minLength": 1,
+                                    "type": "string"
+                                  }
+                                },
+                                "required": [
+                                  "name",
+                                  "location"
+                                ],
+                                "type": "object"
+                              },
+                              "image": {
+                                "additionalProperties": {},
+                                "properties": {
+                                  "bytes": {
+                                    "maximum": 9007199254740991,
+                                    "minimum": 0,
+                                    "type": "integer"
+                                  },
+                                  "height": {
+                                    "maximum": 9007199254740991,
+                                    "minimum": 1,
+                                    "type": "integer"
+                                  },
+                                  "mediaType": {
+                                    "const": "image/webp",
+                                    "type": "string"
+                                  },
+                                  "original": {
+                                    "additionalProperties": {},
+                                    "properties": {
+                                      "bytes": {
+                                        "maximum": 9007199254740991,
+                                        "minimum": 0,
+                                        "type": "integer"
+                                      },
+                                      "mediaType": {
+                                        "enum": [
+                                          "image/png",
+                                          "image/jpeg",
+                                          "image/webp"
+                                        ],
+                                        "type": "string"
+                                      },
+                                      "sha256": {
+                                        "pattern": "^[0-9a-f]{64}$",
+                                        "type": "string"
+                                      }
+                                    },
+                                    "required": [
+                                      "sha256",
+                                      "mediaType",
+                                      "bytes"
+                                    ],
+                                    "type": "object"
+                                  },
+                                  "path": {
+                                    "maxLength": 512,
+                                    "type": "string"
+                                  },
+                                  "removedMetadata": {
+                                    "items": {
+                                      "enum": [
+                                        "exif",
+                                        "gps",
+                                        "xmp",
+                                        "iptc",
+                                        "icc"
+                                      ],
+                                      "type": "string"
+                                    },
+                                    "type": "array"
+                                  },
+                                  "sha256": {
+                                    "pattern": "^[0-9a-f]{64}$",
+                                    "type": "string"
+                                  },
+                                  "trust": {
+                                    "const": "untrusted",
+                                    "type": "string"
+                                  },
+                                  "width": {
+                                    "maximum": 9007199254740991,
+                                    "minimum": 1,
+                                    "type": "integer"
+                                  }
+                                },
+                                "required": [
+                                  "path",
+                                  "sha256",
+                                  "mediaType",
+                                  "width",
+                                  "height",
+                                  "bytes",
+                                  "trust",
+                                  "original",
+                                  "removedMetadata"
+                                ],
+                                "type": "object"
+                              },
+                              "kind": {
+                                "const": "image",
+                                "type": "string"
+                              },
+                              "method": {
+                                "enum": [
+                                  "file",
+                                  "screenshot"
+                                ],
+                                "type": "string"
+                              }
+                            },
+                            "required": [
+                              "kind",
+                              "method",
+                              "file",
+                              "image"
+                            ],
+                            "type": "object"
+                          },
+                          {
+                            "additionalProperties": {},
+                            "properties": {
+                              "content": {
+                                "additionalProperties": {},
+                                "properties": {
+                                  "bytes": {
+                                    "maximum": 9007199254740991,
+                                    "minimum": 0,
+                                    "type": "integer"
+                                  },
+                                  "mediaType": {
+                                    "minLength": 1,
+                                    "type": "string"
+                                  },
+                                  "path": {
+                                    "maxLength": 512,
+                                    "type": "string"
+                                  },
+                                  "sha256": {
+                                    "pattern": "^[0-9a-f]{64}$",
+                                    "type": "string"
+                                  },
+                                  "trust": {
+                                    "const": "untrusted",
+                                    "type": "string"
+                                  }
+                                },
+                                "required": [
+                                  "path",
+                                  "sha256",
+                                  "mediaType",
+                                  "bytes",
+                                  "trust"
+                                ],
+                                "type": "object"
+                              },
+                              "fetch": {
+                                "anyOf": [
+                                  {
+                                    "additionalProperties": {},
+                                    "properties": {
+                                      "address": {
+                                        "type": "string"
+                                      },
+                                      "finalUrl": {
+                                        "type": "string"
+                                      },
+                                      "local": {
+                                        "type": "boolean"
+                                      },
+                                      "redirects": {
+                                        "items": {
+                                          "type": "string"
+                                        },
+                                        "maxItems": 3,
+                                        "type": "array"
+                                      },
+                                      "requestedUrl": {
+                                        "type": "string"
+                                      },
+                                      "status": {
+                                        "maximum": 9007199254740991,
+                                        "minimum": -9007199254740991,
+                                        "type": "integer"
+                                      }
+                                    },
+                                    "required": [
+                                      "requestedUrl",
+                                      "finalUrl",
+                                      "status",
+                                      "redirects",
+                                      "address",
+                                      "local"
+                                    ],
+                                    "type": "object"
+                                  },
+                                  {
+                                    "type": "null"
+                                  }
+                                ]
+                              },
+                              "file": {
+                                "anyOf": [
+                                  {
+                                    "additionalProperties": {},
+                                    "properties": {
+                                      "location": {
+                                        "enum": [
+                                          "repo",
+                                          "external"
+                                        ],
+                                        "type": "string"
+                                      },
+                                      "name": {
+                                        "maxLength": 255,
+                                        "minLength": 1,
+                                        "type": "string"
+                                      }
+                                    },
+                                    "required": [
+                                      "name",
+                                      "location"
+                                    ],
+                                    "type": "object"
+                                  },
+                                  {
+                                    "type": "null"
+                                  }
+                                ]
+                              },
+                              "kind": {
+                                "const": "design-md",
+                                "type": "string"
+                              }
+                            },
+                            "required": [
+                              "kind",
+                              "fetch",
+                              "file",
+                              "content"
+                            ],
+                            "type": "object"
+                          }
+                        ]
+                      },
+                      "capturedAt": {
+                        "pattern": "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}\\.\\d{3}Z$",
+                        "type": "string"
+                      },
+                      "crops": {
+                        "items": {
+                          "additionalProperties": {},
+                          "properties": {
+                            "height": {
+                              "maximum": 9007199254740991,
+                              "minimum": 1,
+                              "type": "integer"
+                            },
+                            "note": {
+                              "maxLength": 500,
+                              "minLength": 1,
+                              "type": "string"
+                            },
+                            "width": {
+                              "maximum": 9007199254740991,
+                              "minimum": 1,
+                              "type": "integer"
+                            },
+                            "x": {
+                              "maximum": 9007199254740991,
+                              "minimum": 0,
+                              "type": "integer"
+                            },
+                            "y": {
+                              "maximum": 9007199254740991,
+                              "minimum": 0,
+                              "type": "integer"
+                            }
+                          },
+                          "required": [
+                            "x",
+                            "y",
+                            "width",
+                            "height",
+                            "note"
+                          ],
+                          "type": "object"
+                        },
+                        "maxItems": 20,
+                        "type": "array"
+                      },
+                      "doNotCopy": {
+                        "items": {
+                          "maxLength": 500,
+                          "minLength": 1,
+                          "type": "string"
+                        },
+                        "maxItems": 20,
+                        "minItems": 1,
+                        "type": "array"
+                      },
+                      "id": {
+                        "pattern": "^REF-[1-9][0-9]{0,5}$",
+                        "type": "string"
+                      },
+                      "influences": {
+                        "items": {
+                          "maxLength": 500,
+                          "minLength": 1,
+                          "type": "string"
+                        },
+                        "maxItems": 20,
+                        "minItems": 1,
+                        "type": "array"
+                      },
+                      "mode": {
+                        "enum": [
+                          "full",
+                          "reference-only"
+                        ],
+                        "type": "string"
+                      },
+                      "origin": {
+                        "maxLength": 2048,
+                        "minLength": 1,
+                        "type": "string"
+                      },
+                      "reason": {
+                        "maxLength": 2000,
+                        "minLength": 1,
+                        "type": "string"
+                      },
+                      "removed": {
+                        "anyOf": [
+                          {
+                            "additionalProperties": {},
+                            "properties": {
+                              "at": {
+                                "pattern": "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}\\.\\d{3}Z$",
+                                "type": "string"
+                              },
+                              "reason": {
+                                "type": [
+                                  "string",
+                                  "null"
+                                ]
+                              }
+                            },
+                            "required": [
+                              "at",
+                              "reason"
+                            ],
+                            "type": "object"
+                          },
+                          {
+                            "type": "null"
+                          }
+                        ]
+                      },
+                      "securityFindings": {
+                        "items": {
+                          "additionalProperties": {},
+                          "properties": {
+                            "code": {
+                              "enum": [
+                                "SUSPICIOUS_INSTRUCTION",
+                                "HIDDEN_TEXT",
+                                "METADATA_REMOVED",
+                                "LOCAL_TARGET_ALLOWED"
+                              ],
+                              "type": "string"
+                            },
+                            "line": {
+                              "anyOf": [
+                                {
+                                  "maximum": 9007199254740991,
+                                  "minimum": 1,
+                                  "type": "integer"
+                                },
+                                {
+                                  "type": "null"
+                                }
+                              ]
+                            },
+                            "message": {
+                              "type": "string"
+                            },
+                            "offset": {
+                              "anyOf": [
+                                {
+                                  "maximum": 9007199254740991,
+                                  "minimum": 0,
+                                  "type": "integer"
+                                },
+                                {
+                                  "type": "null"
+                                }
+                              ]
+                            },
+                            "path": {
+                              "anyOf": [
+                                {
+                                  "maxLength": 512,
+                                  "type": "string"
+                                },
+                                {
+                                  "type": "null"
+                                }
+                              ]
+                            },
+                            "phrase": {
+                              "anyOf": [
+                                {
+                                  "maxLength": 200,
+                                  "type": "string"
+                                },
+                                {
+                                  "type": "null"
+                                }
+                              ]
+                            },
+                            "rule": {
+                              "type": [
+                                "string",
+                                "null"
+                              ]
+                            },
+                            "severity": {
+                              "enum": [
+                                "info",
+                                "warning"
+                              ],
+                              "type": "string"
+                            }
+                          },
+                          "required": [
+                            "code",
+                            "severity",
+                            "message",
+                            "path",
+                            "offset",
+                            "line",
+                            "phrase",
+                            "rule"
+                          ],
+                          "type": "object"
+                        },
+                        "type": "array"
+                      },
+                      "source": {
+                        "enum": [
+                          "manual",
+                          "url",
+                          "image",
+                          "design-md",
+                          "penpot",
+                          "refero"
+                        ],
+                        "type": "string"
+                      },
+                      "studies": {
+                        "items": {
+                          "maxLength": 500,
+                          "minLength": 1,
+                          "type": "string"
+                        },
+                        "maxItems": 20,
+                        "minItems": 1,
+                        "type": "array"
+                      }
+                    },
+                    "required": [
+                      "id",
+                      "source",
+                      "origin",
+                      "capturedAt",
+                      "mode",
+                      "reason",
+                      "studies",
+                      "doNotCopy",
+                      "influences",
+                      "capture",
+                      "crops",
+                      "securityFindings",
+                      "removed"
+                    ],
+                    "type": "object"
+                  },
+                  "type": "array"
+                },
+                "stateRevision": {
+                  "maximum": 9007199254740991,
+                  "minimum": -9007199254740991,
+                  "type": "integer"
+                },
+                "written": {
+                  "items": {
+                    "maxLength": 512,
+                    "type": "string"
+                  },
+                  "type": "array"
+                }
+              },
+              "required": [
+                "references",
+                "phase",
+                "stateRevision",
+                "counts",
+                "written",
+                "batch"
+              ],
+              "type": "object"
+            },
+            {
+              "additionalProperties": false,
+              "properties": {
+                "counts": {
+                  "additionalProperties": false,
+                  "properties": {
+                    "active": {
+                      "maximum": 9007199254740991,
+                      "minimum": 0,
+                      "type": "integer"
+                    },
+                    "brandInputs": {
+                      "maximum": 9007199254740991,
+                      "minimum": 0,
+                      "type": "integer"
+                    },
+                    "minimum": {
+                      "maximum": 9007199254740991,
+                      "minimum": 0,
+                      "type": "integer"
+                    },
+                    "removed": {
+                      "maximum": 9007199254740991,
+                      "minimum": 0,
+                      "type": "integer"
+                    },
+                    "withProvenance": {
+                      "maximum": 9007199254740991,
+                      "minimum": 0,
+                      "type": "integer"
+                    }
+                  },
+                  "required": [
+                    "active",
+                    "removed",
+                    "withProvenance",
+                    "minimum",
+                    "brandInputs"
+                  ],
+                  "type": "object"
+                },
+                "phase": {
+                  "additionalProperties": false,
+                  "properties": {
+                    "from": {
+                      "enum": [
+                        "initialized",
+                        "intake-ready",
+                        "researching",
+                        "research-ready",
+                        "directions-ready",
+                        "direction-selected",
+                        "foundations-ready",
+                        "representative-screens-ready",
+                        "system-ready",
+                        "screens-ready",
+                        "penpot-synced",
+                        "validated",
+                        "exported"
+                      ],
+                      "type": "string"
+                    },
+                    "to": {
+                      "enum": [
+                        "initialized",
+                        "intake-ready",
+                        "researching",
+                        "research-ready",
+                        "directions-ready",
+                        "direction-selected",
+                        "foundations-ready",
+                        "representative-screens-ready",
+                        "system-ready",
+                        "screens-ready",
+                        "penpot-synced",
+                        "validated",
+                        "exported"
+                      ],
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "from",
+                    "to"
+                  ],
+                  "type": "object"
+                },
+                "references": {
+                  "items": {
+                    "additionalProperties": {},
+                    "properties": {
+                      "capture": {
+                        "oneOf": [
+                          {
+                            "additionalProperties": {},
+                            "properties": {
+                              "kind": {
+                                "const": "manual",
+                                "type": "string"
+                              }
+                            },
+                            "required": [
+                              "kind"
+                            ],
+                            "type": "object"
+                          },
+                          {
+                            "additionalProperties": {},
+                            "properties": {
+                              "content": {
+                                "additionalProperties": {},
+                                "properties": {
+                                  "bytes": {
+                                    "maximum": 9007199254740991,
+                                    "minimum": 0,
+                                    "type": "integer"
+                                  },
+                                  "mediaType": {
+                                    "minLength": 1,
+                                    "type": "string"
+                                  },
+                                  "path": {
+                                    "maxLength": 512,
+                                    "type": "string"
+                                  },
+                                  "sha256": {
+                                    "pattern": "^[0-9a-f]{64}$",
+                                    "type": "string"
+                                  },
+                                  "trust": {
+                                    "const": "untrusted",
+                                    "type": "string"
+                                  }
+                                },
+                                "required": [
+                                  "path",
+                                  "sha256",
+                                  "mediaType",
+                                  "bytes",
+                                  "trust"
+                                ],
+                                "type": "object"
+                              },
+                              "fetch": {
+                                "additionalProperties": {},
+                                "properties": {
+                                  "address": {
+                                    "type": "string"
+                                  },
+                                  "finalUrl": {
+                                    "type": "string"
+                                  },
+                                  "local": {
+                                    "type": "boolean"
+                                  },
+                                  "redirects": {
+                                    "items": {
+                                      "type": "string"
+                                    },
+                                    "maxItems": 3,
+                                    "type": "array"
+                                  },
+                                  "requestedUrl": {
+                                    "type": "string"
+                                  },
+                                  "status": {
+                                    "maximum": 9007199254740991,
+                                    "minimum": -9007199254740991,
+                                    "type": "integer"
+                                  }
+                                },
+                                "required": [
+                                  "requestedUrl",
+                                  "finalUrl",
+                                  "status",
+                                  "redirects",
+                                  "address",
+                                  "local"
+                                ],
+                                "type": "object"
+                              },
+                              "kind": {
+                                "const": "url",
+                                "type": "string"
+                              }
+                            },
+                            "required": [
+                              "kind",
+                              "fetch",
+                              "content"
+                            ],
+                            "type": "object"
+                          },
+                          {
+                            "additionalProperties": {},
+                            "properties": {
+                              "file": {
+                                "additionalProperties": {},
+                                "properties": {
+                                  "location": {
+                                    "enum": [
+                                      "repo",
+                                      "external"
+                                    ],
+                                    "type": "string"
+                                  },
+                                  "name": {
+                                    "maxLength": 255,
+                                    "minLength": 1,
+                                    "type": "string"
+                                  }
+                                },
+                                "required": [
+                                  "name",
+                                  "location"
+                                ],
+                                "type": "object"
+                              },
+                              "image": {
+                                "additionalProperties": {},
+                                "properties": {
+                                  "bytes": {
+                                    "maximum": 9007199254740991,
+                                    "minimum": 0,
+                                    "type": "integer"
+                                  },
+                                  "height": {
+                                    "maximum": 9007199254740991,
+                                    "minimum": 1,
+                                    "type": "integer"
+                                  },
+                                  "mediaType": {
+                                    "const": "image/webp",
+                                    "type": "string"
+                                  },
+                                  "original": {
+                                    "additionalProperties": {},
+                                    "properties": {
+                                      "bytes": {
+                                        "maximum": 9007199254740991,
+                                        "minimum": 0,
+                                        "type": "integer"
+                                      },
+                                      "mediaType": {
+                                        "enum": [
+                                          "image/png",
+                                          "image/jpeg",
+                                          "image/webp"
+                                        ],
+                                        "type": "string"
+                                      },
+                                      "sha256": {
+                                        "pattern": "^[0-9a-f]{64}$",
+                                        "type": "string"
+                                      }
+                                    },
+                                    "required": [
+                                      "sha256",
+                                      "mediaType",
+                                      "bytes"
+                                    ],
+                                    "type": "object"
+                                  },
+                                  "path": {
+                                    "maxLength": 512,
+                                    "type": "string"
+                                  },
+                                  "removedMetadata": {
+                                    "items": {
+                                      "enum": [
+                                        "exif",
+                                        "gps",
+                                        "xmp",
+                                        "iptc",
+                                        "icc"
+                                      ],
+                                      "type": "string"
+                                    },
+                                    "type": "array"
+                                  },
+                                  "sha256": {
+                                    "pattern": "^[0-9a-f]{64}$",
+                                    "type": "string"
+                                  },
+                                  "trust": {
+                                    "const": "untrusted",
+                                    "type": "string"
+                                  },
+                                  "width": {
+                                    "maximum": 9007199254740991,
+                                    "minimum": 1,
+                                    "type": "integer"
+                                  }
+                                },
+                                "required": [
+                                  "path",
+                                  "sha256",
+                                  "mediaType",
+                                  "width",
+                                  "height",
+                                  "bytes",
+                                  "trust",
+                                  "original",
+                                  "removedMetadata"
+                                ],
+                                "type": "object"
+                              },
+                              "kind": {
+                                "const": "image",
+                                "type": "string"
+                              },
+                              "method": {
+                                "enum": [
+                                  "file",
+                                  "screenshot"
+                                ],
+                                "type": "string"
+                              }
+                            },
+                            "required": [
+                              "kind",
+                              "method",
+                              "file",
+                              "image"
+                            ],
+                            "type": "object"
+                          },
+                          {
+                            "additionalProperties": {},
+                            "properties": {
+                              "content": {
+                                "additionalProperties": {},
+                                "properties": {
+                                  "bytes": {
+                                    "maximum": 9007199254740991,
+                                    "minimum": 0,
+                                    "type": "integer"
+                                  },
+                                  "mediaType": {
+                                    "minLength": 1,
+                                    "type": "string"
+                                  },
+                                  "path": {
+                                    "maxLength": 512,
+                                    "type": "string"
+                                  },
+                                  "sha256": {
+                                    "pattern": "^[0-9a-f]{64}$",
+                                    "type": "string"
+                                  },
+                                  "trust": {
+                                    "const": "untrusted",
+                                    "type": "string"
+                                  }
+                                },
+                                "required": [
+                                  "path",
+                                  "sha256",
+                                  "mediaType",
+                                  "bytes",
+                                  "trust"
+                                ],
+                                "type": "object"
+                              },
+                              "fetch": {
+                                "anyOf": [
+                                  {
+                                    "additionalProperties": {},
+                                    "properties": {
+                                      "address": {
+                                        "type": "string"
+                                      },
+                                      "finalUrl": {
+                                        "type": "string"
+                                      },
+                                      "local": {
+                                        "type": "boolean"
+                                      },
+                                      "redirects": {
+                                        "items": {
+                                          "type": "string"
+                                        },
+                                        "maxItems": 3,
+                                        "type": "array"
+                                      },
+                                      "requestedUrl": {
+                                        "type": "string"
+                                      },
+                                      "status": {
+                                        "maximum": 9007199254740991,
+                                        "minimum": -9007199254740991,
+                                        "type": "integer"
+                                      }
+                                    },
+                                    "required": [
+                                      "requestedUrl",
+                                      "finalUrl",
+                                      "status",
+                                      "redirects",
+                                      "address",
+                                      "local"
+                                    ],
+                                    "type": "object"
+                                  },
+                                  {
+                                    "type": "null"
+                                  }
+                                ]
+                              },
+                              "file": {
+                                "anyOf": [
+                                  {
+                                    "additionalProperties": {},
+                                    "properties": {
+                                      "location": {
+                                        "enum": [
+                                          "repo",
+                                          "external"
+                                        ],
+                                        "type": "string"
+                                      },
+                                      "name": {
+                                        "maxLength": 255,
+                                        "minLength": 1,
+                                        "type": "string"
+                                      }
+                                    },
+                                    "required": [
+                                      "name",
+                                      "location"
+                                    ],
+                                    "type": "object"
+                                  },
+                                  {
+                                    "type": "null"
+                                  }
+                                ]
+                              },
+                              "kind": {
+                                "const": "design-md",
+                                "type": "string"
+                              }
+                            },
+                            "required": [
+                              "kind",
+                              "fetch",
+                              "file",
+                              "content"
+                            ],
+                            "type": "object"
+                          }
+                        ]
+                      },
+                      "capturedAt": {
+                        "pattern": "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}\\.\\d{3}Z$",
+                        "type": "string"
+                      },
+                      "crops": {
+                        "items": {
+                          "additionalProperties": {},
+                          "properties": {
+                            "height": {
+                              "maximum": 9007199254740991,
+                              "minimum": 1,
+                              "type": "integer"
+                            },
+                            "note": {
+                              "maxLength": 500,
+                              "minLength": 1,
+                              "type": "string"
+                            },
+                            "width": {
+                              "maximum": 9007199254740991,
+                              "minimum": 1,
+                              "type": "integer"
+                            },
+                            "x": {
+                              "maximum": 9007199254740991,
+                              "minimum": 0,
+                              "type": "integer"
+                            },
+                            "y": {
+                              "maximum": 9007199254740991,
+                              "minimum": 0,
+                              "type": "integer"
+                            }
+                          },
+                          "required": [
+                            "x",
+                            "y",
+                            "width",
+                            "height",
+                            "note"
+                          ],
+                          "type": "object"
+                        },
+                        "maxItems": 20,
+                        "type": "array"
+                      },
+                      "doNotCopy": {
+                        "items": {
+                          "maxLength": 500,
+                          "minLength": 1,
+                          "type": "string"
+                        },
+                        "maxItems": 20,
+                        "minItems": 1,
+                        "type": "array"
+                      },
+                      "id": {
+                        "pattern": "^REF-[1-9][0-9]{0,5}$",
+                        "type": "string"
+                      },
+                      "influences": {
+                        "items": {
+                          "maxLength": 500,
+                          "minLength": 1,
+                          "type": "string"
+                        },
+                        "maxItems": 20,
+                        "minItems": 1,
+                        "type": "array"
+                      },
+                      "mode": {
+                        "enum": [
+                          "full",
+                          "reference-only"
+                        ],
+                        "type": "string"
+                      },
+                      "origin": {
+                        "maxLength": 2048,
+                        "minLength": 1,
+                        "type": "string"
+                      },
+                      "reason": {
+                        "maxLength": 2000,
+                        "minLength": 1,
+                        "type": "string"
+                      },
+                      "removed": {
+                        "anyOf": [
+                          {
+                            "additionalProperties": {},
+                            "properties": {
+                              "at": {
+                                "pattern": "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}\\.\\d{3}Z$",
+                                "type": "string"
+                              },
+                              "reason": {
+                                "type": [
+                                  "string",
+                                  "null"
+                                ]
+                              }
+                            },
+                            "required": [
+                              "at",
+                              "reason"
+                            ],
+                            "type": "object"
+                          },
+                          {
+                            "type": "null"
+                          }
+                        ]
+                      },
+                      "securityFindings": {
+                        "items": {
+                          "additionalProperties": {},
+                          "properties": {
+                            "code": {
+                              "enum": [
+                                "SUSPICIOUS_INSTRUCTION",
+                                "HIDDEN_TEXT",
+                                "METADATA_REMOVED",
+                                "LOCAL_TARGET_ALLOWED"
+                              ],
+                              "type": "string"
+                            },
+                            "line": {
+                              "anyOf": [
+                                {
+                                  "maximum": 9007199254740991,
+                                  "minimum": 1,
+                                  "type": "integer"
+                                },
+                                {
+                                  "type": "null"
+                                }
+                              ]
+                            },
+                            "message": {
+                              "type": "string"
+                            },
+                            "offset": {
+                              "anyOf": [
+                                {
+                                  "maximum": 9007199254740991,
+                                  "minimum": 0,
+                                  "type": "integer"
+                                },
+                                {
+                                  "type": "null"
+                                }
+                              ]
+                            },
+                            "path": {
+                              "anyOf": [
+                                {
+                                  "maxLength": 512,
+                                  "type": "string"
+                                },
+                                {
+                                  "type": "null"
+                                }
+                              ]
+                            },
+                            "phrase": {
+                              "anyOf": [
+                                {
+                                  "maxLength": 200,
+                                  "type": "string"
+                                },
+                                {
+                                  "type": "null"
+                                }
+                              ]
+                            },
+                            "rule": {
+                              "type": [
+                                "string",
+                                "null"
+                              ]
+                            },
+                            "severity": {
+                              "enum": [
+                                "info",
+                                "warning"
+                              ],
+                              "type": "string"
+                            }
+                          },
+                          "required": [
+                            "code",
+                            "severity",
+                            "message",
+                            "path",
+                            "offset",
+                            "line",
+                            "phrase",
+                            "rule"
+                          ],
+                          "type": "object"
+                        },
+                        "type": "array"
+                      },
+                      "source": {
+                        "enum": [
+                          "manual",
+                          "url",
+                          "image",
+                          "design-md",
+                          "penpot",
+                          "refero"
+                        ],
+                        "type": "string"
+                      },
+                      "studies": {
+                        "items": {
+                          "maxLength": 500,
+                          "minLength": 1,
+                          "type": "string"
+                        },
+                        "maxItems": 20,
+                        "minItems": 1,
+                        "type": "array"
+                      }
+                    },
+                    "required": [
+                      "id",
+                      "source",
+                      "origin",
+                      "capturedAt",
+                      "mode",
+                      "reason",
+                      "studies",
+                      "doNotCopy",
+                      "influences",
+                      "capture",
+                      "crops",
+                      "securityFindings",
+                      "removed"
+                    ],
+                    "type": "object"
+                  },
+                  "type": "array"
+                },
+                "stateRevision": {
+                  "maximum": 9007199254740991,
+                  "minimum": -9007199254740991,
+                  "type": "integer"
+                },
+                "written": {
+                  "items": {
+                    "maxLength": 512,
+                    "type": "string"
+                  },
+                  "type": "array"
+                }
+              },
+              "required": [
+                "references",
+                "phase",
+                "stateRevision",
+                "counts",
+                "written"
+              ],
+              "type": "object"
+            },
+            {
+              "additionalProperties": false,
+              "properties": {
+                "counts": {
+                  "additionalProperties": false,
+                  "properties": {
+                    "active": {
+                      "maximum": 9007199254740991,
+                      "minimum": 0,
+                      "type": "integer"
+                    },
+                    "brandInputs": {
+                      "maximum": 9007199254740991,
+                      "minimum": 0,
+                      "type": "integer"
+                    },
+                    "minimum": {
+                      "maximum": 9007199254740991,
+                      "minimum": 0,
+                      "type": "integer"
+                    },
+                    "removed": {
+                      "maximum": 9007199254740991,
+                      "minimum": 0,
+                      "type": "integer"
+                    },
+                    "withProvenance": {
+                      "maximum": 9007199254740991,
+                      "minimum": 0,
+                      "type": "integer"
+                    }
+                  },
+                  "required": [
+                    "active",
+                    "removed",
+                    "withProvenance",
+                    "minimum",
+                    "brandInputs"
+                  ],
+                  "type": "object"
+                },
+                "removed": {
+                  "additionalProperties": {},
+                  "properties": {
+                    "capture": {
+                      "oneOf": [
+                        {
+                          "additionalProperties": {},
+                          "properties": {
+                            "kind": {
+                              "const": "manual",
+                              "type": "string"
+                            }
+                          },
+                          "required": [
+                            "kind"
+                          ],
+                          "type": "object"
+                        },
+                        {
+                          "additionalProperties": {},
+                          "properties": {
+                            "content": {
+                              "additionalProperties": {},
+                              "properties": {
+                                "bytes": {
+                                  "maximum": 9007199254740991,
+                                  "minimum": 0,
+                                  "type": "integer"
+                                },
+                                "mediaType": {
+                                  "minLength": 1,
+                                  "type": "string"
+                                },
+                                "path": {
+                                  "maxLength": 512,
+                                  "type": "string"
+                                },
+                                "sha256": {
+                                  "pattern": "^[0-9a-f]{64}$",
+                                  "type": "string"
+                                },
+                                "trust": {
+                                  "const": "untrusted",
+                                  "type": "string"
+                                }
+                              },
+                              "required": [
+                                "path",
+                                "sha256",
+                                "mediaType",
+                                "bytes",
+                                "trust"
+                              ],
+                              "type": "object"
+                            },
+                            "fetch": {
+                              "additionalProperties": {},
+                              "properties": {
+                                "address": {
+                                  "type": "string"
+                                },
+                                "finalUrl": {
+                                  "type": "string"
+                                },
+                                "local": {
+                                  "type": "boolean"
+                                },
+                                "redirects": {
+                                  "items": {
+                                    "type": "string"
+                                  },
+                                  "maxItems": 3,
+                                  "type": "array"
+                                },
+                                "requestedUrl": {
+                                  "type": "string"
+                                },
+                                "status": {
+                                  "maximum": 9007199254740991,
+                                  "minimum": -9007199254740991,
+                                  "type": "integer"
+                                }
+                              },
+                              "required": [
+                                "requestedUrl",
+                                "finalUrl",
+                                "status",
+                                "redirects",
+                                "address",
+                                "local"
+                              ],
+                              "type": "object"
+                            },
+                            "kind": {
+                              "const": "url",
+                              "type": "string"
+                            }
+                          },
+                          "required": [
+                            "kind",
+                            "fetch",
+                            "content"
+                          ],
+                          "type": "object"
+                        },
+                        {
+                          "additionalProperties": {},
+                          "properties": {
+                            "file": {
+                              "additionalProperties": {},
+                              "properties": {
+                                "location": {
+                                  "enum": [
+                                    "repo",
+                                    "external"
+                                  ],
+                                  "type": "string"
+                                },
+                                "name": {
+                                  "maxLength": 255,
+                                  "minLength": 1,
+                                  "type": "string"
+                                }
+                              },
+                              "required": [
+                                "name",
+                                "location"
+                              ],
+                              "type": "object"
+                            },
+                            "image": {
+                              "additionalProperties": {},
+                              "properties": {
+                                "bytes": {
+                                  "maximum": 9007199254740991,
+                                  "minimum": 0,
+                                  "type": "integer"
+                                },
+                                "height": {
+                                  "maximum": 9007199254740991,
+                                  "minimum": 1,
+                                  "type": "integer"
+                                },
+                                "mediaType": {
+                                  "const": "image/webp",
+                                  "type": "string"
+                                },
+                                "original": {
+                                  "additionalProperties": {},
+                                  "properties": {
+                                    "bytes": {
+                                      "maximum": 9007199254740991,
+                                      "minimum": 0,
+                                      "type": "integer"
+                                    },
+                                    "mediaType": {
+                                      "enum": [
+                                        "image/png",
+                                        "image/jpeg",
+                                        "image/webp"
+                                      ],
+                                      "type": "string"
+                                    },
+                                    "sha256": {
+                                      "pattern": "^[0-9a-f]{64}$",
+                                      "type": "string"
+                                    }
+                                  },
+                                  "required": [
+                                    "sha256",
+                                    "mediaType",
+                                    "bytes"
+                                  ],
+                                  "type": "object"
+                                },
+                                "path": {
+                                  "maxLength": 512,
+                                  "type": "string"
+                                },
+                                "removedMetadata": {
+                                  "items": {
+                                    "enum": [
+                                      "exif",
+                                      "gps",
+                                      "xmp",
+                                      "iptc",
+                                      "icc"
+                                    ],
+                                    "type": "string"
+                                  },
+                                  "type": "array"
+                                },
+                                "sha256": {
+                                  "pattern": "^[0-9a-f]{64}$",
+                                  "type": "string"
+                                },
+                                "trust": {
+                                  "const": "untrusted",
+                                  "type": "string"
+                                },
+                                "width": {
+                                  "maximum": 9007199254740991,
+                                  "minimum": 1,
+                                  "type": "integer"
+                                }
+                              },
+                              "required": [
+                                "path",
+                                "sha256",
+                                "mediaType",
+                                "width",
+                                "height",
+                                "bytes",
+                                "trust",
+                                "original",
+                                "removedMetadata"
+                              ],
+                              "type": "object"
+                            },
+                            "kind": {
+                              "const": "image",
+                              "type": "string"
+                            },
+                            "method": {
+                              "enum": [
+                                "file",
+                                "screenshot"
+                              ],
+                              "type": "string"
+                            }
+                          },
+                          "required": [
+                            "kind",
+                            "method",
+                            "file",
+                            "image"
+                          ],
+                          "type": "object"
+                        },
+                        {
+                          "additionalProperties": {},
+                          "properties": {
+                            "content": {
+                              "additionalProperties": {},
+                              "properties": {
+                                "bytes": {
+                                  "maximum": 9007199254740991,
+                                  "minimum": 0,
+                                  "type": "integer"
+                                },
+                                "mediaType": {
+                                  "minLength": 1,
+                                  "type": "string"
+                                },
+                                "path": {
+                                  "maxLength": 512,
+                                  "type": "string"
+                                },
+                                "sha256": {
+                                  "pattern": "^[0-9a-f]{64}$",
+                                  "type": "string"
+                                },
+                                "trust": {
+                                  "const": "untrusted",
+                                  "type": "string"
+                                }
+                              },
+                              "required": [
+                                "path",
+                                "sha256",
+                                "mediaType",
+                                "bytes",
+                                "trust"
+                              ],
+                              "type": "object"
+                            },
+                            "fetch": {
+                              "anyOf": [
+                                {
+                                  "additionalProperties": {},
+                                  "properties": {
+                                    "address": {
+                                      "type": "string"
+                                    },
+                                    "finalUrl": {
+                                      "type": "string"
+                                    },
+                                    "local": {
+                                      "type": "boolean"
+                                    },
+                                    "redirects": {
+                                      "items": {
+                                        "type": "string"
+                                      },
+                                      "maxItems": 3,
+                                      "type": "array"
+                                    },
+                                    "requestedUrl": {
+                                      "type": "string"
+                                    },
+                                    "status": {
+                                      "maximum": 9007199254740991,
+                                      "minimum": -9007199254740991,
+                                      "type": "integer"
+                                    }
+                                  },
+                                  "required": [
+                                    "requestedUrl",
+                                    "finalUrl",
+                                    "status",
+                                    "redirects",
+                                    "address",
+                                    "local"
+                                  ],
+                                  "type": "object"
+                                },
+                                {
+                                  "type": "null"
+                                }
+                              ]
+                            },
+                            "file": {
+                              "anyOf": [
+                                {
+                                  "additionalProperties": {},
+                                  "properties": {
+                                    "location": {
+                                      "enum": [
+                                        "repo",
+                                        "external"
+                                      ],
+                                      "type": "string"
+                                    },
+                                    "name": {
+                                      "maxLength": 255,
+                                      "minLength": 1,
+                                      "type": "string"
+                                    }
+                                  },
+                                  "required": [
+                                    "name",
+                                    "location"
+                                  ],
+                                  "type": "object"
+                                },
+                                {
+                                  "type": "null"
+                                }
+                              ]
+                            },
+                            "kind": {
+                              "const": "design-md",
+                              "type": "string"
+                            }
+                          },
+                          "required": [
+                            "kind",
+                            "fetch",
+                            "file",
+                            "content"
+                          ],
+                          "type": "object"
+                        }
+                      ]
+                    },
+                    "capturedAt": {
+                      "pattern": "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}\\.\\d{3}Z$",
+                      "type": "string"
+                    },
+                    "crops": {
+                      "items": {
+                        "additionalProperties": {},
+                        "properties": {
+                          "height": {
+                            "maximum": 9007199254740991,
+                            "minimum": 1,
+                            "type": "integer"
+                          },
+                          "note": {
+                            "maxLength": 500,
+                            "minLength": 1,
+                            "type": "string"
+                          },
+                          "width": {
+                            "maximum": 9007199254740991,
+                            "minimum": 1,
+                            "type": "integer"
+                          },
+                          "x": {
+                            "maximum": 9007199254740991,
+                            "minimum": 0,
+                            "type": "integer"
+                          },
+                          "y": {
+                            "maximum": 9007199254740991,
+                            "minimum": 0,
+                            "type": "integer"
+                          }
+                        },
+                        "required": [
+                          "x",
+                          "y",
+                          "width",
+                          "height",
+                          "note"
+                        ],
+                        "type": "object"
+                      },
+                      "maxItems": 20,
+                      "type": "array"
+                    },
+                    "doNotCopy": {
+                      "items": {
+                        "maxLength": 500,
+                        "minLength": 1,
+                        "type": "string"
+                      },
+                      "maxItems": 20,
+                      "minItems": 1,
+                      "type": "array"
+                    },
+                    "id": {
+                      "pattern": "^REF-[1-9][0-9]{0,5}$",
+                      "type": "string"
+                    },
+                    "influences": {
+                      "items": {
+                        "maxLength": 500,
+                        "minLength": 1,
+                        "type": "string"
+                      },
+                      "maxItems": 20,
+                      "minItems": 1,
+                      "type": "array"
+                    },
+                    "mode": {
+                      "enum": [
+                        "full",
+                        "reference-only"
+                      ],
+                      "type": "string"
+                    },
+                    "origin": {
+                      "maxLength": 2048,
+                      "minLength": 1,
+                      "type": "string"
+                    },
+                    "reason": {
+                      "maxLength": 2000,
+                      "minLength": 1,
+                      "type": "string"
+                    },
+                    "removed": {
+                      "anyOf": [
+                        {
+                          "additionalProperties": {},
+                          "properties": {
+                            "at": {
+                              "pattern": "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}\\.\\d{3}Z$",
+                              "type": "string"
+                            },
+                            "reason": {
+                              "type": [
+                                "string",
+                                "null"
+                              ]
+                            }
+                          },
+                          "required": [
+                            "at",
+                            "reason"
+                          ],
+                          "type": "object"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    },
+                    "securityFindings": {
+                      "items": {
+                        "additionalProperties": {},
+                        "properties": {
+                          "code": {
+                            "enum": [
+                              "SUSPICIOUS_INSTRUCTION",
+                              "HIDDEN_TEXT",
+                              "METADATA_REMOVED",
+                              "LOCAL_TARGET_ALLOWED"
+                            ],
+                            "type": "string"
+                          },
+                          "line": {
+                            "anyOf": [
+                              {
+                                "maximum": 9007199254740991,
+                                "minimum": 1,
+                                "type": "integer"
+                              },
+                              {
+                                "type": "null"
+                              }
+                            ]
+                          },
+                          "message": {
+                            "type": "string"
+                          },
+                          "offset": {
+                            "anyOf": [
+                              {
+                                "maximum": 9007199254740991,
+                                "minimum": 0,
+                                "type": "integer"
+                              },
+                              {
+                                "type": "null"
+                              }
+                            ]
+                          },
+                          "path": {
+                            "anyOf": [
+                              {
+                                "maxLength": 512,
+                                "type": "string"
+                              },
+                              {
+                                "type": "null"
+                              }
+                            ]
+                          },
+                          "phrase": {
+                            "anyOf": [
+                              {
+                                "maxLength": 200,
+                                "type": "string"
+                              },
+                              {
+                                "type": "null"
+                              }
+                            ]
+                          },
+                          "rule": {
+                            "type": [
+                              "string",
+                              "null"
+                            ]
+                          },
+                          "severity": {
+                            "enum": [
+                              "info",
+                              "warning"
+                            ],
+                            "type": "string"
+                          }
+                        },
+                        "required": [
+                          "code",
+                          "severity",
+                          "message",
+                          "path",
+                          "offset",
+                          "line",
+                          "phrase",
+                          "rule"
+                        ],
+                        "type": "object"
+                      },
+                      "type": "array"
+                    },
+                    "source": {
+                      "enum": [
+                        "manual",
+                        "url",
+                        "image",
+                        "design-md",
+                        "penpot",
+                        "refero"
+                      ],
+                      "type": "string"
+                    },
+                    "studies": {
+                      "items": {
+                        "maxLength": 500,
+                        "minLength": 1,
+                        "type": "string"
+                      },
+                      "maxItems": 20,
+                      "minItems": 1,
+                      "type": "array"
+                    }
+                  },
+                  "required": [
+                    "id",
+                    "source",
+                    "origin",
+                    "capturedAt",
+                    "mode",
+                    "reason",
+                    "studies",
+                    "doNotCopy",
+                    "influences",
+                    "capture",
+                    "crops",
+                    "securityFindings",
+                    "removed"
+                  ],
+                  "type": "object"
+                },
+                "stateRevision": {
+                  "maximum": 9007199254740991,
+                  "minimum": -9007199254740991,
+                  "type": "integer"
+                },
+                "written": {
+                  "items": {
+                    "maxLength": 512,
+                    "type": "string"
+                  },
+                  "type": "array"
+                }
+              },
+              "required": [
+                "removed",
+                "stateRevision",
+                "counts",
+                "written"
+              ],
+              "type": "object"
+            },
+            {
+              "additionalProperties": false,
+              "properties": {
+                "references": {
+                  "items": {
+                    "additionalProperties": {},
+                    "properties": {
+                      "capture": {
+                        "oneOf": [
+                          {
+                            "additionalProperties": {},
+                            "properties": {
+                              "kind": {
+                                "const": "manual",
+                                "type": "string"
+                              }
+                            },
+                            "required": [
+                              "kind"
+                            ],
+                            "type": "object"
+                          },
+                          {
+                            "additionalProperties": {},
+                            "properties": {
+                              "content": {
+                                "additionalProperties": {},
+                                "properties": {
+                                  "bytes": {
+                                    "maximum": 9007199254740991,
+                                    "minimum": 0,
+                                    "type": "integer"
+                                  },
+                                  "mediaType": {
+                                    "minLength": 1,
+                                    "type": "string"
+                                  },
+                                  "path": {
+                                    "maxLength": 512,
+                                    "type": "string"
+                                  },
+                                  "sha256": {
+                                    "pattern": "^[0-9a-f]{64}$",
+                                    "type": "string"
+                                  },
+                                  "trust": {
+                                    "const": "untrusted",
+                                    "type": "string"
+                                  }
+                                },
+                                "required": [
+                                  "path",
+                                  "sha256",
+                                  "mediaType",
+                                  "bytes",
+                                  "trust"
+                                ],
+                                "type": "object"
+                              },
+                              "fetch": {
+                                "additionalProperties": {},
+                                "properties": {
+                                  "address": {
+                                    "type": "string"
+                                  },
+                                  "finalUrl": {
+                                    "type": "string"
+                                  },
+                                  "local": {
+                                    "type": "boolean"
+                                  },
+                                  "redirects": {
+                                    "items": {
+                                      "type": "string"
+                                    },
+                                    "maxItems": 3,
+                                    "type": "array"
+                                  },
+                                  "requestedUrl": {
+                                    "type": "string"
+                                  },
+                                  "status": {
+                                    "maximum": 9007199254740991,
+                                    "minimum": -9007199254740991,
+                                    "type": "integer"
+                                  }
+                                },
+                                "required": [
+                                  "requestedUrl",
+                                  "finalUrl",
+                                  "status",
+                                  "redirects",
+                                  "address",
+                                  "local"
+                                ],
+                                "type": "object"
+                              },
+                              "kind": {
+                                "const": "url",
+                                "type": "string"
+                              }
+                            },
+                            "required": [
+                              "kind",
+                              "fetch",
+                              "content"
+                            ],
+                            "type": "object"
+                          },
+                          {
+                            "additionalProperties": {},
+                            "properties": {
+                              "file": {
+                                "additionalProperties": {},
+                                "properties": {
+                                  "location": {
+                                    "enum": [
+                                      "repo",
+                                      "external"
+                                    ],
+                                    "type": "string"
+                                  },
+                                  "name": {
+                                    "maxLength": 255,
+                                    "minLength": 1,
+                                    "type": "string"
+                                  }
+                                },
+                                "required": [
+                                  "name",
+                                  "location"
+                                ],
+                                "type": "object"
+                              },
+                              "image": {
+                                "additionalProperties": {},
+                                "properties": {
+                                  "bytes": {
+                                    "maximum": 9007199254740991,
+                                    "minimum": 0,
+                                    "type": "integer"
+                                  },
+                                  "height": {
+                                    "maximum": 9007199254740991,
+                                    "minimum": 1,
+                                    "type": "integer"
+                                  },
+                                  "mediaType": {
+                                    "const": "image/webp",
+                                    "type": "string"
+                                  },
+                                  "original": {
+                                    "additionalProperties": {},
+                                    "properties": {
+                                      "bytes": {
+                                        "maximum": 9007199254740991,
+                                        "minimum": 0,
+                                        "type": "integer"
+                                      },
+                                      "mediaType": {
+                                        "enum": [
+                                          "image/png",
+                                          "image/jpeg",
+                                          "image/webp"
+                                        ],
+                                        "type": "string"
+                                      },
+                                      "sha256": {
+                                        "pattern": "^[0-9a-f]{64}$",
+                                        "type": "string"
+                                      }
+                                    },
+                                    "required": [
+                                      "sha256",
+                                      "mediaType",
+                                      "bytes"
+                                    ],
+                                    "type": "object"
+                                  },
+                                  "path": {
+                                    "maxLength": 512,
+                                    "type": "string"
+                                  },
+                                  "removedMetadata": {
+                                    "items": {
+                                      "enum": [
+                                        "exif",
+                                        "gps",
+                                        "xmp",
+                                        "iptc",
+                                        "icc"
+                                      ],
+                                      "type": "string"
+                                    },
+                                    "type": "array"
+                                  },
+                                  "sha256": {
+                                    "pattern": "^[0-9a-f]{64}$",
+                                    "type": "string"
+                                  },
+                                  "trust": {
+                                    "const": "untrusted",
+                                    "type": "string"
+                                  },
+                                  "width": {
+                                    "maximum": 9007199254740991,
+                                    "minimum": 1,
+                                    "type": "integer"
+                                  }
+                                },
+                                "required": [
+                                  "path",
+                                  "sha256",
+                                  "mediaType",
+                                  "width",
+                                  "height",
+                                  "bytes",
+                                  "trust",
+                                  "original",
+                                  "removedMetadata"
+                                ],
+                                "type": "object"
+                              },
+                              "kind": {
+                                "const": "image",
+                                "type": "string"
+                              },
+                              "method": {
+                                "enum": [
+                                  "file",
+                                  "screenshot"
+                                ],
+                                "type": "string"
+                              }
+                            },
+                            "required": [
+                              "kind",
+                              "method",
+                              "file",
+                              "image"
+                            ],
+                            "type": "object"
+                          },
+                          {
+                            "additionalProperties": {},
+                            "properties": {
+                              "content": {
+                                "additionalProperties": {},
+                                "properties": {
+                                  "bytes": {
+                                    "maximum": 9007199254740991,
+                                    "minimum": 0,
+                                    "type": "integer"
+                                  },
+                                  "mediaType": {
+                                    "minLength": 1,
+                                    "type": "string"
+                                  },
+                                  "path": {
+                                    "maxLength": 512,
+                                    "type": "string"
+                                  },
+                                  "sha256": {
+                                    "pattern": "^[0-9a-f]{64}$",
+                                    "type": "string"
+                                  },
+                                  "trust": {
+                                    "const": "untrusted",
+                                    "type": "string"
+                                  }
+                                },
+                                "required": [
+                                  "path",
+                                  "sha256",
+                                  "mediaType",
+                                  "bytes",
+                                  "trust"
+                                ],
+                                "type": "object"
+                              },
+                              "fetch": {
+                                "anyOf": [
+                                  {
+                                    "additionalProperties": {},
+                                    "properties": {
+                                      "address": {
+                                        "type": "string"
+                                      },
+                                      "finalUrl": {
+                                        "type": "string"
+                                      },
+                                      "local": {
+                                        "type": "boolean"
+                                      },
+                                      "redirects": {
+                                        "items": {
+                                          "type": "string"
+                                        },
+                                        "maxItems": 3,
+                                        "type": "array"
+                                      },
+                                      "requestedUrl": {
+                                        "type": "string"
+                                      },
+                                      "status": {
+                                        "maximum": 9007199254740991,
+                                        "minimum": -9007199254740991,
+                                        "type": "integer"
+                                      }
+                                    },
+                                    "required": [
+                                      "requestedUrl",
+                                      "finalUrl",
+                                      "status",
+                                      "redirects",
+                                      "address",
+                                      "local"
+                                    ],
+                                    "type": "object"
+                                  },
+                                  {
+                                    "type": "null"
+                                  }
+                                ]
+                              },
+                              "file": {
+                                "anyOf": [
+                                  {
+                                    "additionalProperties": {},
+                                    "properties": {
+                                      "location": {
+                                        "enum": [
+                                          "repo",
+                                          "external"
+                                        ],
+                                        "type": "string"
+                                      },
+                                      "name": {
+                                        "maxLength": 255,
+                                        "minLength": 1,
+                                        "type": "string"
+                                      }
+                                    },
+                                    "required": [
+                                      "name",
+                                      "location"
+                                    ],
+                                    "type": "object"
+                                  },
+                                  {
+                                    "type": "null"
+                                  }
+                                ]
+                              },
+                              "kind": {
+                                "const": "design-md",
+                                "type": "string"
+                              }
+                            },
+                            "required": [
+                              "kind",
+                              "fetch",
+                              "file",
+                              "content"
+                            ],
+                            "type": "object"
+                          }
+                        ]
+                      },
+                      "capturedAt": {
+                        "pattern": "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}\\.\\d{3}Z$",
+                        "type": "string"
+                      },
+                      "crops": {
+                        "items": {
+                          "additionalProperties": {},
+                          "properties": {
+                            "height": {
+                              "maximum": 9007199254740991,
+                              "minimum": 1,
+                              "type": "integer"
+                            },
+                            "note": {
+                              "maxLength": 500,
+                              "minLength": 1,
+                              "type": "string"
+                            },
+                            "width": {
+                              "maximum": 9007199254740991,
+                              "minimum": 1,
+                              "type": "integer"
+                            },
+                            "x": {
+                              "maximum": 9007199254740991,
+                              "minimum": 0,
+                              "type": "integer"
+                            },
+                            "y": {
+                              "maximum": 9007199254740991,
+                              "minimum": 0,
+                              "type": "integer"
+                            }
+                          },
+                          "required": [
+                            "x",
+                            "y",
+                            "width",
+                            "height",
+                            "note"
+                          ],
+                          "type": "object"
+                        },
+                        "maxItems": 20,
+                        "type": "array"
+                      },
+                      "doNotCopy": {
+                        "items": {
+                          "maxLength": 500,
+                          "minLength": 1,
+                          "type": "string"
+                        },
+                        "maxItems": 20,
+                        "minItems": 1,
+                        "type": "array"
+                      },
+                      "id": {
+                        "pattern": "^REF-[1-9][0-9]{0,5}$",
+                        "type": "string"
+                      },
+                      "influences": {
+                        "items": {
+                          "maxLength": 500,
+                          "minLength": 1,
+                          "type": "string"
+                        },
+                        "maxItems": 20,
+                        "minItems": 1,
+                        "type": "array"
+                      },
+                      "mode": {
+                        "enum": [
+                          "full",
+                          "reference-only"
+                        ],
+                        "type": "string"
+                      },
+                      "origin": {
+                        "maxLength": 2048,
+                        "minLength": 1,
+                        "type": "string"
+                      },
+                      "reason": {
+                        "maxLength": 2000,
+                        "minLength": 1,
+                        "type": "string"
+                      },
+                      "removed": {
+                        "anyOf": [
+                          {
+                            "additionalProperties": {},
+                            "properties": {
+                              "at": {
+                                "pattern": "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}\\.\\d{3}Z$",
+                                "type": "string"
+                              },
+                              "reason": {
+                                "type": [
+                                  "string",
+                                  "null"
+                                ]
+                              }
+                            },
+                            "required": [
+                              "at",
+                              "reason"
+                            ],
+                            "type": "object"
+                          },
+                          {
+                            "type": "null"
+                          }
+                        ]
+                      },
+                      "securityFindings": {
+                        "items": {
+                          "additionalProperties": {},
+                          "properties": {
+                            "code": {
+                              "enum": [
+                                "SUSPICIOUS_INSTRUCTION",
+                                "HIDDEN_TEXT",
+                                "METADATA_REMOVED",
+                                "LOCAL_TARGET_ALLOWED"
+                              ],
+                              "type": "string"
+                            },
+                            "line": {
+                              "anyOf": [
+                                {
+                                  "maximum": 9007199254740991,
+                                  "minimum": 1,
+                                  "type": "integer"
+                                },
+                                {
+                                  "type": "null"
+                                }
+                              ]
+                            },
+                            "message": {
+                              "type": "string"
+                            },
+                            "offset": {
+                              "anyOf": [
+                                {
+                                  "maximum": 9007199254740991,
+                                  "minimum": 0,
+                                  "type": "integer"
+                                },
+                                {
+                                  "type": "null"
+                                }
+                              ]
+                            },
+                            "path": {
+                              "anyOf": [
+                                {
+                                  "maxLength": 512,
+                                  "type": "string"
+                                },
+                                {
+                                  "type": "null"
+                                }
+                              ]
+                            },
+                            "phrase": {
+                              "anyOf": [
+                                {
+                                  "maxLength": 200,
+                                  "type": "string"
+                                },
+                                {
+                                  "type": "null"
+                                }
+                              ]
+                            },
+                            "rule": {
+                              "type": [
+                                "string",
+                                "null"
+                              ]
+                            },
+                            "severity": {
+                              "enum": [
+                                "info",
+                                "warning"
+                              ],
+                              "type": "string"
+                            }
+                          },
+                          "required": [
+                            "code",
+                            "severity",
+                            "message",
+                            "path",
+                            "offset",
+                            "line",
+                            "phrase",
+                            "rule"
+                          ],
+                          "type": "object"
+                        },
+                        "type": "array"
+                      },
+                      "source": {
+                        "enum": [
+                          "manual",
+                          "url",
+                          "image",
+                          "design-md",
+                          "penpot",
+                          "refero"
+                        ],
+                        "type": "string"
+                      },
+                      "studies": {
+                        "items": {
+                          "maxLength": 500,
+                          "minLength": 1,
+                          "type": "string"
+                        },
+                        "maxItems": 20,
+                        "minItems": 1,
+                        "type": "array"
+                      }
+                    },
+                    "required": [
+                      "id",
+                      "source",
+                      "origin",
+                      "capturedAt",
+                      "mode",
+                      "reason",
+                      "studies",
+                      "doNotCopy",
+                      "influences",
+                      "capture",
+                      "crops",
+                      "securityFindings",
+                      "removed"
+                    ],
+                    "type": "object"
+                  },
+                  "type": "array"
+                },
+                "shared": {
+                  "additionalProperties": false,
+                  "properties": {
+                    "doNotCopy": {
+                      "items": {
+                        "type": "string"
+                      },
+                      "type": "array"
+                    },
+                    "influences": {
+                      "items": {
+                        "type": "string"
+                      },
+                      "type": "array"
+                    },
+                    "studies": {
+                      "items": {
+                        "type": "string"
+                      },
+                      "type": "array"
+                    }
+                  },
+                  "required": [
+                    "studies",
+                    "doNotCopy",
+                    "influences"
+                  ],
+                  "type": "object"
+                }
+              },
+              "required": [
+                "references",
+                "shared"
+              ],
+              "type": "object"
+            },
+            {
+              "additionalProperties": false,
+              "properties": {
+                "counts": {
+                  "additionalProperties": false,
+                  "properties": {
+                    "active": {
+                      "maximum": 9007199254740991,
+                      "minimum": 0,
+                      "type": "integer"
+                    },
+                    "brandInputs": {
+                      "maximum": 9007199254740991,
+                      "minimum": 0,
+                      "type": "integer"
+                    },
+                    "minimum": {
+                      "maximum": 9007199254740991,
+                      "minimum": 0,
+                      "type": "integer"
+                    },
+                    "removed": {
+                      "maximum": 9007199254740991,
+                      "minimum": 0,
+                      "type": "integer"
+                    },
+                    "withProvenance": {
+                      "maximum": 9007199254740991,
+                      "minimum": 0,
+                      "type": "integer"
+                    }
+                  },
+                  "required": [
+                    "active",
+                    "removed",
+                    "withProvenance",
+                    "minimum",
+                    "brandInputs"
+                  ],
+                  "type": "object"
+                },
+                "includeRemoved": {
+                  "type": "boolean"
+                },
+                "references": {
+                  "items": {
+                    "additionalProperties": false,
+                    "properties": {
+                      "capturedAt": {
+                        "pattern": "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}\\.\\d{3}Z$",
+                        "type": "string"
+                      },
+                      "crops": {
+                        "maximum": 9007199254740991,
+                        "minimum": 0,
+                        "type": "integer"
+                      },
+                      "id": {
+                        "pattern": "^REF-[1-9][0-9]{0,5}$",
+                        "type": "string"
+                      },
+                      "mode": {
+                        "enum": [
+                          "full",
+                          "reference-only"
+                        ],
+                        "type": "string"
+                      },
+                      "origin": {
+                        "type": "string"
+                      },
+                      "removed": {
+                        "type": "boolean"
+                      },
+                      "securityFindings": {
+                        "maximum": 9007199254740991,
+                        "minimum": 0,
+                        "type": "integer"
+                      },
+                      "source": {
+                        "enum": [
+                          "manual",
+                          "url",
+                          "image",
+                          "design-md",
+                          "penpot",
+                          "refero"
+                        ],
+                        "type": "string"
+                      }
+                    },
+                    "required": [
+                      "id",
+                      "source",
+                      "origin",
+                      "capturedAt",
+                      "mode",
+                      "removed",
+                      "crops",
+                      "securityFindings"
+                    ],
+                    "type": "object"
+                  },
+                  "type": "array"
+                }
+              },
+              "required": [
+                "references",
+                "counts",
+                "includeRemoved"
+              ],
+              "type": "object"
+            },
+            {
+              "additionalProperties": false,
+              "properties": {
+                "counts": {
+                  "additionalProperties": false,
+                  "properties": {
+                    "active": {
+                      "maximum": 9007199254740991,
+                      "minimum": 0,
+                      "type": "integer"
+                    },
+                    "brandInputs": {
+                      "maximum": 9007199254740991,
+                      "minimum": 0,
+                      "type": "integer"
+                    },
+                    "minimum": {
+                      "maximum": 9007199254740991,
+                      "minimum": 0,
+                      "type": "integer"
+                    },
+                    "removed": {
+                      "maximum": 9007199254740991,
+                      "minimum": 0,
+                      "type": "integer"
+                    },
+                    "withProvenance": {
+                      "maximum": 9007199254740991,
+                      "minimum": 0,
+                      "type": "integer"
+                    }
+                  },
+                  "required": [
+                    "active",
+                    "removed",
+                    "withProvenance",
+                    "minimum",
+                    "brandInputs"
+                  ],
+                  "type": "object"
+                },
+                "reference": {
+                  "additionalProperties": {},
+                  "properties": {
+                    "capture": {
+                      "oneOf": [
+                        {
+                          "additionalProperties": {},
+                          "properties": {
+                            "kind": {
+                              "const": "manual",
+                              "type": "string"
+                            }
+                          },
+                          "required": [
+                            "kind"
+                          ],
+                          "type": "object"
+                        },
+                        {
+                          "additionalProperties": {},
+                          "properties": {
+                            "content": {
+                              "additionalProperties": {},
+                              "properties": {
+                                "bytes": {
+                                  "maximum": 9007199254740991,
+                                  "minimum": 0,
+                                  "type": "integer"
+                                },
+                                "mediaType": {
+                                  "minLength": 1,
+                                  "type": "string"
+                                },
+                                "path": {
+                                  "maxLength": 512,
+                                  "type": "string"
+                                },
+                                "sha256": {
+                                  "pattern": "^[0-9a-f]{64}$",
+                                  "type": "string"
+                                },
+                                "trust": {
+                                  "const": "untrusted",
+                                  "type": "string"
+                                }
+                              },
+                              "required": [
+                                "path",
+                                "sha256",
+                                "mediaType",
+                                "bytes",
+                                "trust"
+                              ],
+                              "type": "object"
+                            },
+                            "fetch": {
+                              "additionalProperties": {},
+                              "properties": {
+                                "address": {
+                                  "type": "string"
+                                },
+                                "finalUrl": {
+                                  "type": "string"
+                                },
+                                "local": {
+                                  "type": "boolean"
+                                },
+                                "redirects": {
+                                  "items": {
+                                    "type": "string"
+                                  },
+                                  "maxItems": 3,
+                                  "type": "array"
+                                },
+                                "requestedUrl": {
+                                  "type": "string"
+                                },
+                                "status": {
+                                  "maximum": 9007199254740991,
+                                  "minimum": -9007199254740991,
+                                  "type": "integer"
+                                }
+                              },
+                              "required": [
+                                "requestedUrl",
+                                "finalUrl",
+                                "status",
+                                "redirects",
+                                "address",
+                                "local"
+                              ],
+                              "type": "object"
+                            },
+                            "kind": {
+                              "const": "url",
+                              "type": "string"
+                            }
+                          },
+                          "required": [
+                            "kind",
+                            "fetch",
+                            "content"
+                          ],
+                          "type": "object"
+                        },
+                        {
+                          "additionalProperties": {},
+                          "properties": {
+                            "file": {
+                              "additionalProperties": {},
+                              "properties": {
+                                "location": {
+                                  "enum": [
+                                    "repo",
+                                    "external"
+                                  ],
+                                  "type": "string"
+                                },
+                                "name": {
+                                  "maxLength": 255,
+                                  "minLength": 1,
+                                  "type": "string"
+                                }
+                              },
+                              "required": [
+                                "name",
+                                "location"
+                              ],
+                              "type": "object"
+                            },
+                            "image": {
+                              "additionalProperties": {},
+                              "properties": {
+                                "bytes": {
+                                  "maximum": 9007199254740991,
+                                  "minimum": 0,
+                                  "type": "integer"
+                                },
+                                "height": {
+                                  "maximum": 9007199254740991,
+                                  "minimum": 1,
+                                  "type": "integer"
+                                },
+                                "mediaType": {
+                                  "const": "image/webp",
+                                  "type": "string"
+                                },
+                                "original": {
+                                  "additionalProperties": {},
+                                  "properties": {
+                                    "bytes": {
+                                      "maximum": 9007199254740991,
+                                      "minimum": 0,
+                                      "type": "integer"
+                                    },
+                                    "mediaType": {
+                                      "enum": [
+                                        "image/png",
+                                        "image/jpeg",
+                                        "image/webp"
+                                      ],
+                                      "type": "string"
+                                    },
+                                    "sha256": {
+                                      "pattern": "^[0-9a-f]{64}$",
+                                      "type": "string"
+                                    }
+                                  },
+                                  "required": [
+                                    "sha256",
+                                    "mediaType",
+                                    "bytes"
+                                  ],
+                                  "type": "object"
+                                },
+                                "path": {
+                                  "maxLength": 512,
+                                  "type": "string"
+                                },
+                                "removedMetadata": {
+                                  "items": {
+                                    "enum": [
+                                      "exif",
+                                      "gps",
+                                      "xmp",
+                                      "iptc",
+                                      "icc"
+                                    ],
+                                    "type": "string"
+                                  },
+                                  "type": "array"
+                                },
+                                "sha256": {
+                                  "pattern": "^[0-9a-f]{64}$",
+                                  "type": "string"
+                                },
+                                "trust": {
+                                  "const": "untrusted",
+                                  "type": "string"
+                                },
+                                "width": {
+                                  "maximum": 9007199254740991,
+                                  "minimum": 1,
+                                  "type": "integer"
+                                }
+                              },
+                              "required": [
+                                "path",
+                                "sha256",
+                                "mediaType",
+                                "width",
+                                "height",
+                                "bytes",
+                                "trust",
+                                "original",
+                                "removedMetadata"
+                              ],
+                              "type": "object"
+                            },
+                            "kind": {
+                              "const": "image",
+                              "type": "string"
+                            },
+                            "method": {
+                              "enum": [
+                                "file",
+                                "screenshot"
+                              ],
+                              "type": "string"
+                            }
+                          },
+                          "required": [
+                            "kind",
+                            "method",
+                            "file",
+                            "image"
+                          ],
+                          "type": "object"
+                        },
+                        {
+                          "additionalProperties": {},
+                          "properties": {
+                            "content": {
+                              "additionalProperties": {},
+                              "properties": {
+                                "bytes": {
+                                  "maximum": 9007199254740991,
+                                  "minimum": 0,
+                                  "type": "integer"
+                                },
+                                "mediaType": {
+                                  "minLength": 1,
+                                  "type": "string"
+                                },
+                                "path": {
+                                  "maxLength": 512,
+                                  "type": "string"
+                                },
+                                "sha256": {
+                                  "pattern": "^[0-9a-f]{64}$",
+                                  "type": "string"
+                                },
+                                "trust": {
+                                  "const": "untrusted",
+                                  "type": "string"
+                                }
+                              },
+                              "required": [
+                                "path",
+                                "sha256",
+                                "mediaType",
+                                "bytes",
+                                "trust"
+                              ],
+                              "type": "object"
+                            },
+                            "fetch": {
+                              "anyOf": [
+                                {
+                                  "additionalProperties": {},
+                                  "properties": {
+                                    "address": {
+                                      "type": "string"
+                                    },
+                                    "finalUrl": {
+                                      "type": "string"
+                                    },
+                                    "local": {
+                                      "type": "boolean"
+                                    },
+                                    "redirects": {
+                                      "items": {
+                                        "type": "string"
+                                      },
+                                      "maxItems": 3,
+                                      "type": "array"
+                                    },
+                                    "requestedUrl": {
+                                      "type": "string"
+                                    },
+                                    "status": {
+                                      "maximum": 9007199254740991,
+                                      "minimum": -9007199254740991,
+                                      "type": "integer"
+                                    }
+                                  },
+                                  "required": [
+                                    "requestedUrl",
+                                    "finalUrl",
+                                    "status",
+                                    "redirects",
+                                    "address",
+                                    "local"
+                                  ],
+                                  "type": "object"
+                                },
+                                {
+                                  "type": "null"
+                                }
+                              ]
+                            },
+                            "file": {
+                              "anyOf": [
+                                {
+                                  "additionalProperties": {},
+                                  "properties": {
+                                    "location": {
+                                      "enum": [
+                                        "repo",
+                                        "external"
+                                      ],
+                                      "type": "string"
+                                    },
+                                    "name": {
+                                      "maxLength": 255,
+                                      "minLength": 1,
+                                      "type": "string"
+                                    }
+                                  },
+                                  "required": [
+                                    "name",
+                                    "location"
+                                  ],
+                                  "type": "object"
+                                },
+                                {
+                                  "type": "null"
+                                }
+                              ]
+                            },
+                            "kind": {
+                              "const": "design-md",
+                              "type": "string"
+                            }
+                          },
+                          "required": [
+                            "kind",
+                            "fetch",
+                            "file",
+                            "content"
+                          ],
+                          "type": "object"
+                        }
+                      ]
+                    },
+                    "capturedAt": {
+                      "pattern": "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}\\.\\d{3}Z$",
+                      "type": "string"
+                    },
+                    "crops": {
+                      "items": {
+                        "additionalProperties": {},
+                        "properties": {
+                          "height": {
+                            "maximum": 9007199254740991,
+                            "minimum": 1,
+                            "type": "integer"
+                          },
+                          "note": {
+                            "maxLength": 500,
+                            "minLength": 1,
+                            "type": "string"
+                          },
+                          "width": {
+                            "maximum": 9007199254740991,
+                            "minimum": 1,
+                            "type": "integer"
+                          },
+                          "x": {
+                            "maximum": 9007199254740991,
+                            "minimum": 0,
+                            "type": "integer"
+                          },
+                          "y": {
+                            "maximum": 9007199254740991,
+                            "minimum": 0,
+                            "type": "integer"
+                          }
+                        },
+                        "required": [
+                          "x",
+                          "y",
+                          "width",
+                          "height",
+                          "note"
+                        ],
+                        "type": "object"
+                      },
+                      "maxItems": 20,
+                      "type": "array"
+                    },
+                    "doNotCopy": {
+                      "items": {
+                        "maxLength": 500,
+                        "minLength": 1,
+                        "type": "string"
+                      },
+                      "maxItems": 20,
+                      "minItems": 1,
+                      "type": "array"
+                    },
+                    "id": {
+                      "pattern": "^REF-[1-9][0-9]{0,5}$",
+                      "type": "string"
+                    },
+                    "influences": {
+                      "items": {
+                        "maxLength": 500,
+                        "minLength": 1,
+                        "type": "string"
+                      },
+                      "maxItems": 20,
+                      "minItems": 1,
+                      "type": "array"
+                    },
+                    "mode": {
+                      "enum": [
+                        "full",
+                        "reference-only"
+                      ],
+                      "type": "string"
+                    },
+                    "origin": {
+                      "maxLength": 2048,
+                      "minLength": 1,
+                      "type": "string"
+                    },
+                    "reason": {
+                      "maxLength": 2000,
+                      "minLength": 1,
+                      "type": "string"
+                    },
+                    "removed": {
+                      "anyOf": [
+                        {
+                          "additionalProperties": {},
+                          "properties": {
+                            "at": {
+                              "pattern": "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}\\.\\d{3}Z$",
+                              "type": "string"
+                            },
+                            "reason": {
+                              "type": [
+                                "string",
+                                "null"
+                              ]
+                            }
+                          },
+                          "required": [
+                            "at",
+                            "reason"
+                          ],
+                          "type": "object"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    },
+                    "securityFindings": {
+                      "items": {
+                        "additionalProperties": {},
+                        "properties": {
+                          "code": {
+                            "enum": [
+                              "SUSPICIOUS_INSTRUCTION",
+                              "HIDDEN_TEXT",
+                              "METADATA_REMOVED",
+                              "LOCAL_TARGET_ALLOWED"
+                            ],
+                            "type": "string"
+                          },
+                          "line": {
+                            "anyOf": [
+                              {
+                                "maximum": 9007199254740991,
+                                "minimum": 1,
+                                "type": "integer"
+                              },
+                              {
+                                "type": "null"
+                              }
+                            ]
+                          },
+                          "message": {
+                            "type": "string"
+                          },
+                          "offset": {
+                            "anyOf": [
+                              {
+                                "maximum": 9007199254740991,
+                                "minimum": 0,
+                                "type": "integer"
+                              },
+                              {
+                                "type": "null"
+                              }
+                            ]
+                          },
+                          "path": {
+                            "anyOf": [
+                              {
+                                "maxLength": 512,
+                                "type": "string"
+                              },
+                              {
+                                "type": "null"
+                              }
+                            ]
+                          },
+                          "phrase": {
+                            "anyOf": [
+                              {
+                                "maxLength": 200,
+                                "type": "string"
+                              },
+                              {
+                                "type": "null"
+                              }
+                            ]
+                          },
+                          "rule": {
+                            "type": [
+                              "string",
+                              "null"
+                            ]
+                          },
+                          "severity": {
+                            "enum": [
+                              "info",
+                              "warning"
+                            ],
+                            "type": "string"
+                          }
+                        },
+                        "required": [
+                          "code",
+                          "severity",
+                          "message",
+                          "path",
+                          "offset",
+                          "line",
+                          "phrase",
+                          "rule"
+                        ],
+                        "type": "object"
+                      },
+                      "type": "array"
+                    },
+                    "source": {
+                      "enum": [
+                        "manual",
+                        "url",
+                        "image",
+                        "design-md",
+                        "penpot",
+                        "refero"
+                      ],
+                      "type": "string"
+                    },
+                    "studies": {
+                      "items": {
+                        "maxLength": 500,
+                        "minLength": 1,
+                        "type": "string"
+                      },
+                      "maxItems": 20,
+                      "minItems": 1,
+                      "type": "array"
+                    }
+                  },
+                  "required": [
+                    "id",
+                    "source",
+                    "origin",
+                    "capturedAt",
+                    "mode",
+                    "reason",
+                    "studies",
+                    "doNotCopy",
+                    "influences",
+                    "capture",
+                    "crops",
+                    "securityFindings",
+                    "removed"
+                  ],
+                  "type": "object"
+                }
+              },
+              "required": [
+                "reference",
+                "counts"
+              ],
+              "type": "object"
+            },
+            {
+              "additionalProperties": false,
+              "properties": {
+                "input": {
+                  "additionalProperties": {},
+                  "properties": {
+                    "capturedAt": {
+                      "pattern": "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}\\.\\d{3}Z$",
+                      "type": "string"
+                    },
+                    "derivedFrom": {
+                      "anyOf": [
+                        {
+                          "pattern": "^REF-[1-9][0-9]{0,5}$",
+                          "type": "string"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    },
+                    "file": {
+                      "anyOf": [
+                        {
+                          "additionalProperties": {},
+                          "properties": {
+                            "location": {
+                              "enum": [
+                                "repo",
+                                "external"
+                              ],
+                              "type": "string"
+                            },
+                            "name": {
+                              "maxLength": 255,
+                              "minLength": 1,
+                              "type": "string"
+                            }
+                          },
+                          "required": [
+                            "name",
+                            "location"
+                          ],
+                          "type": "object"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    },
+                    "id": {
+                      "pattern": "^BRAND-[1-9][0-9]{0,5}$",
+                      "type": "string"
+                    },
+                    "image": {
+                      "anyOf": [
+                        {
+                          "additionalProperties": {},
+                          "properties": {
+                            "bytes": {
+                              "maximum": 9007199254740991,
+                              "minimum": 0,
+                              "type": "integer"
+                            },
+                            "height": {
+                              "maximum": 9007199254740991,
+                              "minimum": 1,
+                              "type": "integer"
+                            },
+                            "mediaType": {
+                              "const": "image/webp",
+                              "type": "string"
+                            },
+                            "original": {
+                              "additionalProperties": {},
+                              "properties": {
+                                "bytes": {
+                                  "maximum": 9007199254740991,
+                                  "minimum": 0,
+                                  "type": "integer"
+                                },
+                                "mediaType": {
+                                  "enum": [
+                                    "image/png",
+                                    "image/jpeg",
+                                    "image/webp"
+                                  ],
+                                  "type": "string"
+                                },
+                                "sha256": {
+                                  "pattern": "^[0-9a-f]{64}$",
+                                  "type": "string"
+                                }
+                              },
+                              "required": [
+                                "sha256",
+                                "mediaType",
+                                "bytes"
+                              ],
+                              "type": "object"
+                            },
+                            "path": {
+                              "maxLength": 512,
+                              "type": "string"
+                            },
+                            "removedMetadata": {
+                              "items": {
+                                "enum": [
+                                  "exif",
+                                  "gps",
+                                  "xmp",
+                                  "iptc",
+                                  "icc"
+                                ],
+                                "type": "string"
+                              },
+                              "type": "array"
+                            },
+                            "sha256": {
+                              "pattern": "^[0-9a-f]{64}$",
+                              "type": "string"
+                            },
+                            "trust": {
+                              "const": "untrusted",
+                              "type": "string"
+                            },
+                            "width": {
+                              "maximum": 9007199254740991,
+                              "minimum": 1,
+                              "type": "integer"
+                            }
+                          },
+                          "required": [
+                            "path",
+                            "sha256",
+                            "mediaType",
+                            "width",
+                            "height",
+                            "bytes",
+                            "trust",
+                            "original",
+                            "removedMetadata"
+                          ],
+                          "type": "object"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    },
+                    "kind": {
+                      "enum": [
+                        "logo",
+                        "brand-color",
+                        "secondary-color",
+                        "font",
+                        "brand-guidelines",
+                        "screenshot",
+                        "url",
+                        "existing-product",
+                        "competitor",
+                        "liked-reference",
+                        "disliked-reference"
+                      ],
+                      "type": "string"
+                    },
+                    "mode": {
+                      "enum": [
+                        "full",
+                        "reference-only"
+                      ],
+                      "type": "string"
+                    },
+                    "note": {
+                      "anyOf": [
+                        {
+                          "maxLength": 2000,
+                          "minLength": 1,
+                          "type": "string"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    },
+                    "origin": {
+                      "enum": [
+                        "provided",
+                        "derived",
+                        "inferred",
+                        "reference-derived"
+                      ],
+                      "type": "string"
+                    },
+                    "value": {
+                      "maxLength": 2000,
+                      "minLength": 1,
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "id",
+                    "kind",
+                    "origin",
+                    "value",
+                    "note",
+                    "derivedFrom",
+                    "image",
+                    "file",
+                    "capturedAt",
+                    "mode"
+                  ],
+                  "type": "object"
+                },
+                "stateRevision": {
+                  "maximum": 9007199254740991,
+                  "minimum": -9007199254740991,
+                  "type": "integer"
+                },
+                "written": {
+                  "items": {
+                    "maxLength": 512,
+                    "type": "string"
+                  },
+                  "type": "array"
+                }
+              },
+              "required": [
+                "input",
+                "stateRevision",
+                "written"
+              ],
+              "type": "object"
+            },
+            {
+              "additionalProperties": false,
+              "properties": {
+                "counts": {
+                  "additionalProperties": false,
+                  "properties": {
+                    "active": {
+                      "maximum": 9007199254740991,
+                      "minimum": 0,
+                      "type": "integer"
+                    },
+                    "brandInputs": {
+                      "maximum": 9007199254740991,
+                      "minimum": 0,
+                      "type": "integer"
+                    },
+                    "minimum": {
+                      "maximum": 9007199254740991,
+                      "minimum": 0,
+                      "type": "integer"
+                    },
+                    "removed": {
+                      "maximum": 9007199254740991,
+                      "minimum": 0,
+                      "type": "integer"
+                    },
+                    "withProvenance": {
+                      "maximum": 9007199254740991,
+                      "minimum": 0,
+                      "type": "integer"
+                    }
+                  },
+                  "required": [
+                    "active",
+                    "removed",
+                    "withProvenance",
+                    "minimum",
+                    "brandInputs"
+                  ],
+                  "type": "object"
+                },
+                "locale": {
+                  "type": "string"
+                },
+                "mode": {
+                  "enum": [
+                    "full",
+                    "reference-only"
+                  ],
+                  "type": "string"
+                },
+                "outputs": {
+                  "items": {
+                    "additionalProperties": false,
+                    "properties": {
+                      "path": {
+                        "maxLength": 512,
+                        "type": "string"
+                      },
+                      "sha256": {
+                        "pattern": "^[0-9a-f]{64}$",
+                        "type": "string"
+                      },
+                      "written": {
+                        "type": "boolean"
+                      }
+                    },
+                    "required": [
+                      "path",
+                      "sha256",
+                      "written"
+                    ],
+                    "type": "object"
+                  },
+                  "type": "array"
+                },
+                "stateRevision": {
+                  "maximum": 9007199254740991,
+                  "minimum": -9007199254740991,
+                  "type": "integer"
+                }
+              },
+              "required": [
+                "mode",
+                "locale",
+                "outputs",
+                "counts",
+                "stateRevision"
+              ],
+              "type": "object"
+            },
             {
               "additionalProperties": false,
               "properties": {
@@ -1036,7 +4917,23 @@
               "REASON_REQUIRED",
               "USAGE",
               "UNEXPECTED_ERROR",
-              "PENPOT_REQUIRED_FOR_DIRECTION"
+              "PENPOT_REQUIRED_FOR_DIRECTION",
+              "PROVENANCE_INCOMPLETE",
+              "REFERENCE_INPUT_INVALID",
+              "REFERENCE_NOT_FOUND",
+              "BATCH_INVALID",
+              "CROP_INVALID",
+              "BRAND_INPUT_INVALID",
+              "INVALID_URL",
+              "SSRF_BLOCKED",
+              "FETCH_FAILED",
+              "UNSUPPORTED_MEDIA_TYPE",
+              "IMAGE_UNREADABLE",
+              "IMAGE_ENGINE_UNAVAILABLE",
+              "ADAPTER_NOT_AVAILABLE",
+              "LOCALE_INVALID",
+              "LOCALE_FALLBACK",
+              "ASSETS_LARGE"
             ],
             "type": "string"
           },

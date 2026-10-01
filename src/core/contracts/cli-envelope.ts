@@ -27,9 +27,40 @@ import {
   type StageRef,
   type UxSummary,
 } from "./mode-decision.ts";
+import {
+  BrandAddDataSchema,
+  ReferencesAddDataSchema,
+  ReferencesCompareDataSchema,
+  ReferencesImportDataSchema,
+  ReferencesListDataSchema,
+  ReferencesRemoveDataSchema,
+  ReferencesShowDataSchema,
+  ResearchRenderDataSchema,
+  type BrandAddData,
+  type ReferencesAddData,
+  type ReferencesCompareData,
+  type ReferencesImportData,
+  type ReferencesListData,
+  type ReferencesRemoveData,
+  type ReferencesShowData,
+  type ResearchRenderData,
+} from "./research-data.ts";
 import type { DocumentSpec } from "./version.ts";
 
-export const CLI_COMMANDS = ["init", "status", "doctor", "gate"] as const;
+export const CLI_COMMANDS = [
+  "init",
+  "status",
+  "doctor",
+  "gate",
+  "references add",
+  "references list",
+  "references show",
+  "references compare",
+  "references remove",
+  "references import",
+  "brand add",
+  "research render",
+] as const;
 export type CliCommand = (typeof CLI_COMMANDS)[number];
 
 export type InitData = {
@@ -92,7 +123,20 @@ export type CliEnvelope = {
   command: CliCommand | "unknown";
   ok: boolean; // true iff code = 0
   code: ExitCode;
-  data: InitData | StatusData | DoctorData | GateData | null;
+  data:
+    | InitData
+    | StatusData
+    | DoctorData
+    | GateData
+    | ReferencesImportData
+    | ReferencesAddData
+    | ReferencesRemoveData
+    | ReferencesCompareData
+    | ReferencesListData
+    | ReferencesShowData
+    | BrandAddData
+    | ResearchRenderData
+    | null;
   findings: Finding[];
   runId: RunId;
   durationMs: number;
@@ -164,7 +208,23 @@ export const CliEnvelopeSchema: z.ZodType<CliEnvelope> = z.object({
   command: z.union([z.enum(CLI_COMMANDS), z.literal("unknown")]),
   ok: z.boolean(),
   code: ExitCodeSchema,
-  data: z.union([InitDataSchema, StatusDataSchema, DoctorDataSchema, GateDataSchema]).nullable(),
+  // Larger shapes first so a z.object never matches a narrower payload by stripping keys.
+  data: z
+    .union([
+      ReferencesImportDataSchema,
+      ReferencesAddDataSchema,
+      ReferencesRemoveDataSchema,
+      ReferencesCompareDataSchema,
+      ReferencesListDataSchema,
+      ReferencesShowDataSchema,
+      BrandAddDataSchema,
+      ResearchRenderDataSchema,
+      InitDataSchema,
+      StatusDataSchema,
+      DoctorDataSchema,
+      GateDataSchema,
+    ])
+    .nullable(),
   findings: z.array(FindingSchema),
   runId: RunIdSchema,
   durationMs: z.number().min(0),

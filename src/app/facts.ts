@@ -1,9 +1,11 @@
 import { join } from "node:path";
 import {
+  RESEARCH_REFERENCES_DOCUMENT,
   type BoundArtifact,
   type GateName,
   type HeronState,
   type RelativeArtifactPath,
+  type ResearchReference,
   type Sha256Hex,
 } from "../core/contracts/index.ts";
 import {
@@ -78,4 +80,30 @@ export function collectTransitionFacts(
   };
   if (gate !== null) facts.boundArtifactCount = boundArtifacts(fs, store, gate).length;
   return facts;
+}
+
+/** A reference counts toward D16 when every RN-11 field is present (the schema already enforces the bounds). */
+function hasProvenance(reference: ResearchReference): boolean {
+  return (
+    reference.removed === null &&
+    reference.origin.trim() !== "" &&
+    reference.reason.trim() !== "" &&
+    reference.studies.length > 0 &&
+    reference.doNotCopy.length > 0 &&
+    reference.influences.length > 0
+  );
+}
+
+/** referencesWithProvenance = active references in research/references.json with complete provenance;
+ * minReferences = settings.minReferences (D16: 5). Absent references.json -> 0.
+ * Throws the store's document errors, which callers map with storeErrorResult. */
+export function collectResearchFacts(
+  store: FileStore,
+  settings: { minReferences: number },
+): Pick<TransitionFacts, "referencesWithProvenance" | "minReferences"> {
+  const document = store.readDocument("research/references.json", RESEARCH_REFERENCES_DOCUMENT);
+  return {
+    referencesWithProvenance: document?.references.filter(hasProvenance).length ?? 0,
+    minReferences: settings.minReferences,
+  };
 }

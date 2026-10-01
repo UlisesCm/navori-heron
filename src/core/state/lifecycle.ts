@@ -32,23 +32,30 @@ export function createInitialState(input: LifecycleInput): HeronState {
   };
 }
 
-/** stateRevision + 1, mode updated, artifacts replaced, history entry (transition null),
- * propagateStale over artifacts whose sha256 changed. Phase never changes here (RN-29: the mode guard blocks). */
-export function recordInit(state: HeronState, input: LifecycleInput): HeronState {
-  const { mode, artifacts, meta } = input;
-  const previous = new Map(state.artifacts.map((artifact) => [artifact.path, artifact.sha256]));
-  const changed = artifacts
-    .filter((artifact) => {
-      const before = previous.get(artifact.path);
-      return before !== undefined && before !== artifact.sha256;
-    })
-    .map((artifact) => artifact.path);
+/** Upserts `updates` by path (result sorted by path) and propagateStale(reason) over the paths whose sha256 changed.
+ * Never mutates; the revision is untouched (call it after recordInit/recordCommand so `since` is the new revision). */
+export function withArtifacts(
+  state: HeronState,
+  updates: readonly BoundArtifact[],
+  reason: string,
+): HeronState {
+  const merged = new Map(state.artifacts.map((artifact) => [artifact.path, artifact]));
+  const changed: string[] = [];
+  for (const update of updates) {
+    const before = merged.get(update.path);
+    if (before !== undefined && before.sha256 !== update.sha256) changed.push(update.path);
+    merged.set(update.path, update);
+  }
+  const next: HeronState = { ...state, artifacts: [...merged.values()].toSorted(byPath) };
+  return propagateStale(next, changed, reason);
+}
+
+function appendHistory(state: HeronState, mode: HeronMode, meta: TransitionMeta): HeronState {
   const stateRevision = state.stateRevision + 1;
-  const next: HeronState = {
+  return {
     ...state,
     stateRevision,
     mode,
-    artifacts: artifacts.toSorted(byPath),
     history: [
       ...state.history,
       {
@@ -62,5 +69,20 @@ export function recordInit(state: HeronState, input: LifecycleInput): HeronState
       },
     ],
   };
-  return propagateStale(next, changed, "An upstream artifact changed since the last heron init.");
+}
+
+/** stateRevision + 1 and a history entry with transition null (a command that writes without a table event). */
+export function recordCommand(state: HeronState, meta: TransitionMeta): HeronState {
+  return appendHistory(state, state.mode, meta);
+}
+
+/** stateRevision + 1, mode updated, then withArtifacts(init artifacts): research and brand artifacts are kept.
+ * Phase never changes here (RN-29: the mode guard blocks). */
+export function recordInit(state: HeronState, input: LifecycleInput): HeronState {
+  const { mode, artifacts, meta } = input;
+  return withArtifacts(
+    appendHistory(state, mode, meta),
+    artifacts,
+    "An upstream artifact changed since the last heron init.",
+  );
 }
