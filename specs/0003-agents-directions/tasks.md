@@ -58,7 +58,7 @@ Lotes de 1–3 tareas, **en serie** (cada tarea declara de qué depende y con qu
   - **Comparte archivos con:** ninguna tarea posterior.
   - **Fuera de alcance:** validadores de dominio (T6, T7); conversión a JSON Schema por proveedor (T8).
 
-- [ ] **T5** (R10, R11) — Hecho `researchApprovalValid` en `three-valid-directions`, artefactos y dependencias de `brief.json`/`analysis.json`, hechos de direcciones.
+- [x] **T5** (R10, R11) — Hecho `researchApprovalValid` en `three-valid-directions`, artefactos y dependencias de `brief.json`/`analysis.json`, hechos de direcciones.
   - **Archivos:** `src/core/state/transitions.ts`, `src/core/state/stale.ts`, `src/app/facts.ts`, `tests/unit/state-machine.test.ts`, `tests/unit/stale.test.ts`, `tests/unit/app/facts.test.ts`
   - **Interfaces:** TransitionFacts; collectDirectionFacts; PHASE_ARTIFACTS; ARTIFACT_DEPENDENCIES
   - **Patrón:** src/core/state/transitions.ts

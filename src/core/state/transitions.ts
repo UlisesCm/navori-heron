@@ -21,6 +21,7 @@ export type TransitionFacts = Partial<{
   referencesWithProvenance: number;
   minReferences: number; // default 5 (D16)
   validDirections: number;
+  researchApprovalValid: boolean;
   directionSelected: boolean;
   intakeApprovalValid: boolean;
   foundationsAreas: number;
@@ -109,9 +110,12 @@ const FACT_CHECKS: Partial<Record<PreconditionId, (facts: TransitionFacts) => Pr
         ? null
         : `at least ${min} references with provenance are required (found ${found})`;
     }),
-    "three-valid-directions": predicate(["validDirections"], (f) =>
-      f.validDirections === 3 ? null : "exactly 3 valid directions are required",
-    ),
+    "three-valid-directions": predicate(["validDirections", "researchApprovalValid"], (f) => {
+      if (f.researchApprovalValid !== true) {
+        return "the research approval is not valid (re-approve with: heron gate research approve)";
+      }
+      return f.validDirections === 3 ? null : "exactly 3 valid directions are required";
+    }),
     "direction-selectable": (f) => {
       const absent = firstMissing(f, ["intakeApprovalValid", "directionSelected", "penpotEnabled"]);
       if (absent !== null) return missing(absent);
