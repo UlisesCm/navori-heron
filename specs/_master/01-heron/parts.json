@@ -471,7 +471,13 @@
         {
           "id": "A7",
           "description": "`research render` produce las 4 salidas y cada una declara `reference-only`; el moodboard escapa `<script>` inyectado y trae CSP",
-          "evidence": null,
+          "evidence": {
+            "kind": "run",
+            "command": "bun test tests/e2e/research-render.test.ts -t \"renders reference-only outputs with escaped text and CSP\"",
+            "result": "exit 0; 1 pass,0 fail",
+            "commit": "9cc893b69613a61d508c138c1bc5e49db2b1d681",
+            "date": "2026-10-01"
+          },
           "method": "test",
           "test": {
             "file": "tests/e2e/research-render.test.ts",

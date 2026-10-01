@@ -21,30 +21,30 @@ Cerrable: no
 
 ## Evidencia
 
-- P1.A1 (test): verificado · commitsBehind=46
-- P1.A2 (test): verificado · commitsBehind=45
-- P1.A3 (test): verificado · commitsBehind=44
-- P1.A4 (test): verificado · commitsBehind=43
-- P1.A5 (test): verificado · commitsBehind=42
-- P1.A6 (test): verificado · commitsBehind=41
-- P1.A7 (test): verificado · commitsBehind=40
-- P1.A8 (test): verificado · commitsBehind=39
-- P1.A9 (test): verificado · commitsBehind=62
-- P1.A10 (test): verificado · commitsBehind=38
-- P1.A11 (test): verificado · commitsBehind=37
-- P1.A12 (test): verificado · commitsBehind=36
-- P1.A13 (test): verificado · commitsBehind=35
-- P1.A14 (comando): verificado · commitsBehind=61
-- P1.A15 (comando): verificado · commitsBehind=34
-- P1.A16 (test): verificado · commitsBehind=63
+- P1.A1 (test): verificado · commitsBehind=47
+- P1.A2 (test): verificado · commitsBehind=46
+- P1.A3 (test): verificado · commitsBehind=45
+- P1.A4 (test): verificado · commitsBehind=44
+- P1.A5 (test): verificado · commitsBehind=43
+- P1.A6 (test): verificado · commitsBehind=42
+- P1.A7 (test): verificado · commitsBehind=41
+- P1.A8 (test): verificado · commitsBehind=40
+- P1.A9 (test): verificado · commitsBehind=63
+- P1.A10 (test): verificado · commitsBehind=39
+- P1.A11 (test): verificado · commitsBehind=38
+- P1.A12 (test): verificado · commitsBehind=37
+- P1.A13 (test): verificado · commitsBehind=36
+- P1.A14 (comando): verificado · commitsBehind=62
+- P1.A15 (comando): verificado · commitsBehind=35
+- P1.A16 (test): verificado · commitsBehind=64
 - P1.A17 (manual): verificado
-- P2.A1 (test): verificado · commitsBehind=5
-- P2.A2 (test): verificado · commitsBehind=4
-- P2.A3 (test): verificado · commitsBehind=3
-- P2.A4 (test): verificado · commitsBehind=2
-- P2.A5 (test): verificado · commitsBehind=1
-- P2.A6 (test): verificado · commitsBehind=0
-- P2.A7 (test): sin evidencia
+- P2.A1 (test): verificado · commitsBehind=6
+- P2.A2 (test): verificado · commitsBehind=5
+- P2.A3 (test): verificado · commitsBehind=4
+- P2.A4 (test): verificado · commitsBehind=3
+- P2.A5 (test): verificado · commitsBehind=2
+- P2.A6 (test): verificado · commitsBehind=1
+- P2.A7 (test): verificado · commitsBehind=0
 - P2.A8 (test): sin evidencia
 - P2.A9 (manual): sin evidencia
 - P3.A1 (test): sin evidencia
@@ -131,7 +131,6 @@ Cerrable: no
 ## Bloqueos
 
 - P2: parcial
-- P2.A7: sin evidencia
 - P2.A8: sin evidencia
 - P2.A9: sin evidencia
 - P3: pendiente
