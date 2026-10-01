@@ -1,4 +1,10 @@
-import { PRODUCT_CONTEXT_SECTIONS, type IntakeData } from "../core/contracts/index.ts";
+import {
+  PRODUCT_CONTEXT_SECTIONS,
+  type Conflict,
+  type ConflictsAckData,
+  type ConflictsListData,
+  type IntakeData,
+} from "../core/contracts/index.ts";
 import { MODE_LABELS } from "./render.ts";
 
 /** Text output of `heron intake`; findings are appended by the caller with renderFindings. */
@@ -17,5 +23,32 @@ export function renderIntakeText(data: IntakeData): string {
         `- ${c.id} ${c.kind} ${c.subject}: ${c.acknowledged ? "acknowledged" : "not acknowledged"}`,
     ),
     ...(data.dryRun ? ["Dry run: nothing was written to .heron/"] : []),
+  ].join("\n");
+}
+
+function renderConflict(c: Conflict): string {
+  const ack = c.ack === null ? "not acknowledged" : `acknowledged by ${c.ack.by}`;
+  return [
+    `${c.id} [${c.status}, ${ack}] ${c.kind} · ${c.subject}`,
+    `  Files: ${c.files.join(", ")}`,
+    "  Values:",
+    ...c.values.map((v) => `  - ${v.sourceRef.source} ${v.sourceRef.locator}: ${v.value}`),
+    `  Impact: ${c.impact.length === 0 ? "none" : c.impact.join(", ")}`,
+  ].join("\n");
+}
+
+/** Text output of `heron conflicts list`; `path` only for the "Run: heron intake" hint. */
+export function renderConflictsListText(data: ConflictsListData, path: string): string {
+  if (!data.tracked) return `No product context yet. Run: heron intake ${path}`;
+  if (data.conflicts.length === 0) return "No open conflicts.";
+  return data.conflicts.map(renderConflict).join("\n\n");
+}
+
+/** Text output of `heron conflicts ack`. */
+export function renderConflictsAckText(data: ConflictsAckData): string {
+  const { id, ack } = data.conflict;
+  return [
+    `${id} acknowledged by ${ack?.by ?? ""}: ${ack?.note ?? ""}`,
+    `Conflicts not acknowledged: ${data.unacknowledged}`,
   ].join("\n");
 }

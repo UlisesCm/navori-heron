@@ -10,7 +10,12 @@ import { approveGate, rejectGate, type GateOutcome } from "../core/state/gates.t
 import { canTransition, type TransitionFacts } from "../core/state/transitions.ts";
 import type { FileStore } from "../core/store/file-store.ts";
 import type { AppContext } from "./context.ts";
-import { boundArtifacts, collectResearchFacts, collectTransitionFacts } from "./facts.ts";
+import {
+  boundArtifacts,
+  collectIntakeFacts,
+  collectResearchFacts,
+  collectTransitionFacts,
+} from "./facts.ts";
 import {
   failure,
   makeFinding,
@@ -18,7 +23,7 @@ import {
   storeErrorResult,
   type UseCaseResult,
 } from "./result.ts";
-import { loadWorkspace, type WorkspaceLoad } from "./workspace.ts";
+import { loadWorkspace, type Workspace, type WorkspaceLoad } from "./workspace.ts";
 import { withWriteRun, type WriteBodyResult, type WriteRun } from "./write-run.ts";
 
 export type GateInput = {
@@ -48,6 +53,7 @@ function outcomeFailure(
 /** Transition facts of the snapshot: the P1 ones plus the research reference counts (R15). May throw document errors. */
 function gateFacts(
   ctx: AppContext,
+  workspace: Workspace,
   store: FileStore,
   state: HeronState,
   gate: GateName,
@@ -55,6 +61,7 @@ function gateFacts(
   return {
     ...collectTransitionFacts(store, state, gate, ctx.fs),
     ...collectResearchFacts(store, ctx.research),
+    ...(gate === "intake" ? collectIntakeFacts(ctx, workspace, store) : {}),
   };
 }
 
@@ -67,7 +74,7 @@ export async function runGate(ctx: AppContext, input: GateInput): Promise<UseCas
     loaded = loadWorkspace(ctx, input.path);
     if (loaded.ok) {
       const { store, state, mode } = loaded.workspace;
-      facts = gateFacts(ctx, store, { ...state, mode }, input.gate);
+      facts = gateFacts(ctx, loaded.workspace, store, { ...state, mode }, input.gate);
     }
   } catch (error) {
     const mapped = storeErrorResult<GateData>(error);
@@ -76,6 +83,7 @@ export async function runGate(ctx: AppContext, input: GateInput): Promise<UseCas
   }
   if (!loaded.ok) return loaded.result;
   const { root, store, state: stored, mode, blocked } = loaded.workspace;
+  const { workspace } = loaded;
   // The effective mode is recomputed from the live detection (RN-29); the persisted one is kept on disk.
   const snapshot: HeronState = { ...stored, mode };
   const event = {
@@ -145,7 +153,7 @@ export async function runGate(ctx: AppContext, input: GateInput): Promise<UseCas
       requireState: true,
       expectedRevision: stored.stateRevision,
     },
-    (run) => decide(ctx, run, input, { decidedBy, reason, mode, blocked }),
+    (run) => decide(ctx, run, input, { decidedBy, reason, mode, blocked, workspace }),
   );
 }
 
@@ -154,11 +162,17 @@ function decide(
   ctx: AppContext,
   { store, previous, meta }: WriteRun,
   input: GateInput,
-  who: { decidedBy: string; reason: string; mode: HeronMode; blocked: StoredModeDecision },
+  who: {
+    decidedBy: string;
+    reason: string;
+    mode: HeronMode;
+    blocked: StoredModeDecision;
+    workspace: Workspace;
+  },
 ): WriteBodyResult<GateData> {
   if (previous === null) throw new Error("withWriteRun requireState guarantees state.json");
   const state: HeronState = { ...previous, mode: who.mode };
-  const facts = gateFacts(ctx, store, state, input.gate);
+  const facts = gateFacts(ctx, who.workspace, store, state, input.gate);
   const artifacts = boundArtifacts(ctx.fs, store, input.gate);
   const outcome =
     input.decision === "approve"

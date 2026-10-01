@@ -128,7 +128,7 @@ Lotes de 1–3 tareas. Cada test lleva `// Covers: R<n>` en la primera línea y 
   - **Nota:** el comando de P4.A7 es el enmendado por D30 (DR29). `USAGE_TEXT` ya no se compara literal (T0).
   - **Fuera de alcance:** `conflicts list|ack`, hechos del gate y `status` (T12).
 
-- [ ] **T12** (R6, R7, R12, R14) — `heron conflicts list|ack`, hechos de intake en el gate, re-aprobación en producción de punta a punta y conflictos y frescura en `status`.
+- [x] **T12** (R6, R7, R12, R14) — `heron conflicts list|ack`, hechos de intake en el gate, re-aprobación en producción de punta a punta y conflictos y frescura en `status`.
   - **Archivos:** `src/app/conflicts.ts`, `src/app/facts.ts`, `src/app/gate.ts`, `src/app/status.ts`, `src/cli/commands/conflicts.ts`, `src/cli/commands/index.ts`, `src/cli/command.ts`, `src/cli/render-intake.ts`, `tests/e2e/conflicts.test.ts`, `tests/e2e/gate.test.ts`, `tests/e2e/status.test.ts`, `tests/e2e/intake.test.ts`, `tests/perf/init.perf.test.ts`
   - **Interfaces:** runConflictsList; runConflictsAck; collectIntakeFacts; conflictsCommand; ConflictsParsed; renderConflictsListText; renderConflictsAckText
   - **Patrón:** src/app/gate.ts

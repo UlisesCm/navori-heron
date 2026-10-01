@@ -17,7 +17,8 @@ export type CommandName =
   | "references"
   | "brand"
   | "research"
-  | "intake";
+  | "intake"
+  | "conflicts";
 export type InitParsed = {
   command: "init";
   path: string;
@@ -79,6 +80,18 @@ export type BrandParsed = {
 export type ResearchParsed = { command: "research"; action: "render"; path: string; json: boolean };
 /** `heron intake`: `--refresh` is parsed and ignored (DR31). */
 export type IntakeParsed = { command: "intake"; path: string; dryRun: boolean; json: boolean };
+/** `heron conflicts <action>`: one variant per action, discriminated by `action`. */
+export type ConflictsParsed =
+  | { command: "conflicts"; action: "list"; path: string; all: boolean; json: boolean }
+  | {
+      command: "conflicts";
+      action: "ack";
+      path: string;
+      id: string;
+      note: string | null;
+      yes: boolean;
+      json: boolean;
+    };
 export type ParsedCommand =
   | InitParsed
   | StatusParsed
@@ -88,6 +101,7 @@ export type ParsedCommand =
   | BrandParsed
   | ResearchParsed
   | IntakeParsed
+  | ConflictsParsed
   | { command: "help" }
   | { command: "version" };
 

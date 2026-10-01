@@ -1,5 +1,6 @@
 import {
   GATE_NAMES,
+  INTAKE_CONFLICTS_DOCUMENT,
   type DetectionReport,
   type Finding,
   type StoredFinding,
@@ -18,6 +19,9 @@ import { describeModeBlock } from "../core/state/mode.ts";
 import { compareStrings } from "../core/state/stale.ts";
 import { allowedEvents } from "../core/state/transitions.ts";
 import type { AppContext } from "./context.ts";
+import { unacknowledgedCount } from "../intake/conflicts.ts";
+import { collectIntakeFacts } from "./facts.ts";
+import { CONFLICTS_FILE } from "./intake.ts";
 import { assetBytes } from "./research-store.ts";
 import { makeFinding, storeErrorResult, type UseCaseResult } from "./result.ts";
 import { loadWorkspace, type Workspace } from "./workspace.ts";
@@ -93,6 +97,28 @@ function readStatus(
     );
   }
 
+  // Freshness is regenerate-and-compare (DR2): only a contributing source change shows up. Untracked: no finding.
+  const stored = store.readDocument(CONFLICTS_FILE, INTAKE_CONFLICTS_DOCUMENT);
+  if (stored !== null && !collectIntakeFacts(ctx, workspace, store).productContextValid) {
+    findings.push(
+      makeFinding(
+        "PRODUCT_CONTEXT_STALE",
+        "warning",
+        `The product context is out of date: its sources, the mode or the Heron extractor changed since the last heron intake. Run: heron intake ${path}`,
+      ),
+    );
+  }
+  for (const conflict of stored?.conflicts ?? []) {
+    if (conflict.status !== "open" || conflict.ack !== null) continue;
+    findings.push(
+      makeFinding(
+        "CONFLICT_OPEN",
+        "warning",
+        `${conflict.id} (${conflict.kind}) on ${conflict.subject} is not acknowledged. Run: heron conflicts ack ${conflict.id} ${path} --note <text>`,
+      ),
+    );
+  }
+
   const current = new Map<RelativeArtifactPath, Sha256Hex>();
   for (const decision of state.gates) {
     for (const artifact of decision.artifacts) {
@@ -136,7 +162,7 @@ function readStatus(
     gates: GATE_NAMES.map((gate) => ({ gate, status: statuses[gate] })),
     stale: state.stale,
     inputsChanged,
-    openConflicts: null,
+    openConflicts: stored === null ? null : unacknowledgedCount(stored),
     agentUsage: null, // totals arrive with the agent log reader (P3 later task)
     allowedCommands: [
       "heron init",
@@ -149,6 +175,8 @@ function readStatus(
       "heron references list|show|compare|remove",
       "heron brand add",
       "heron research render",
+      "heron intake",
+      "heron conflicts list|ack",
     ],
   };
   if (effective === "reference-only") {

@@ -1,5 +1,6 @@
 import type { CommandSpec } from "../command.ts";
 import { brandCommand } from "./brand.ts";
+import { conflictsCommand } from "./conflicts.ts";
 import { doctorCommand } from "./doctor.ts";
 import { gateCommand } from "./gate.ts";
 import { initCommand } from "./init.ts";
@@ -18,4 +19,5 @@ export const COMMANDS: readonly CommandSpec[] = [
   brandCommand,
   researchCommand,
   intakeCommand,
+  conflictsCommand,
 ];

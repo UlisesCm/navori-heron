@@ -11,6 +11,7 @@ import {
 import { runCliCaptured } from "../helpers/cli.ts";
 import { e2eSetup } from "../helpers/e2e.ts";
 import { hashTree } from "../helpers/fixtures.ts";
+import { referenceArgs } from "../helpers/research.ts";
 
 const { fresh, initialized } = e2eSetup();
 const FILES = ["intake/product-context.json", "intake/conflicts.json"];
@@ -121,5 +122,45 @@ describe("heron intake", () => {
       const run = await runCliCaptured(args);
       expect(run.code).toBe(ExitCode.Usage);
     }
+  });
+
+  // Covers: R7, R8
+  test("absorbs a product context change in a production phase and re-approves intake in place", async () => {
+    const root = await initialized("membership-product");
+    expect((await runCliCaptured(["intake", root])).code).toBe(ExitCode.Ok);
+    expect((await runCliCaptured(["gate", "intake", "approve", "--yes", root])).code).toBe(
+      ExitCode.Ok,
+    );
+    // A reference moves the workspace into a production phase ("researching").
+    expect((await runCliCaptured(referenceArgs(root))).code).toBe(ExitCode.Ok);
+    expect(readState(root).phase).toBe("researching");
+
+    const master = join(root, "specs", "_master", "01-mvp", "MASTER.md");
+    writeFileSync(
+      master,
+      readFileSync(master, "utf8").replace("Members can browse benefits.", "Members browse perks."),
+    );
+    const stale = await runCliCaptured(["status", root]);
+    expect(stale.stdout).toContain("PRODUCT_CONTEXT_STALE");
+    const blocked = await runCliCaptured(["gate", "intake", "approve", "--yes", root]);
+    expect(blocked.code).toBe(ExitCode.Blocked);
+    expect(blocked.stderr).toContain("the product context is missing or out of date");
+
+    const absorbed = await runCliCaptured(["intake", "--json", root]);
+    expect(absorbed.code).toBe(ExitCode.Ok);
+    expect(envelope(absorbed.stdout).data.written).toBe(true);
+    const invalidated = await runCliCaptured(["status", root]);
+    expect(invalidated.stdout).toContain("GATE_APPROVAL_INVALIDATED");
+    expect(invalidated.stdout).not.toContain("PRODUCT_CONTEXT_STALE");
+
+    const approved = await runCliCaptured(["gate", "intake", "approve", "--yes", root]);
+    expect(approved.code).toBe(ExitCode.Ok);
+    expect(approved.stdout).toContain("Phase: researching -> researching");
+    const state = readState(root);
+    expect(state.phase).toBe("researching");
+    expect(state.gates.at(-1)).toMatchObject({ gate: "intake", decision: "approved" });
+    const after = await runCliCaptured(["status", root]);
+    expect(after.stdout).not.toContain("GATE_APPROVAL_INVALIDATED");
+    expect(after.stdout).toContain("- intake: approved");
   });
 });
