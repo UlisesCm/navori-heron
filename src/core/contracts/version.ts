@@ -1,18 +1,24 @@
 import type { z } from "zod";
 import { toJsonPointer, type FindingIssue } from "./common.ts";
 
-export type DocumentKind =
-  | "HeronProject"
-  | "HeronState"
-  | "ModeDecision"
-  | "CliEnvelope"
-  | "ResearchReferences"
-  | "ResearchProvenance"
-  | "BrandInputs"
-  | "ReferenceBatch"
-  | "ProductContext"
-  | "IntakeConflicts"
-  | "ManualContext";
+export const DOCUMENT_KINDS = [
+  "HeronProject",
+  "HeronState",
+  "ModeDecision",
+  "CliEnvelope",
+  "ResearchReferences",
+  "ResearchProvenance",
+  "BrandInputs",
+  "ReferenceBatch",
+  "ProductContext",
+  "IntakeConflicts",
+  "ManualContext",
+  "AgentRun",
+  "ResearchBrief",
+  "ResearchAnalysis",
+  "VisualDirections",
+] as const;
+export type DocumentKind = (typeof DOCUMENT_KINDS)[number];
 
 export interface DocumentSpec<T> {
   readonly kind: DocumentKind;

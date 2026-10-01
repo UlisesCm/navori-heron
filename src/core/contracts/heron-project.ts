@@ -21,6 +21,8 @@ export type HeronProject = {
   };
   penpot: { enabled: boolean; url: string | null; fileId: string | null; version: string | null };
   product?: ProductSettings | undefined; // optional: no schema bump (DP7)
+  /** Hand-edited agent settings; documented shape `AgentSettingsInput`, validated lazily by `resolveAgentSettings` (DR21), so a bad value never blocks other commands. */
+  agents?: unknown;
 };
 
 export const HeronProjectSchema: z.ZodType<HeronProject> = z.looseObject({
@@ -39,6 +41,7 @@ export const HeronProjectSchema: z.ZodType<HeronProject> = z.looseObject({
     version: z.string().nullable(),
   }),
   product: z.looseObject({ locale: z.string() }).optional(),
+  agents: z.unknown().optional(),
 });
 
 export const HERON_PROJECT_DOCUMENT: DocumentSpec<HeronProject> = {

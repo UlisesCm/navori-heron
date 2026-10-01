@@ -10,6 +10,18 @@ import {
 } from "./common.ts";
 import { ADAPTER_IDS, type AdapterId } from "./heron-project.ts";
 import {
+  AgentUsageSummarySchema,
+  DirectionProposeDataSchema,
+  DirectionSelectDataSchema,
+  ResearchAnalyzeDataSchema,
+  ResearchBriefDataSchema,
+  type AgentUsageSummary,
+  type DirectionProposeData,
+  type DirectionSelectData,
+  type ResearchAnalyzeData,
+  type ResearchBriefData,
+} from "./agents-data.ts";
+import {
   ConflictsAckDataSchema,
   ConflictsListDataSchema,
   IntakeDataSchema,
@@ -71,6 +83,10 @@ export const CLI_COMMANDS = [
   "intake",
   "conflicts list",
   "conflicts ack",
+  "research brief",
+  "research analyze",
+  "direction propose",
+  "direction select",
 ] as const;
 export type CliCommand = (typeof CLI_COMMANDS)[number];
 
@@ -96,6 +112,7 @@ export type StatusData = {
   stale: StaleEntry[];
   inputsChanged: string[]; // repo-relative paths whose presence or sha256 differ from mode.json
   openConflicts: number | null; // null until P4
+  agentUsage: AgentUsageSummary | null; // null without a local agent log (DR45)
   allowedCommands: string[];
 };
 
@@ -106,6 +123,14 @@ export const DOCTOR_CHECK_IDS = [
   "heron.lock",
   "heron.gitignore",
   "harness.detection",
+  "agents.config",
+  "agents.usage",
+  "agents.claude-code",
+  "agents.codex-cli",
+  "agents.fake",
+  "probe.claude-code",
+  "probe.codex-cli",
+  "probe.fake",
 ] as const;
 export type DoctorCheckId = (typeof DOCTOR_CHECK_IDS)[number];
 export type DoctorCheckStatus = "PASS" | "WARNING" | "FAIL";
@@ -150,6 +175,10 @@ export type CliEnvelope = {
     | IntakeData
     | ConflictsListData
     | ConflictsAckData
+    | ResearchBriefData
+    | ResearchAnalyzeData
+    | DirectionProposeData
+    | DirectionSelectData
     | null;
   findings: Finding[];
   runId: RunId;
@@ -183,6 +212,7 @@ const StatusDataSchema: z.ZodType<StatusData> = z.object({
   stale: z.array(StaleEntrySchema),
   inputsChanged: z.array(z.string()),
   openConflicts: z.number().int().nullable(),
+  agentUsage: AgentUsageSummarySchema.nullable(),
   allowedCommands: z.array(z.string()),
 });
 const DoctorDataSchema: z.ZodType<DoctorData> = z.object({
@@ -225,6 +255,10 @@ export const CliEnvelopeSchema: z.ZodType<CliEnvelope> = z.object({
   // Larger shapes first so a z.object never matches a narrower payload by stripping keys.
   data: z
     .union([
+      DirectionProposeDataSchema,
+      ResearchBriefDataSchema,
+      ResearchAnalyzeDataSchema,
+      DirectionSelectDataSchema,
       ReferencesImportDataSchema,
       ReferencesAddDataSchema,
       ReferencesRemoveDataSchema,
