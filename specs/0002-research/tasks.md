@@ -24,7 +24,7 @@ Lotes de 1–3 tareas. Cada test lleva `// Covers: R<n>` y usa el nombre exacto 
 
 ## Lote 2 — Contratos y fronteras
 
-- [ ] **T3** (R4, R5) — Códigos de finding persistidos con patrón (OD1 = C′), ids de adapter completos, `ExitCode` sin literales y compatibilidad con `.heron/` de P1.
+- [x] **T3** (R4, R5) — Códigos de finding persistidos con patrón (OD1 = C′), ids de adapter completos, `ExitCode` sin literales y compatibilidad con `.heron/` de P1.
   - **Archivos:** `src/core/contracts/common.ts`, `src/core/contracts/mode-decision.ts`, `src/core/contracts/heron-project.ts`, `src/app/result.ts`, `src/cli/render.ts`, `src/core/state/mode.ts`, `schemas/`, `tests/assets/p1-workspaces/`, `tests/e2e/p1-compat.test.ts`, `tests/unit/contracts.test.ts`
   - **Interfaces:** StoredFinding; StoredFindingSchema; FINDING_CODE_PATTERN; StoredModeDecision; ADAPTER_IDS
   - **Patrón:** src/core/contracts/mode-decision.ts
@@ -33,7 +33,7 @@ Lotes de 1–3 tareas. Cada test lleva `// Covers: R<n>` y usa el nombre exacto 
   - **Done:** comando `bun run gen:schemas && bun test tests/e2e/p1-compat.test.ts tests/unit/contracts.test.ts`, esperado exit 0; casos de test "reads P1 workspaces without DOCUMENT_INVALID and keeps their artifacts on re-init", "stores finding codes as formatted strings and keeps the emitter union closed"; habilita P2.A2 (los nuevos códigos de research se persisten sin subir versión).
   - **Fuera de alcance:** contratos de research (T5).
 
-- [ ] **T4** (R3, R5) — Fronteras como tablas con autoverificación por fila, cubriendo `src/security/` y `src/research/`.
+- [x] **T4** (R3, R5) — Fronteras como tablas con autoverificación por fila, cubriendo `src/security/` y `src/research/`.
   - **Archivos:** `tests/repo/boundaries.test.ts`
   - **Interfaces:** LAYERS; VENDORS; TOKENS; violationsFor
   - **Patrón:** tests/repo/boundaries.test.ts
@@ -100,6 +100,7 @@ Lotes de 1–3 tareas. Cada test lleva `// Covers: R<n>` y usa el nombre exacto 
   - **Lectura:** `specs/0002-research/design.md` (§Contracts › 7. Casos de uso, 8. CLI, 10. Layout, 11. Findings nuevos y códigos de salida; §Failure modes; §Testing strategy), `src/app/{gate,write-run,workspace}.ts`
   - **Librerías:** ninguna
   - **Done:** comando `bun test tests/e2e/references.test.ts tests/security`, esperado exit 0; casos de test "adds a manual reference with complete provenance", "rejects a reference missing any provenance field", "blocks every vector of the SSRF corpus and records explicit local allowances", "rejects image paths and symlinks escaping the allowed roots", "sanitizes, bounds and deduplicates imported images", "records suspicious instructions in external DESIGN.md without acting on them", "allows the research gate only with five references with provenance"; cubre P2.A1, P2.A2, P2.A3, P2.A4, P2.A5, P2.A6.
+  - **Nota:** extender `tests/e2e/p1-compat.test.ts` para que, sobre los goldens de P1, `references add --source manual` funcione y un re-`init` conserve los artefactos de research (pendiente de la revisión del lote 2).
   - **Fuera de alcance:** `brand` y `research render` (T11).
 
 - [ ] **T11** (R13, R14, R16) — `heron brand add` y `heron research render`, más `status` con las órdenes de P2 y el aviso de assets grandes.
