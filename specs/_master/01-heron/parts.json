@@ -455,7 +455,13 @@
         {
           "id": "A6",
           "description": "Un DESIGN.md externo con \"ignore previous instructions\" se guarda como dato `untrusted` con `securityFindings` (frase y offset) y ningún comando cambia de comportamiento",
-          "evidence": null,
+          "evidence": {
+            "kind": "run",
+            "command": "bun test tests/security/untrusted-content.test.ts -t \"records suspicious instructions in external DESIGN.md without acting on them\"",
+            "result": "exit 0; 1 pass,0 fail",
+            "commit": "2ffed5b91ded025346858ad9aeb259ba67c9ce2d",
+            "date": "2026-10-01"
+          },
           "method": "test",
           "test": {
             "file": "tests/security/untrusted-content.test.ts",
