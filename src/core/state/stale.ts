@@ -17,6 +17,8 @@ export const PHASE_ARTIFACTS: Readonly<Record<HeronPhase, readonly string[]>> = 
     "research/moodboards/**",
     "research/assets/**",
     "research/sources/**",
+    "research/brief.json",
+    "research/analysis.json",
     "brand/**",
   ],
   "research-ready": [],
@@ -37,7 +39,13 @@ const SYSTEM_DEPS: readonly string[] = ["design/screens/**", "design/tokens/**"]
 export const ARTIFACT_DEPENDENCIES: Readonly<Record<string, readonly string[]>> = {
   "intake/product-context.json": ["intake/mode.json"],
   "intake/conflicts.json": ["intake/product-context.json"],
-  "research/visual-directions.json": ["research/references.json", "intake/product-context.json"],
+  "research/analysis.json": ["research/references.json"],
+  "research/visual-directions.json": [
+    "research/references.json",
+    "intake/product-context.json",
+    "research/analysis.json",
+    "research/brief.json",
+  ],
   "design/foundations/**": ["research/visual-directions.json", "intake/product-context.json"],
   "design/tokens/**": ["design/foundations/**"],
   "design/DESIGN.md": ["design/tokens/**"],

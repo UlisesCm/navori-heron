@@ -99,3 +99,19 @@ export function collectResearchFacts(
     minReferences: settings.minReferences,
   };
 }
+
+/** researchApprovalValid = the latest `research` decision is an approval whose bound artifacts still hash the same.
+ * No decision or a rejection -> false (the precondition fails closed). */
+export function collectDirectionFacts(
+  store: FileStore,
+  state: HeronState,
+): Pick<TransitionFacts, "researchApprovalValid"> {
+  const research = latestDecision(state, "research");
+  if (research?.decision !== "approved") return { researchApprovalValid: false };
+  const current = new Map<RelativeArtifactPath, Sha256Hex>();
+  for (const artifact of research.artifacts) {
+    const sha = store.sha256(artifact.path);
+    if (sha !== null) current.set(artifact.path, sha);
+  }
+  return { researchApprovalValid: isApprovalValid(research, current).valid };
+}

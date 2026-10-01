@@ -58,7 +58,7 @@ Lotes de 1–3 tareas, **en serie** (cada tarea declara de qué depende y con qu
   - **Comparte archivos con:** ninguna tarea posterior.
   - **Fuera de alcance:** validadores de dominio (T6, T7); conversión a JSON Schema por proveedor (T8).
 
-- [ ] **T5** (R10, R11) — Hecho `researchApprovalValid` en `three-valid-directions`, artefactos y dependencias de `brief.json`/`analysis.json`, hechos de direcciones.
+- [x] **T5** (R10, R11) — Hecho `researchApprovalValid` en `three-valid-directions`, artefactos y dependencias de `brief.json`/`analysis.json`, hechos de direcciones.
   - **Archivos:** `src/core/state/transitions.ts`, `src/core/state/stale.ts`, `src/app/facts.ts`, `tests/unit/state-machine.test.ts`, `tests/unit/stale.test.ts`, `tests/unit/app/facts.test.ts`
   - **Interfaces:** TransitionFacts; collectDirectionFacts; PHASE_ARTIFACTS; ARTIFACT_DEPENDENCIES
   - **Patrón:** src/core/state/transitions.ts
@@ -71,7 +71,7 @@ Lotes de 1–3 tareas, **en serie** (cada tarea declara de qué depende y con qu
 
 ## Lote 4 — Dominio puro
 
-- [ ] **T6** (R11, R12, R13) — Contraste WCAG 2.2 en `src/tokens/` y validador/constructor de direcciones.
+- [x] **T6** (R11, R12, R13) — Contraste WCAG 2.2 en `src/tokens/` y validador/constructor de direcciones.
   - **Archivos:** `src/tokens/contrast.ts`, `src/research/directions.ts`, `src/research/layout.ts`, `tests/unit/tokens/contrast.test.ts`, `tests/unit/research/directions.test.ts`, `tests/repo/boundaries.test.ts`, `scripts/check-coverage.ts`, `tests/repo/coverage-rules.test.ts`
   - **Interfaces:** contrastRatio; checkContrast; parseHexColor; CONTRAST_THRESHOLDS; ContrastCheck; validateDirectionsOutput; buildVisualDirections; selectDirection; DIRECTION_LIMITS
   - **Patrón:** src/research/provenance.ts
@@ -82,7 +82,7 @@ Lotes de 1–3 tareas, **en serie** (cada tarea declara de qué depende y con qu
   - **Comparte archivos con:** T2, T8, T10 (`boundaries.test.ts`); T8 (`check-coverage.ts`, `coverage-rules.test.ts`).
   - **Fuera de alcance:** OKLCH, escalas y variantes de marca (P5).
 
-- [ ] **T7** (R9, R10) — Validadores y constructores de brief (ids estables, consultas acumulativas) y de análisis (frescura por digest).
+- [x] **T7** (R9, R10) — Validadores y constructores de brief (ids estables, consultas acumulativas) y de análisis (frescura por digest).
   - **Archivos:** `src/research/brief.ts`, `src/research/analysis.ts`, `tests/unit/research/brief.test.ts`, `tests/unit/research/analysis.test.ts`
   - **Interfaces:** parseQueryFlag; validateResearchQuery; validateBriefOutput; buildBrief; queryId; GENERIC_QUERY_TERMS; referenceDigest; referencesToAnalyze; validateAnalysisOutput; mergeAnalysis; freshAnalyses
   - **Patrón:** src/research/provenance.ts
@@ -95,7 +95,7 @@ Lotes de 1–3 tareas, **en serie** (cada tarea declara de qué depende y con qu
 
 ## Lote 5 — Módulo `agents`: puertos, packs y plantillas
 
-- [ ] **T8** (R1, R5, R7, R20) — Puertos, configuración perezosa, dialectos de schema y context packs con proyección, compactación, prefijo estable y pack de reparación.
+- [x] **T8** (R1, R5, R7, R20) — Puertos, configuración perezosa, dialectos de schema y context packs con proyección, compactación, prefijo estable y pack de reparación.
   - **Archivos:** `src/agents/ports.ts`, `src/agents/settings.ts`, `src/agents/json-schema.ts`, `src/agents/context-pack.ts`, `tests/unit/agents/context-pack.test.ts`, `tests/unit/agents/json-schema.test.ts`, `tests/repo/boundaries.test.ts`, `scripts/check-coverage.ts`, `tests/repo/coverage-rules.test.ts`
   - **Interfaces:** AgentProvider; ProcessRunner; ProcessSpec; ProcessOutcome; LineVerdict; ContextItem; ContextPack; AgentRequest; AgentAttempt; ProviderServices; ProbeLevel; DEFAULT_AGENT_SETTINGS; resolveAgentSettings; providerIdForRole; toProviderSchema; OPENAI_STRICT_KEYWORDS; assertStrictCompatible; buildContextPack; renderContextPack; repairPack; referenceItems; compactText; PACK_LIMITS
   - **Patrón:** src/research/ports.ts
@@ -106,7 +106,7 @@ Lotes de 1–3 tareas, **en serie** (cada tarea declara de qué depende y con qu
   - **Comparte archivos con:** T2, T6, T10 (`boundaries.test.ts`); T6 (`check-coverage.ts`, `coverage-rules.test.ts`).
   - **Fuera de alcance:** plantillas (T9), runner y adapters (T10, T11).
 
-- [ ] **T9** (R3, R6, R9, R10, R11, R12, R14, R20) — Plantillas versionadas importadas como texto y especificación de las 4 tareas (ítems permitidos y `maxOutputTokens`).
+- [x] **T9** (R3, R6, R9, R10, R11, R12, R14, R20) — Plantillas versionadas importadas como texto y especificación de las 4 tareas (ítems permitidos y `maxOutputTokens`).
   - **Archivos:** `src/agents/text-modules.d.ts`, `src/agents/prompts.ts`, `src/agents/tasks.ts`, `prompts/visual-researcher/research-brief@v1.md`, `prompts/visual-researcher/research-analyze@v1.md`, `prompts/design-director/direction-propose@v1.md`, `prompts/shared/repair@v1.md`, `prompts/shared/probe@v1.md`, `tests/unit/agents/prompts.test.ts`
   - **Interfaces:** PromptTemplate; PROMPT_TEMPLATES; templateFor; REPAIR_TEMPLATE; AgentTaskSpec; AGENT_TASKS
   - **Patrón:** src/research/registry.ts

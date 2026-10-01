@@ -103,6 +103,40 @@ describe("stale propagation", () => {
   });
 });
 
+describe("direction dependencies", () => {
+  // Covers: R10, R11
+  test("marks directions stale when the brief or the analysis changes", () => {
+    const state = createInitialState({
+      mode: "full",
+      meta,
+      artifacts: [
+        art("research/references.json"),
+        art("research/brief.json"),
+        art("research/analysis.json"),
+        art("research/visual-directions.json"),
+      ],
+    });
+    expect(paths(propagateStale(state, ["research/brief.json"], "brief changed"))).toEqual([
+      "research/visual-directions.json",
+    ]);
+    expect(paths(propagateStale(state, ["research/analysis.json"], "analysis changed"))).toEqual([
+      "research/visual-directions.json",
+    ]);
+    // the analysis depends on references only (DR28): a new brief never leaves it stale
+    expect(paths(propagateStale(state, ["research/references.json"], "refs changed"))).toEqual([
+      "research/analysis.json",
+      "research/visual-directions.json",
+    ]);
+    // brief and analysis are research artifacts (DR34): a regression before researching stales them
+    expect(paths(markStaleAfter(state, "intake-ready", "regressed"))).toEqual([
+      "research/analysis.json",
+      "research/brief.json",
+      "research/references.json",
+      "research/visual-directions.json",
+    ]);
+  });
+});
+
 describe("lifecycle", () => {
   test("createInitialState starts at revision 1 in initialized", () => {
     const created = createInitialState({

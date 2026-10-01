@@ -59,6 +59,7 @@ const SATISFIED: TransitionFacts = {
   referenceComplete: true,
   referencesWithProvenance: 5,
   validDirections: 3,
+  researchApprovalValid: true,
   directionSelected: true,
   intakeApprovalValid: true,
   foundationsAreas: 14,
@@ -182,6 +183,23 @@ describe("transition table", () => {
     expect(reasonOf({ ...SATISFIED, unacknowledgedConflicts: 2 })).toContain(
       "2 conflict(s) are not acknowledged",
     );
+    expect(canTransition(state, event, SATISFIED).ok).toBe(true);
+  });
+
+  // Covers: R11
+  test("requires a valid research approval to propose directions", () => {
+    const event: HeronEvent = { type: "directions-proposed" };
+    const state = stateAt("research-ready", "full");
+    const reasonOf = (facts: TransitionFacts): string | null => {
+      const result = canTransition(state, event, facts);
+      return !result.ok && result.code === "PRECONDITION_UNMET" ? result.reason : null;
+    };
+    expect(reasonOf({ ...SATISFIED, researchApprovalValid: false })).toContain(
+      "the research approval is not valid",
+    );
+    const { researchApprovalValid: _omitted, ...withoutFact } = SATISFIED;
+    expect(reasonOf(withoutFact)).toContain("researchApprovalValid is not available");
+    expect(reasonOf({ ...SATISFIED, validDirections: 2 })).toContain("exactly 3 valid directions");
     expect(canTransition(state, event, SATISFIED).ok).toBe(true);
   });
 
