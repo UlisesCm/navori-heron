@@ -95,7 +95,7 @@ Lotes de 1–3 tareas, **en serie** (cada tarea declara de qué depende y con qu
 
 ## Lote 5 — Módulo `agents`: puertos, packs y plantillas
 
-- [ ] **T8** (R1, R5, R7, R20) — Puertos, configuración perezosa, dialectos de schema y context packs con proyección, compactación, prefijo estable y pack de reparación.
+- [x] **T8** (R1, R5, R7, R20) — Puertos, configuración perezosa, dialectos de schema y context packs con proyección, compactación, prefijo estable y pack de reparación.
   - **Archivos:** `src/agents/ports.ts`, `src/agents/settings.ts`, `src/agents/json-schema.ts`, `src/agents/context-pack.ts`, `tests/unit/agents/context-pack.test.ts`, `tests/unit/agents/json-schema.test.ts`, `tests/repo/boundaries.test.ts`, `scripts/check-coverage.ts`, `tests/repo/coverage-rules.test.ts`
   - **Interfaces:** AgentProvider; ProcessRunner; ProcessSpec; ProcessOutcome; LineVerdict; ContextItem; ContextPack; AgentRequest; AgentAttempt; ProviderServices; ProbeLevel; DEFAULT_AGENT_SETTINGS; resolveAgentSettings; providerIdForRole; toProviderSchema; OPENAI_STRICT_KEYWORDS; assertStrictCompatible; buildContextPack; renderContextPack; repairPack; referenceItems; compactText; PACK_LIMITS
   - **Patrón:** src/research/ports.ts

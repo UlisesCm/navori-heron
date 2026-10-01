@@ -158,6 +158,21 @@ export const LAYERS: readonly LayerRule[] = [
     passes: ex("src/tokens/x.ts", 'import type { C } from "../core/contracts/index.ts";'),
   },
   {
+    from: "src/agents",
+    allow: ["src/core/contracts", ...STORE_READ, "src/security", "src/agents", "prompts"],
+    typeOnly: ["src/core/store/temp-dir.ts"],
+    bare: [/^zod$/],
+    violates: ex("src/agents/x.ts", 'import { nodeTempDirs } from "../core/store/temp-dir.ts";'),
+    passes: ex(
+      "src/agents/x.ts",
+      'import type { TempDirPort } from "../core/store/temp-dir.ts";',
+      'import { z } from "zod";',
+      'import "../core/store/hash.ts";',
+      'import "../security/redact.ts";',
+      'import "../core/contracts/index.ts";',
+    ),
+  },
+  {
     from: "src/app",
     allow: [
       "src/core",
