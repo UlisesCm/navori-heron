@@ -1,9 +1,11 @@
 // Covers: R11, R15
 import { describe, expect, test } from "bun:test";
 import { makeFinding } from "../../src/app/result.ts";
+import { COMMANDS } from "../../src/cli/commands/index.ts";
 import {
   BRAND_INPUTS_DOCUMENT,
   CLI_COMMANDS,
+  DOCTOR_CHECK_IDS,
   CLI_ENVELOPE_DOCUMENT,
   REFERENCE_BATCH_DOCUMENT,
   RESEARCH_PROVENANCE_DOCUMENT,
@@ -129,8 +131,10 @@ describe("versioned documents", () => {
     expect(err.message).toContain("/penpot/enabled");
   });
 
+  // Covers: R1, R18
   test("validates every registered document kind and its schema file name", () => {
-    expect(CONTRACT_DOCUMENTS.map((d) => d.schemaFile)).toEqual([
+    // P1/P2 are a fixed prefix; later specs only append, so nothing else is counted or listed.
+    const baseSchemaFiles = [
       "heron-project.v1.schema.json",
       "heron-state.v1.schema.json",
       "mode-decision.v1.schema.json",
@@ -139,7 +143,15 @@ describe("versioned documents", () => {
       "research-provenance.v1.schema.json",
       "brand-inputs.v1.schema.json",
       "reference-batch.v1.schema.json",
-    ]);
+    ];
+    const schemaFiles = CONTRACT_DOCUMENTS.map((d) => d.schemaFile);
+    expect(schemaFiles.slice(0, baseSchemaFiles.length)).toEqual(baseSchemaFiles);
+    expect(new Set(schemaFiles).size).toBe(schemaFiles.length);
+    expect(new Set(CONTRACT_DOCUMENTS.map((d) => d.kind)).size).toBe(CONTRACT_DOCUMENTS.length);
+    for (const doc of CONTRACT_DOCUMENTS) {
+      expect(doc.schemaFile).toMatch(/^[a-z0-9]+(?:-[a-z0-9]+)*\.v\d+\.schema\.json$/);
+      expect(doc.schemaFile.includes(`.v${doc.schemaVersion}.`)).toBe(true);
+    }
     expect(MODE_DECISION_DOCUMENT.kind).toBe("ModeDecision");
     expect(CLI_ENVELOPE_DOCUMENT.kind).toBe("CliEnvelope");
   });
@@ -461,6 +473,17 @@ describe("research documents", () => {
     expect(parses(REFERENCE_BATCH_DOCUMENT, batch(Array.from({ length: 201 }, () => item)))).toBe(
       false,
     );
+  });
+
+  // Covers: R18
+  test("keeps the append-only registries unique and well-formed", () => {
+    expect(new Set(CLI_COMMANDS).size).toBe(CLI_COMMANDS.length);
+    expect(new Set(FINDING_CODES).size).toBe(FINDING_CODES.length);
+    expect(FINDING_CODES.every((code) => FINDING_CODE_PATTERN.test(code))).toBe(true);
+    expect(new Set(DOCTOR_CHECK_IDS).size).toBe(DOCTOR_CHECK_IDS.length);
+    // Every command has its CommandSpec (the group is the first word of "references add").
+    const registered = new Set<string>(COMMANDS.map((spec) => spec.name));
+    for (const command of CLI_COMMANDS) expect(registered.has(command.split(" ")[0]!)).toBe(true);
   });
 
   test("grows the envelope with the research commands and data", () => {

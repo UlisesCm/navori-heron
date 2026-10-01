@@ -4,7 +4,7 @@ Lotes de 1–3 tareas. Cada test lleva `// Covers: R<n>` en la primera línea y 
 
 ## Lote 0 — Base compartida con 0003
 
-- [ ] **T0** (R8, R18) — `freshen` único y aserciones derivadas de los registros en los tests que 0003 y 0004 modifican.
+- [x] **T0** (R8, R18) — `freshen` único y aserciones derivadas de los registros en los tests que 0003 y 0004 modifican.
   - **Archivos:** `src/core/state/lifecycle.ts`, `tests/unit/lifecycle.test.ts`, `tests/unit/contracts.test.ts`, `tests/unit/cli-args.test.ts`, `tests/e2e/status.test.ts`, `tests/e2e/doctor.test.ts`
   - **Interfaces:** freshen; CONTRACT_DOCUMENTS; CLI_COMMANDS; COMMANDS; FINDING_CODES; DOCTOR_CHECK_IDS
   - **Patrón:** src/core/state/lifecycle.ts

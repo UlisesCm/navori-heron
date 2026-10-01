@@ -18,6 +18,10 @@ import { makePng, referenceArgs } from "../helpers/research.ts";
 
 const { fresh, initialized } = e2eSetup();
 
+// P1/P2 are a fixed prefix; later specs only append commands after `heron research render`.
+const ALLOWED_COMMANDS_PREFIX =
+  "Allowed commands: heron init, heron status, heron doctor, heron gate intake approve|reject, heron references add|import, heron references list|show|compare|remove, heron brand add, heron research render";
+
 const GATES_AT_INITIALIZED = [
   "Gates:",
   "- intake: pending",
@@ -29,14 +33,18 @@ const GATES_AT_INITIALIZED = [
 ];
 
 describe("heron status", () => {
-  // Covers: R8, R9, R12
+  // Covers: R8, R9, R12, R14, R18
   test("reports mode, phase, gates and counts without writing anything", async () => {
     const root = await initialized("membership-product");
     const before = hashTree(root, { exclude: [] });
     const run = await runCliCaptured(["status", root]);
     expect(run.code).toBe(ExitCode.Ok);
     expect(run.stderr).toBe("");
-    expect(run.stdout).toBe(
+    const lines = run.stdout.split("\n");
+    const allowed = lines.filter((line) => line.startsWith("Allowed commands: "));
+    expect(allowed).toHaveLength(1);
+    expect(allowed[0]?.startsWith(ALLOWED_COMMANDS_PREFIX)).toBe(true);
+    expect(lines.filter((line) => !line.startsWith("Allowed commands: ")).join("\n")).toBe(
       [
         "Stage: 01-mvp",
         "Navori Master: yes",
@@ -52,7 +60,6 @@ describe("heron status", () => {
         "",
         "Stale artifacts: none",
         "Open conflicts: not tracked yet",
-        "Allowed commands: heron init, heron status, heron doctor, heron gate intake approve|reject, heron references add|import, heron references list|show|compare|remove, heron brand add, heron research render",
         "",
       ].join("\n"),
     );
