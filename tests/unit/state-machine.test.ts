@@ -168,6 +168,28 @@ describe("transition table", () => {
     }
   });
 
+  test("names the reference count when the research minimum is unmet", () => {
+    const event: HeronEvent = { type: "approve-gate", gate: "research" };
+    const state = stateAt("researching", "reference-only");
+    const unmet = canTransition(state, event, { ...SATISFIED, referencesWithProvenance: 4 });
+    expect(unmet.ok).toBe(false);
+    if (!unmet.ok && unmet.code === "PRECONDITION_UNMET") {
+      expect(unmet.reason).toContain(
+        "at least 5 references with provenance are required (found 4)",
+      );
+    }
+    const custom = canTransition(state, event, {
+      ...SATISFIED,
+      referencesWithProvenance: 1,
+      minReferences: 2,
+    });
+    expect(custom.ok).toBe(false);
+    if (!custom.ok) expect(custom.reason).toContain("at least 2 references");
+    expect(canTransition(state, event, { ...SATISFIED, referencesWithProvenance: 5 }).ok).toBe(
+      true,
+    );
+  });
+
   test("direction-selectable requires Penpot proposals (D26)", () => {
     const row = TRANSITIONS.find(
       (r) => r.from === "directions-ready" && r.event === "approve-gate:direction",

@@ -1,7 +1,15 @@
 import type { z } from "zod";
 import { toJsonPointer, type FindingIssue } from "./common.ts";
 
-export type DocumentKind = "HeronProject" | "HeronState" | "ModeDecision" | "CliEnvelope";
+export type DocumentKind =
+  | "HeronProject"
+  | "HeronState"
+  | "ModeDecision"
+  | "CliEnvelope"
+  | "ResearchReferences"
+  | "ResearchProvenance"
+  | "BrandInputs"
+  | "ReferenceBatch";
 
 export interface DocumentSpec<T> {
   readonly kind: DocumentKind;
