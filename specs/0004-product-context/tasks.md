@@ -118,7 +118,7 @@ Lotes de 1–3 tareas. Cada test lleva `// Covers: R<n>` en la primera línea y 
 
 ## Lote 5 — Casos de uso y CLI
 
-- [ ] **T11** (R8, R10) — `heron intake [path] [--dry-run] [--refresh] [--json]`: cálculo compartido, escritura atómica en cualquier fase, idempotencia y `freshen`; verificación de realismo sobre este repo.
+- [x] **T11** (R8, R10) — `heron intake [path] [--dry-run] [--refresh] [--json]`: cálculo compartido, escritura atómica en cualquier fase, idempotencia y `freshen`; verificación de realismo sobre este repo.
   - **Archivos:** `src/app/intake.ts`, `src/app/workspace.ts`, `src/cli/commands/intake.ts`, `src/cli/commands/index.ts`, `src/cli/command.ts`, `src/cli/render-intake.ts`, `tests/e2e/intake.test.ts`, `tests/contracts/ux-contract.test.ts`
   - **Interfaces:** runIntake; computeIntake; PRODUCT_CONTEXT_FILE; CONFLICTS_FILE; selectionOf; intakeCommand; IntakeParsed; renderIntakeText
   - **Patrón:** src/app/research.ts

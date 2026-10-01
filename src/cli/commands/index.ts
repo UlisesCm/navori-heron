@@ -3,6 +3,7 @@ import { brandCommand } from "./brand.ts";
 import { doctorCommand } from "./doctor.ts";
 import { gateCommand } from "./gate.ts";
 import { initCommand } from "./init.ts";
+import { intakeCommand } from "./intake.ts";
 import { referencesCommand } from "./references.ts";
 import { researchCommand } from "./research.ts";
 import { statusCommand } from "./status.ts";
@@ -16,4 +17,5 @@ export const COMMANDS: readonly CommandSpec[] = [
   referencesCommand,
   brandCommand,
   researchCommand,
+  intakeCommand,
 ];

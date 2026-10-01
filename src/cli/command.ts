@@ -16,7 +16,8 @@ export type CommandName =
   | "gate"
   | "references"
   | "brand"
-  | "research";
+  | "research"
+  | "intake";
 export type InitParsed = {
   command: "init";
   path: string;
@@ -76,6 +77,8 @@ export type BrandParsed = {
 };
 /** `heron research render`: the only research action P2 needs. */
 export type ResearchParsed = { command: "research"; action: "render"; path: string; json: boolean };
+/** `heron intake`: `--refresh` is parsed and ignored (DR31). */
+export type IntakeParsed = { command: "intake"; path: string; dryRun: boolean; json: boolean };
 export type ParsedCommand =
   | InitParsed
   | StatusParsed
@@ -84,6 +87,7 @@ export type ParsedCommand =
   | ReferencesParsed
   | BrandParsed
   | ResearchParsed
+  | IntakeParsed
   | { command: "help" }
   | { command: "version" };
 
