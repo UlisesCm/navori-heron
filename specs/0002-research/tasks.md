@@ -44,7 +44,7 @@ Lotes de 1–3 tareas. Cada test lleva `// Covers: R<n>` y usa el nombre exacto 
 
 ## Lote 3 — Contratos de research y primitivas de seguridad
 
-- [ ] **T5** (R6, R7, R8, R11, R12, R13, R14, R15) — Contratos y documentos de research, datos de CLI, estado y hechos de research.
+- [x] **T5** (R6, R7, R8, R11, R12, R13, R14, R15) — Contratos y documentos de research, datos de CLI, estado y hechos de research.
   - **Archivos:** `src/core/contracts/research.ts`, `src/core/contracts/research-data.ts`, `src/core/contracts/cli-envelope.ts`, `src/core/contracts/version.ts`, `src/core/contracts/index.ts`, `src/core/state/lifecycle.ts`, `src/core/state/transitions.ts`, `src/core/state/stale.ts`, `src/app/facts.ts`, `schemas/`, `tests/unit/lifecycle.test.ts`, `tests/unit/state-machine.test.ts`, `tests/unit/contracts.test.ts`
   - **Interfaces:** ResearchReference; Provenance; Crop; SecurityFinding; BrandInput; recordCommand; withArtifacts; collectResearchFacts
   - **Patrón:** src/core/contracts/heron-state.ts
@@ -53,7 +53,7 @@ Lotes de 1–3 tareas. Cada test lleva `// Covers: R<n>` y usa el nombre exacto 
   - **Done:** comando `bun run gen:schemas && bun test tests/unit/lifecycle.test.ts tests/unit/state-machine.test.ts tests/unit/contracts.test.ts`, esperado exit 0; casos de test "upserts artifacts and records commands without dropping research files", "names the reference count when the research minimum is unmet"; base de P2.A1 y P2.A9.
   - **Fuera de alcance:** lectura y escritura de archivos de research (T9, T11).
 
-- [ ] **T6** (R9) — Fetch seguro anti-SSRF con resolver y transporte inyectables, clasificador de direcciones y redacción de URLs.
+- [x] **T6** (R9) — Fetch seguro anti-SSRF con resolver y transporte inyectables, clasificador de direcciones y redacción de URLs.
   - **Archivos:** `src/security/ssrf.ts`, `src/security/fetch/types.ts`, `src/security/fetch/safe-fetch.ts`, `src/security/fetch/system.ts`, `src/security/redact.ts`, `tests/unit/security/ssrf.test.ts`, `tests/unit/security/redact.test.ts`, `tests/helpers/research.ts`
   - **Interfaces:** classifyAddress; createSafeFetcher; systemResolver; bunTransport; redactUrl
   - **Patrón:** src/core/store/paths.ts
@@ -62,7 +62,7 @@ Lotes de 1–3 tareas. Cada test lleva `// Covers: R<n>` y usa el nombre exacto 
   - **Done:** comando `bun test tests/unit/security/ssrf.test.ts tests/unit/security/redact.test.ts`, esperado exit 0; casos de test "classifies every special-purpose IPv4 and IPv6 block", "strips credentials and sensitive query values"; base de P2.A3.
   - **Fuera de alcance:** el e2e `tests/security/ssrf.test.ts` (T11).
 
-- [ ] **T7** (R11, R12, R13) — Saneo de imágenes con sharp, escáner de contenido no confiable y escape HTML/Markdown.
+- [x] **T7** (R11, R12, R13) — Saneo de imágenes con sharp, escáner de contenido no confiable y escape HTML/Markdown.
   - **Archivos:** `src/security/images/magic.ts`, `src/security/images/sanitize.ts`, `src/security/untrusted.ts`, `src/security/html.ts`, `src/security/markdown.ts`, `package.json`, `bun.lock`, `scripts/check-coverage.ts`, `tests/unit/security/magic.test.ts`, `tests/unit/security/untrusted.test.ts`, `tests/unit/security/html.test.ts`, `tests/repo/coverage-rules.test.ts`, `docs/adr/0004-sharp-image-sanitizing.md`
   - **Interfaces:** sniffImageType; sharpImageSanitizer; scanUntrustedText; escapeHtml; escapeMarkdownText
   - **Patrón:** src/core/store/hash.ts
@@ -80,6 +80,7 @@ Lotes de 1–3 tareas. Cada test lleva `// Covers: R<n>` y usa el nombre exacto 
   - **Lectura:** `specs/0002-research/design.md` (§Contracts › 4. Puerto ResearchSource, registro y adapters; §Decisions DR18 (D28); §Failure modes), `src/intake/{ports,detect,probe}.ts`, `src/core/store/paths.ts`
   - **Librerías:** ninguna
   - **Done:** comando `bun test tests/unit/research`, esperado exit 0; casos de test "captures a manual reference without any I/O", "captures a page as untrusted content through the fetcher", "captures a sanitized image asset and maps sanitizer failures", "captures a DESIGN.md from a file or a URL as untrusted content", "names every missing provenance field in contract order"; base de P2.A1, P2.A2 y P2.A4.
+  - **Nota:** cambiar el predicado local de `collectResearchFacts` (`src/app/facts.ts`) por `missingProvenance` de `src/research/provenance.ts` (revisión del lote 3).
   - **Fuera de alcance:** fuentes `penpot` (P6) y `refero` (P10).
 
 - [ ] **T9** (R13, R16) — Renderers de `REFERENCES.md`, `provenance.json` y moodboard HTML con CSP fijada por hash.
