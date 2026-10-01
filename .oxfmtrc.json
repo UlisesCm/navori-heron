@@ -8,6 +8,7 @@
     "schemas/**",
     "specs/**",
     "tests/assets/p1-workspaces/**",
+    "tests/assets/p2-workspaces/**",
     "progress/**",
     ".claude/**",
     ".codex/**",

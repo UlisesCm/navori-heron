@@ -5,7 +5,7 @@
 ## Metadata
 <!-- ux-kind: metadata -->
 
-Project: membership-product. Stage: 01-mvp. Date: 2026-09-01. Mode: template. Surfaces: MOBILE, DASHBOARD, PARTNER. Actors: ACT-MEMBER, ACT-PARTNER, ACT-ADMIN.
+Project: conflict. Stage: 01-mvp. Date: 2026-09-01. Mode: template. Surfaces: MOBILE, DASHBOARD, PARTNER. Actors: ACT-MEMBER, ACT-PARTNER, ACT-ADMIN.
 
 ## Sources and authority
 <!-- ux-kind: sources -->

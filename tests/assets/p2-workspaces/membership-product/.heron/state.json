@@ -1,0 +1,122 @@
+{
+  "artifacts": [
+    {
+      "path": "intake/mode.json",
+      "sha256": "bbc7ded743c1a6bc2876fc796957536fdd0ad467c103dc32b9428c6491e8209c"
+    },
+    {
+      "path": "project.json",
+      "sha256": "b11a7268c53cf5912efe5e75f82e23e4140fbaabab112914df5dafdba2f8ac5d"
+    },
+    {
+      "path": "research/REFERENCES.md",
+      "sha256": "afaaa0df70ae01bcaa6fbd22137cceccca6e4ef197b422156fbc5352b1c18852"
+    },
+    {
+      "path": "research/moodboards/index.html",
+      "sha256": "6fb94b6a2119747d6cf9ee006bc34afad4d7bd0c25c9d933455f020d1ba740a2"
+    },
+    {
+      "path": "research/provenance.json",
+      "sha256": "9cffc6981e1c10480dba143de7853bea089daa420ba92d9b0699be538469431d"
+    },
+    {
+      "path": "research/references.json",
+      "sha256": "0c3a698e332aea3f7326bc1482f3ec21c4e4e6c4da5d8bcd4e5b57d87251d9fe"
+    }
+  ],
+  "designRevision": 0,
+  "gates": [],
+  "history": [
+    {
+      "at": "2026-09-30T12:00:00.000Z",
+      "command": "init",
+      "heronVersion": "0.1.0",
+      "mode": "full",
+      "runId": "run-20260930T120000Z-d22add23",
+      "stateRevision": 1,
+      "transition": null
+    },
+    {
+      "at": "2026-09-30T12:00:00.000Z",
+      "command": "references add",
+      "heronVersion": "0.1.0",
+      "mode": "full",
+      "runId": "run-20260930T120000Z-77b0fb88",
+      "stateRevision": 2,
+      "transition": {
+        "event": "reference-added",
+        "from": "initialized",
+        "precondition": "reference-has-provenance",
+        "production": false,
+        "to": "researching"
+      }
+    },
+    {
+      "at": "2026-09-30T12:00:00.000Z",
+      "command": "references add",
+      "heronVersion": "0.1.0",
+      "mode": "full",
+      "runId": "run-20260930T120000Z-7e12dc37",
+      "stateRevision": 3,
+      "transition": {
+        "event": "reference-added",
+        "from": "researching",
+        "precondition": "reference-has-provenance",
+        "production": false,
+        "to": "researching"
+      }
+    },
+    {
+      "at": "2026-09-30T12:00:00.000Z",
+      "command": "references add",
+      "heronVersion": "0.1.0",
+      "mode": "full",
+      "runId": "run-20260930T120000Z-f9314659",
+      "stateRevision": 4,
+      "transition": {
+        "event": "reference-added",
+        "from": "researching",
+        "precondition": "reference-has-provenance",
+        "production": false,
+        "to": "researching"
+      }
+    },
+    {
+      "at": "2026-09-30T12:00:00.000Z",
+      "command": "references add",
+      "heronVersion": "0.1.0",
+      "mode": "full",
+      "runId": "run-20260930T120000Z-e34e0146",
+      "stateRevision": 5,
+      "transition": {
+        "event": "reference-added",
+        "from": "researching",
+        "precondition": "reference-has-provenance",
+        "production": false,
+        "to": "researching"
+      }
+    },
+    {
+      "at": "2026-09-30T12:00:00.000Z",
+      "command": "references add",
+      "heronVersion": "0.1.0",
+      "mode": "full",
+      "runId": "run-20260930T120000Z-4fdb7ed7",
+      "stateRevision": 6,
+      "transition": {
+        "event": "reference-added",
+        "from": "researching",
+        "precondition": "reference-has-provenance",
+        "production": false,
+        "to": "researching"
+      }
+    }
+  ],
+  "kind": "HeronState",
+  "mode": "full",
+  "phase": "researching",
+  "schemaVersion": 1,
+  "stale": [],
+  "stateRevision": 6
+}

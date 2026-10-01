@@ -86,7 +86,8 @@
       "goal": "Attract members with benefits.",
       "capabilities": [
         "Publish benefits",
-        "Validate redemptions"
+        "Validate redemptions",
+        "See member data"
       ],
       "constraints": [],
       "surfaces": [

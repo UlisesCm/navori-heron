@@ -1,1 +1,22 @@
 SYNTHETIC fixture — not a real product.
+
+navori.config.json
+specs/_master/01-alpha/DECISIONS.md
+specs/_master/01-alpha/MASTER.md
+specs/_master/01-alpha/context/CODEBASE.md
+specs/_master/01-alpha/context/DIGEST.md
+specs/_master/01-alpha/parts.json
+specs/_master/01-alpha/state.json
+specs/_master/02-beta/DECISIONS.md
+specs/_master/02-beta/MASTER.md
+specs/_master/02-beta/context/CODEBASE.md
+specs/_master/02-beta/context/DIGEST.md
+specs/_master/02-beta/parts.json
+specs/_master/02-beta/state.json
+specs/_master/03-gamma/DECISIONS.md
+specs/_master/03-gamma/MASTER.md
+specs/_master/03-gamma/context/CODEBASE.md
+specs/_master/03-gamma/context/DIGEST.md
+specs/_master/03-gamma/parts.json
+specs/_master/03-gamma/state.json
+specs/_master/index.json

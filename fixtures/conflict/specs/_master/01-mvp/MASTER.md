@@ -4,7 +4,7 @@
 
 ## Metadata
 
-- Project: membership-product
+- Project: conflict
 - Stage: 01-mvp
 - Date: 2026-09-01
 - Mode: template

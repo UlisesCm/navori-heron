@@ -1,0 +1,71 @@
+{
+  "entries": [
+    {
+      "capturedAt": "2026-09-30T12:00:00.000Z",
+      "fetch": null,
+      "file": null,
+      "files": [],
+      "mode": "full",
+      "origin": "Linear pricing page",
+      "reference": "REF-1",
+      "removed": false,
+      "securityFindings": [],
+      "source": "manual"
+    },
+    {
+      "capturedAt": "2026-09-30T12:00:00.000Z",
+      "fetch": null,
+      "file": null,
+      "files": [],
+      "mode": "full",
+      "origin": "Stripe dashboard",
+      "reference": "REF-2",
+      "removed": false,
+      "securityFindings": [],
+      "source": "manual"
+    },
+    {
+      "capturedAt": "2026-09-30T12:00:00.000Z",
+      "fetch": null,
+      "file": null,
+      "files": [],
+      "mode": "full",
+      "origin": "Notion onboarding",
+      "reference": "REF-3",
+      "removed": false,
+      "securityFindings": [],
+      "source": "manual"
+    },
+    {
+      "capturedAt": "2026-09-30T12:00:00.000Z",
+      "fetch": null,
+      "file": null,
+      "files": [],
+      "mode": "full",
+      "origin": "Airbnb search",
+      "reference": "REF-4",
+      "removed": false,
+      "securityFindings": [],
+      "source": "manual"
+    },
+    {
+      "capturedAt": "2026-09-30T12:00:00.000Z",
+      "fetch": null,
+      "file": null,
+      "files": [],
+      "mode": "full",
+      "origin": "Spotify library",
+      "reference": "REF-5",
+      "removed": false,
+      "securityFindings": [],
+      "source": "manual"
+    }
+  ],
+  "kind": "ResearchProvenance",
+  "mode": "full",
+  "references": {
+    "path": "research/references.json",
+    "sha256": "0c3a698e332aea3f7326bc1482f3ec21c4e4e6c4da5d8bcd4e5b57d87251d9fe"
+  },
+  "schemaVersion": 1
+}

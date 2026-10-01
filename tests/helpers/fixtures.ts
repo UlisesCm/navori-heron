@@ -20,7 +20,8 @@ export type FixtureName =
   | "ux-only-md"
   | "ux-only-json"
   | "ux-invalid"
-  | "closed-stage";
+  | "closed-stage"
+  | "conflict";
 
 /** Copies fixtures/{name} into a fresh temp dir (mkdtemp under os.tmpdir()) and returns its realpath. */
 export function copyFixture(name: FixtureName): string {
@@ -35,6 +36,15 @@ const P1_WORKSPACES_ROOT = join(dirname(import.meta.path), "..", "assets", "p1-w
 export function copyP1Workspace(name: "membership-product" | "no-ux"): string {
   const root = copyFixture(name);
   cpSync(join(P1_WORKSPACES_ROOT, name, ".heron"), join(root, ".heron"), { recursive: true });
+  return root;
+}
+
+const P2_WORKSPACES_ROOT = join(dirname(import.meta.path), "..", "assets", "p2-workspaces");
+
+/** Copies fixtures/{name} plus the P2 golden `.heron/` of the same name (tests/assets/p2-workspaces) into a fresh temp dir. */
+export function copyP2Workspace(name: "membership-product"): string {
+  const root = copyFixture(name);
+  cpSync(join(P2_WORKSPACES_ROOT, name, ".heron"), join(root, ".heron"), { recursive: true });
   return root;
 }
 
