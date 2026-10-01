@@ -4,12 +4,28 @@ import { failure } from "../app/result.ts";
 import { HERON_VERSION } from "../app/version.ts";
 import { ExitCode, type CliCommand, type Finding } from "../core/contracts/index.ts";
 import { USAGE_TEXT, commandFor, parseCliArgs } from "./args.ts";
-import { UsageError } from "./command.ts";
+import { UsageError, type ParsedCommand } from "./command.ts";
 import type { CliIo } from "./io.ts";
 import { emitResult } from "./output.ts";
 
 function errorFinding(code: Finding["code"], message: string): Finding {
   return { code, severity: "error", message, paths: [], issues: [] };
+}
+
+/** The envelope's command name: `references`, `brand` and `research` are reported per action ("references add"). */
+function envelopeCommand(
+  parsed: Exclude<ParsedCommand, { command: "help" | "version" }>,
+): CliCommand {
+  switch (parsed.command) {
+    case "references":
+      return `references ${parsed.action}`;
+    case "brand":
+      return "brand add";
+    case "research":
+      return "research render";
+    default:
+      return parsed.command;
+  }
 }
 
 /** Text mode: result to stdout, failures to stderr. --json: exactly one CliEnvelope + "\n" to stdout, nothing else.
@@ -63,7 +79,7 @@ export async function runCli(
     const stack =
       error instanceof Error && process.env["HERON_DEBUG"] === "1" ? `\n${error.stack ?? ""}` : "";
     return fail(
-      parsed.command,
+      envelopeCommand(parsed),
       ExitCode.Unexpected,
       errorFinding("UNEXPECTED_ERROR", `Unexpected error: ${detail}`),
       `Unexpected error: ${detail}${stack}`,

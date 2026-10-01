@@ -1,0 +1,22 @@
+{
+  "kind": "ReferenceBatch",
+  "schemaVersion": 1,
+  "references": [
+    {
+      "source": "manual",
+      "origin": "Stripe pricing page",
+      "reason": "Shows a clear plan comparison",
+      "studies": ["plan comparison layout", "price emphasis"],
+      "doNotCopy": ["brand colors"],
+      "influences": ["tier cards"]
+    },
+    {
+      "source": "manual",
+      "origin": "Notion onboarding",
+      "reason": "Shows a calm first-run checklist",
+      "studies": ["checklist density"],
+      "doNotCopy": ["illustrations"],
+      "influences": ["progress hints"]
+    }
+  ]
+}

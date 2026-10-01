@@ -12,13 +12,13 @@ import { renderFindings, renderInitText } from "../render.ts";
 export const initCommand: CommandSpec<InitParsed> = {
   name: "init",
   usage: [
-    "  init [path] [--stage <NN-slug>] [--dry-run] [--json]",
+    "  init [path] [--stage <NN-slug>] [--locale <bcp47>] [--dry-run] [--json]",
     "      Detect the product context, decide the mode and write .heron/",
   ],
   parse(args, json) {
     const parsed = parseOptions(
       args,
-      { stage: { type: "string" }, "dry-run": { type: "boolean" } },
+      { stage: { type: "string" }, locale: { type: "string" }, "dry-run": { type: "boolean" } },
       json,
     );
     if (parsed instanceof UsageError) return parsed;
@@ -30,6 +30,7 @@ export const initCommand: CommandSpec<InitParsed> = {
       stage: parsed.values.stage ?? null,
       dryRun: parsed.values["dry-run"] === true,
       json,
+      ...(parsed.values.locale === undefined ? {} : { locale: parsed.values.locale }),
     };
   },
   async handle(parsed, ctx, io) {
@@ -38,6 +39,7 @@ export const initCommand: CommandSpec<InitParsed> = {
       path: parsed.path,
       stage: parsed.stage,
       dryRun: parsed.dryRun,
+      locale: parsed.locale ?? null,
     });
     return emitResult(
       io,

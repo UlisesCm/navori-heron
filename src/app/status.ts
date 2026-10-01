@@ -18,8 +18,11 @@ import { describeModeBlock } from "../core/state/mode.ts";
 import { compareStrings } from "../core/state/stale.ts";
 import { allowedEvents } from "../core/state/transitions.ts";
 import type { AppContext } from "./context.ts";
+import { assetBytes } from "./research-store.ts";
 import { makeFinding, storeErrorResult, type UseCaseResult } from "./result.ts";
 import { loadWorkspace, type Workspace } from "./workspace.ts";
+
+const mib = (value: number): string => (value / 1_048_576).toFixed(1);
 
 export type StatusInput = { path: string };
 
@@ -52,7 +55,7 @@ export async function runStatus(
 ): Promise<UseCaseResult<StatusData>> {
   try {
     const loaded = loadWorkspace(ctx, input.path);
-    return loaded.ok ? readStatus(loaded.workspace, input.path) : loaded.result;
+    return loaded.ok ? readStatus(ctx, loaded.workspace, input.path) : loaded.result;
   } catch (error) {
     const mapped = storeErrorResult<StatusData>(error);
     if (mapped === null) throw error;
@@ -60,7 +63,11 @@ export async function runStatus(
   }
 }
 
-function readStatus(workspace: Workspace, path: string): UseCaseResult<StatusData> {
+function readStatus(
+  ctx: AppContext,
+  workspace: Workspace,
+  path: string,
+): UseCaseResult<StatusData> {
   const { store, state, persisted, live, detection, mode: effective, blocked } = workspace;
   const findings: Finding[] = [];
   const inputsChanged = changedInputs(persisted.detection, detection);
@@ -71,6 +78,17 @@ function readStatus(workspace: Workspace, path: string): UseCaseResult<StatusDat
         "warning",
         `Inputs changed since the last heron init: ${inputsChanged.join(", ")}. Run: heron init ${path}`,
         inputsChanged,
+      ),
+    );
+  }
+
+  const bytes = assetBytes(ctx.fs, store.heronDir);
+  if (bytes > ctx.research.assetWarningBytes) {
+    findings.push(
+      makeFinding(
+        "ASSETS_LARGE",
+        "warning",
+        `Images in .heron/ use ${mib(bytes)} MiB (threshold ${mib(ctx.research.assetWarningBytes)} MiB); every reference image is versioned in Git (D15).`,
       ),
     );
   }
@@ -99,9 +117,11 @@ function readStatus(workspace: Workspace, path: string): UseCaseResult<StatusDat
 
   const statuses = gateStatuses(state, current);
   const gatesWithRows = new Set<GateName>();
+  let canAddReferences = false;
   for (const event of allowedEvents({ ...state, mode: effective })) {
     if (event.type === "approve-gate" || event.type === "reject-gate")
       gatesWithRows.add(event.gate);
+    if (event.type === "reference-added") canAddReferences = true;
   }
   const data: StatusData = {
     adapter: detection.adapter,
@@ -124,6 +144,10 @@ function readStatus(workspace: Workspace, path: string): UseCaseResult<StatusDat
       ...GATE_NAMES.filter((gate) => gatesWithRows.has(gate)).map(
         (gate) => `heron gate ${gate} approve|reject`,
       ),
+      ...(canAddReferences ? ["heron references add|import"] : []),
+      "heron references list|show|compare|remove",
+      "heron brand add",
+      "heron research render",
     ],
   };
   if (effective === "reference-only") {

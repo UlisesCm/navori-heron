@@ -1,4 +1,5 @@
 import {
+  ExitCode,
   HERON_PROJECT_DOCUMENT,
   MODE_DECISION_DOCUMENT,
   canonicalJson,
@@ -23,6 +24,7 @@ import { sha256Hex } from "../core/store/hash.ts";
 import { detectProject } from "../intake/detect.ts";
 import type { AppContext } from "./context.ts";
 import {
+  failure,
   makeFinding,
   pathNotFound,
   resolveDirectory,
@@ -31,7 +33,21 @@ import {
 } from "./result.ts";
 import { withWriteRun, type WriteBodyResult, type WriteRun } from "./write-run.ts";
 
-export type InitInput = { path: string; stage: string | null; dryRun: boolean };
+export type InitInput = {
+  path: string;
+  stage: string | null;
+  dryRun: boolean;
+  locale: string | null;
+};
+
+/** Canonical BCP 47 tag (Intl.getCanonicalLocales), or null when the value is not a valid tag. */
+function canonicalLocale(value: string): string | null {
+  try {
+    return Intl.getCanonicalLocales(value)[0] ?? null;
+  } catch {
+    return null;
+  }
+}
 
 function buildProject(decision: ModeDecision): HeronProject {
   const { detection } = decision;
@@ -69,6 +85,20 @@ function collectFindings(decision: ModeDecision): Finding[] {
 
 /** detect -> decide -> (without dryRun) withWriteRun: lock -> recover staging -> transaction -> release. */
 export async function runInit(ctx: AppContext, input: InitInput): Promise<UseCaseResult<InitData>> {
+  let locale: string | null = null;
+  if (input.locale !== null) {
+    locale = canonicalLocale(input.locale);
+    if (locale === null) {
+      return failure(
+        ExitCode.Usage,
+        makeFinding(
+          "LOCALE_INVALID",
+          "error",
+          `Invalid locale "${input.locale}": expected a BCP 47 tag such as es or en-US.`,
+        ),
+      );
+    }
+  }
   const root = resolveDirectory(ctx.fs, input.path);
   if (root === null) return pathNotFound(input.path);
 
@@ -98,7 +128,7 @@ export async function runInit(ctx: AppContext, input: InitInput): Promise<UseCas
       requireState: false,
       expectedRevision: null,
     },
-    (run) => writeInit(run, decision, findings, next),
+    (run) => writeInit(run, decision, findings, next, locale),
   );
 }
 
@@ -107,12 +137,22 @@ function writeInit(
   decision: ModeDecision,
   findings: Finding[],
   next: string[],
+  locale: string | null,
 ): WriteBodyResult<InitData> {
+  // DR17: everything in project.json except `source` survives; --locale replaces product.locale.
+  const existing = store.readDocument(PROJECT_FILE, HERON_PROJECT_DOCUMENT);
+  const fresh = buildProject(decision);
+  const product = locale === null ? existing?.product : { locale };
+  const project: HeronProject = {
+    ...(existing ?? fresh),
+    source: fresh.source,
+    ...(product === undefined ? {} : { product }),
+  };
   const documents: { path: string; text: string }[] = [
     { path: MODE_FILE, text: render(MODE_DECISION_DOCUMENT, MODE_FILE, decision) },
     {
       path: PROJECT_FILE,
-      text: render(HERON_PROJECT_DOCUMENT, PROJECT_FILE, buildProject(decision)),
+      text: render(HERON_PROJECT_DOCUMENT, PROJECT_FILE, project),
     },
   ];
   const hashes = new Map(

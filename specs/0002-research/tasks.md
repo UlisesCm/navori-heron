@@ -94,7 +94,7 @@ Lotes de 1–3 tareas. Cada test lleva `// Covers: R<n>` y usa el nombre exacto 
 
 ## Lote 5 — Casos de uso y CLI
 
-- [ ] **T10** (R6, R7, R8, R9, R10, R11, R12, R15) — `heron references add|list|show|compare|remove|import` de punta a punta, con las pruebas de seguridad de ingesta.
+- [x] **T10** (R6, R7, R8, R9, R10, R11, R12, R15) — `heron references add|list|show|compare|remove|import` de punta a punta, con las pruebas de seguridad de ingesta.
   - **Archivos:** `src/app/context.ts`, `src/app/research-store.ts`, `src/app/references.ts`, `src/cli/commands/references.ts`, `src/cli/commands/index.ts`, `src/cli/render-research.ts`, `tests/helpers/cli.ts`, `tests/helpers/research.ts`, `tests/assets/research/design-injection.md`, `tests/assets/research/references-batch.json`, `tests/e2e/references.test.ts`, `tests/security/ssrf.test.ts`, `tests/security/paths.test.ts`, `tests/security/images.test.ts`, `tests/security/untrusted-content.test.ts`
   - **Interfaces:** runReferencesAdd; runReferencesList; runReferencesShow; runReferencesCompare; runReferencesRemove; runReferencesImport; referencesCommand
   - **Patrón:** src/app/gate.ts
@@ -104,18 +104,29 @@ Lotes de 1–3 tareas. Cada test lleva `// Covers: R<n>` y usa el nombre exacto 
   - **Nota:** extender `tests/e2e/p1-compat.test.ts` para que, sobre los goldens de P1, `references add --source manual` funcione y un re-`init` conserve los artefactos de research (pendiente de la revisión del lote 2).
   - **Fuera de alcance:** `brand` y `research render` (T11).
 
-- [ ] **T11** (R13, R14, R16) — `heron brand add` y `heron research render`, más `status` con las órdenes de P2 y el aviso de assets grandes.
+- [x] **T11** (R13, R14, R16) — `heron brand add` y `heron research render`, más `status` con las órdenes de P2 y el aviso de assets grandes.
   - **Archivos:** `src/app/brand.ts`, `src/app/research.ts`, `src/app/status.ts`, `src/cli/commands/brand.ts`, `src/cli/commands/research.ts`, `src/cli/commands/index.ts`, `src/cli/render-research.ts`, `tests/e2e/brand.test.ts`, `tests/e2e/research-render.test.ts`, `tests/e2e/status.test.ts`
   - **Interfaces:** runBrandAdd; runResearchRender; brandCommand; researchCommand
   - **Patrón:** src/app/init.ts
   - **Lectura:** `specs/0002-research/design.md` (§Contracts › 7. Casos de uso, 8. CLI, 9. Renderers, 10. Layout), `src/app/references.ts`
   - **Librerías:** ninguna
   - **Done:** comando `bun test tests/e2e/brand.test.ts tests/e2e/research-render.test.ts tests/e2e/status.test.ts`, esperado exit 0; casos de test "requires an origin for every brand input", "renders reference-only outputs with escaped text and CSP", "renders byte-identical outputs and skips the write when nothing changed", "warns when research assets exceed the size threshold"; cubre P2.A7 y P2.A8.
+  - **Nota:** cubrir la fila "vía `brand add --file`" en `tests/security/paths.test.ts` (pendiente de T10).
   - **Fuera de alcance:** `brand list|show|remove` (no lo exige R14).
+
+- [x] **T13** (R13, R1) — `heron init --locale <bcp47>`: idioma de las salidas de research (DR17), con `project.json` conservando lo que no es `source`.
+  - **Archivos:** `src/app/init.ts`, `src/cli/commands/init.ts`, `src/cli/command.ts`, `tests/e2e/init.test.ts`, `tests/e2e/research-render.test.ts`, `tests/unit/cli-args.test.ts`, `tests/unit/app/write-run.test.ts`, `tests/unit/store.test.ts`
+  - **Interfaces:** InitInput.locale; InitParsed.locale; LOCALE_INVALID
+  - **Patrón:** src/app/init.ts
+  - **Lectura:** `specs/0002-research/design.md` (DR17; §Contracts › 7. Casos de uso, 8.1 USAGE, 11 `LOCALE_INVALID`)
+  - **Librerías:** ninguna
+  - **Done:** comando `bun test tests/e2e/init.test.ts tests/e2e/research-render.test.ts tests/unit/cli-args.test.ts`, esperado exit 0; casos de test "persists a canonical locale, keeps it on re-init and rejects an invalid tag before writing", "renders the es catalog without LOCALE_FALLBACK after init --locale es-MX"; valida con `Intl.getCanonicalLocales` (`LOCALE_INVALID`, exit 2, antes de escribir), persiste `project.json.product.locale` (opcional, sin bump), `init` sin `--locale` conserva el valor previo y todo `project.json` salvo `source`; `InitParsed.locale` solo existe si se pasó el flag; el catálogo se elige por subetiqueta primaria (`es-MX` → `es`).
+  - **Fuera de alcance:** `status`/`doctor` mostrando el locale.
+
 
 ## Lote 6 — Documentación y recorrido real
 
-- [ ] **T12** (R17, R16) — ADR de la frontera de fuentes, `docs/research.md`, `docs/security.md`, arquitectura y README; quality gate completo.
+- [x] **T12** (R17, R16) — ADR de la frontera de fuentes, `docs/research.md`, `docs/security.md`, arquitectura y README; quality gate completo.
   - **Archivos:** `docs/adr/0003-research-source-boundary.md`, `docs/research.md`, `docs/security.md`, `docs/architecture.md`, `README.md`, `tests/repo/docs.test.ts`
   - **Interfaces:** ResearchSource; createSafeFetcher
   - **Patrón:** docs/adr/0001-state-persistence.md

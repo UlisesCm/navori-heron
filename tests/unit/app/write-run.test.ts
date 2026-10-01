@@ -20,7 +20,12 @@ afterEach(() => {
 async function initializedRoot(): Promise<string> {
   const root = copyFixture("no-ux");
   roots.push(root);
-  const init = await runInit(fixedContext(), { path: root, stage: null, dryRun: false });
+  const init = await runInit(fixedContext(), {
+    path: root,
+    stage: null,
+    dryRun: false,
+    locale: null,
+  });
   expect(init.ok).toBe(true);
   return root;
 }

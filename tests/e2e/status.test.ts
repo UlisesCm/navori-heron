@@ -10,9 +10,11 @@ import {
 } from "../../src/core/contracts/index.ts";
 import { createInitialState } from "../../src/core/state/lifecycle.ts";
 import { canTransition } from "../../src/core/state/transitions.ts";
-import { runCliCaptured } from "../helpers/cli.ts";
+import { DEFAULT_RESEARCH_SETTINGS } from "../../src/research/ports.ts";
+import { fixedContext, runCliCaptured } from "../helpers/cli.ts";
 import { e2eSetup } from "../helpers/e2e.ts";
 import { hashTree, patchHarnessState } from "../helpers/fixtures.ts";
+import { makePng, referenceArgs } from "../helpers/research.ts";
 
 const { fresh, initialized } = e2eSetup();
 
@@ -50,7 +52,7 @@ describe("heron status", () => {
         "",
         "Stale artifacts: none",
         "Open conflicts: not tracked yet",
-        "Allowed commands: heron init, heron status, heron doctor, heron gate intake approve|reject",
+        "Allowed commands: heron init, heron status, heron doctor, heron gate intake approve|reject, heron references add|import, heron references list|show|compare|remove, heron brand add, heron research render",
         "",
       ].join("\n"),
     );
@@ -177,4 +179,33 @@ describe("heron status", () => {
     if (other.ok) throw new Error("expected a rejection");
     expect(rejectionToFinding(other, decision).message).toBe(other.reason);
   });
+
+  // Covers: R16
+  test("warns when research assets exceed the size threshold", async () => {
+    const root = await initialized("no-ux");
+    writeFileSync(join(root, "shot.png"), await makePng(30, 30));
+    const added = await runCliCaptured(
+      referenceArgs(root, ["source"], ["--source", "image", "--file", "shot.png"]),
+      fixedContext({ cwd: root }),
+    );
+    expect(added.code).toBe(ExitCode.Ok);
+    const quiet = await runCliCaptured(["status", root]);
+    expect(quiet.stdout).not.toContain("ASSETS_LARGE");
+    expect(quiet.stdout).toContain("heron references add|import");
+
+    const tight = fixedContext({
+      research: { ...DEFAULT_RESEARCH_SETTINGS, assetWarningBytes: 1 },
+    });
+    const warned = await runCliCaptured(["status", root], tight);
+    expect(warned.code).toBe(ExitCode.Ok);
+    expect(warned.stdout).toMatch(
+      /ASSETS_LARGE: Images in \.heron\/ use 0\.0 MiB \(threshold 0\.0 MiB\); every reference image is versioned in Git \(D15\)\./,
+    );
+    const json = await runCliCaptured(["status", root, "--json"], tight);
+    const envelope = JSON.parse(json.stdout) as CliEnvelope;
+    expect(envelope.findings.map((finding) => [finding.code, finding.severity])).toContainEqual([
+      "ASSETS_LARGE",
+      "warning",
+    ]);
+  }, 30_000);
 });

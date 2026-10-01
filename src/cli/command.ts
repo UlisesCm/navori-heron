@@ -1,16 +1,30 @@
 import { parseArgs, type ParseArgsOptionsConfig } from "node:util";
 import type { AppContext } from "../app/context.ts";
-import type { ExitCode, GateName } from "../core/contracts/index.ts";
+import type {
+  BrandInputDraft,
+  ExitCode,
+  GateName,
+  ReferenceInput,
+} from "../core/contracts/index.ts";
 import type { CliIo } from "./io.ts";
 
 /** Grows with each command group (P2 adds references, brand and research). */
-export type CommandName = "init" | "status" | "doctor" | "gate";
+export type CommandName =
+  | "init"
+  | "status"
+  | "doctor"
+  | "gate"
+  | "references"
+  | "brand"
+  | "research";
 export type InitParsed = {
   command: "init";
   path: string;
   stage: string | null;
   dryRun: boolean;
   json: boolean;
+  /** Present only when --locale is given (P1 parse results keep their exact shape). */
+  locale?: string;
 };
 export type StatusParsed = { command: "status"; path: string; json: boolean };
 export type DoctorParsed = { command: "doctor"; path: string; json: boolean };
@@ -24,11 +38,52 @@ export type GateParsed = {
   yes: boolean;
   json: boolean;
 };
+/** `heron references <action>`: one variant per action, discriminated by `action`. */
+export type ReferencesParsed =
+  | {
+      command: "references";
+      action: "add";
+      path: string;
+      reference: ReferenceInput;
+      json: boolean;
+    }
+  | { command: "references"; action: "list"; path: string; includeRemoved: boolean; json: boolean }
+  | { command: "references"; action: "show"; path: string; id: string; json: boolean }
+  | { command: "references"; action: "compare"; path: string; ids: string[]; json: boolean }
+  | {
+      command: "references";
+      action: "remove";
+      path: string;
+      id: string;
+      reason: string | null;
+      json: boolean;
+    }
+  | {
+      command: "references";
+      action: "import";
+      path: string;
+      file: string;
+      allowLocal: boolean;
+      json: boolean;
+    };
+/** `heron brand add`: the only brand action P2 needs (R14). */
+export type BrandParsed = {
+  command: "brand";
+  action: "add";
+  path: string;
+  input: BrandInputDraft;
+  json: boolean;
+};
+/** `heron research render`: the only research action P2 needs. */
+export type ResearchParsed = { command: "research"; action: "render"; path: string; json: boolean };
 export type ParsedCommand =
   | InitParsed
   | StatusParsed
   | DoctorParsed
   | GateParsed
+  | ReferencesParsed
+  | BrandParsed
+  | ResearchParsed
   | { command: "help" }
   | { command: "version" };
 
