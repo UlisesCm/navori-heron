@@ -7,12 +7,12 @@ metadata:
   # ciclo completo propose/challenge/verdict antes de spec 0029; el wiring
   # hacia `secure-by-design`/`quality-attributes` (R3/R4) que esa spec agrega
   # no cabía en los 3 palabras de margen que quedaban.
-  # spec 0033 R19: +29 palabras exactas del fallback de origin/main
+  # spec 0033 R19: +29 palabras exactas del fallback de origin/develop
   # (fetch, ref no verificable, marca *unverified*) agregado al paso 1.
   maxWords: 1119
 ---
 
-<!-- navori:managed id="solution-design" hash="407ad8d9" version="0.11.0" source="@navori/core" fmkeys="name,description,metadata" -->
+<!-- navori:managed id="solution-design" hash="1db94fd5" version="0.11.0" source="@navori/core" fmkeys="name,description,metadata" -->
 # solution-design — decide what to build, then try to break it
 
 ## When to use this skill
@@ -57,7 +57,7 @@ level 2 the user picks among the surviving options before that verdict.
    THAT is. Before any option, derive the decision drivers from the project's own
    rules; the ladder `existing pattern > small extension > new abstraction > new
    subsystem` is one driver, not the default winner. Verify every 'already exists'
-   claim against `origin/main` after `git fetch origin main`; if the
+   claim against `origin/develop` after `git fetch origin develop`; if the
    fetch fails or the ref doesn't exist, name the ref you actually used — or mark the
    claim *unverified* with the cause.
 2. **State the real problem** — the behavior that changes and who consumes it, not

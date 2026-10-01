@@ -1,0 +1,10 @@
+{
+  "version": 1,
+  "phase": "closed",
+  "mode": "template",
+  "outcome": "abandonada",
+  "abandonment": {
+    "at": "2026-09-25",
+    "reason": "Synthetic abandonment."
+  }
+}

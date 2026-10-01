@@ -1,0 +1,25 @@
+{
+  "schemaVersion": 1,
+  "masterStage": "01-mvp",
+  "surfaces": [
+    {
+      "id": "MOBILE",
+      "name": "Mobile"
+    }
+  ],
+  "screens": [
+    {
+      "id": "SCR-MOBILE-01",
+      "surface": "MOBILE"
+    }
+  ],
+  "flows": [
+    {
+      "id": "F01",
+      "screens": [
+        "SCR-MOBILE-01"
+      ]
+    }
+  ],
+  "patterns": []
+}

@@ -1,0 +1,9 @@
+{
+  "version": 1,
+  "parts": [
+    {
+      "id": "P1",
+      "name": "Core"
+    }
+  ]
+}

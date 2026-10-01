@@ -10,10 +10,10 @@ metadata:
   maxWordsComposed: 1450
 ---
 
-<!-- navori:managed id="review-diff-base" hash="a147c6e4" version="0.11.0" source="@navori/core" fmkeys="name,description,metadata" -->
+<!-- navori:managed id="review-diff-base" hash="7ef223de" version="0.11.0" source="@navori/core" fmkeys="name,description,metadata" -->
 # Code review — checklist for a diff
 
-Apply this checklist to a diff (staged, branch vs `main`, or a PR). The skeleton is stack-agnostic; repo-specific rules live in the user-section below.
+Apply this checklist to a diff (staged, branch vs `develop`, or a PR). The skeleton is stack-agnostic; repo-specific rules live in the user-section below.
 
 ## How to report
 
@@ -102,7 +102,7 @@ Rule: if removing the abstraction leaves the code **as correct** and shorter, re
 
 ## 9. Quality gate (run this turn, not assumed)
 
-- `(quality gate sin configurar — corre 'navori configure quality-gate')` passes → CRITICAL if it fails; this is the same gate the `reviewer` owns in Pass 2, never re-defined here.
+- `bun run check` passes → CRITICAL if it fails; this is the same gate the `reviewer` owns in Pass 2, never re-defined here.
 - Failure attribution (per `verify-before-done`): a failure classified *introduced (demonstrated)* → HIGH; never classify one by diff location alone.
 
 ## 10. Commit and PR
@@ -113,7 +113,7 @@ Rule: if removing the abstraction leaves the code **as correct** and shorter, re
 
 ## Critical areas
 
-Pay extra attention if the diff touches `ej: src/auth, src/billing`. A finding in those zones goes up one severity level.
+Pay extra attention if the diff touches `src/core/store, src/core/state, src/core/contracts, src/security, src/intake/adapters/navori-master, src/agents/adapters, src/penpot, src/web/auth, tests/repo/boundaries.test.ts`. A finding in those zones goes up one severity level.
 
 ## Output
 
@@ -128,17 +128,17 @@ Pay extra attention if the diff touches `ej: src/auth, src/billing`. A finding i
 - `verify-before-done`: the §9 quality gate is run this turn, not assumed from the implementer's report.
 <!-- /navori:managed id="review-diff-base" -->
 
-<!-- navori:managed id="jscpd-review-extension" hash="6b005d05" version="0.11.0" source="@navori/plugin-jscpd" -->
+<!-- navori:managed id="jscpd-review-extension" hash="f46eeff1" version="0.11.0" source="@navori/plugin-jscpd" -->
 ## Code duplication (jscpd)
 
 Before approving a change, run `jscpd` over the changed `.ts`/`.tsx` files vs
 the base branch, failing on any clone that is new vs that base:
 
 ```
-git diff --name-only --diff-filter=ACMRT main -- '*.ts' '*.tsx' | xargs -r jscpd --min-tokens 100 --min-lines 10 --mode strict --baseline-from-ref 'main' --fail-on-new-clones 0
+git diff --name-only --diff-filter=ACMRT develop -- '*.ts' '*.tsx' | xargs -r jscpd --min-tokens 100 --min-lines 10 --mode strict --baseline-from-ref 'develop' --fail-on-new-clones 0
 ```
 
-A literal `main` left unsubstituted here would be a silent no-op
+A literal `develop` left unsubstituted here would be a silent no-op
 scan (#273) — the values above come from the repo's own config at render
 time, never typed by hand.
 - Fingerprint sensitivity: editing inside an existing clone (even a single line) changes its fingerprint, so jscpd reports it as new — it counts as a new clone even though the duplication itself predates the change.

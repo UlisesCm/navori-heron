@@ -7,9 +7,14 @@
   ],
   "preset": "custom",
   "language": "es",
-  "branchBase": "main",
+  "branchBase": "develop",
   "gitignoreHarness": "off",
+  "prTarget": "develop",
   "commits": "conventional-es",
+  "qualityGate": {
+    "fast": "bun run check",
+    "full": "bun run check"
+  },
   "audit": {
     "mode": "opt-in"
   },
@@ -68,18 +73,40 @@
   "project": {
     "legacyPaths": [],
     "criticalAreas": [
-      "ej: src/auth",
-      "src/billing"
+      "src/core/store",
+      "src/core/state",
+      "src/core/contracts",
+      "src/security",
+      "src/intake/adapters/navori-master",
+      "src/agents/adapters",
+      "src/penpot",
+      "src/web/auth",
+      "tests/repo/boundaries.test.ts"
     ],
-    "criticalPaths": [],
+    "criticalPaths": [
+      "src/core/store/**",
+      "src/core/state/**",
+      "src/core/contracts/**",
+      "src/security/**",
+      "src/agents/adapters/**",
+      "src/penpot/**",
+      "src/web/auth/**",
+      "schemas/**",
+      ".github/workflows/**",
+      "infra/**"
+    ],
     "posture": "greenfield",
     "reviewRigor": "pragmatic",
-    "architectureRule": "ej: axios → service → adapter → component; forms = mantine + zod",
+    "architectureRule": "bin → cli|web → app (run* → UseCaseResult) → dominio puro (core/state, tokens, design, validation, export, penpot/compiler) y puertos→adapters (intake, research, agents, penpot); contratos Zod versionados en core/contracts; solo core/store toca el filesystem; fronteras en tests/repo/boundaries.test.ts",
     "testsForNewCode": "when-applicable",
     "testsExclude": [],
-    "localSkills": [],
+    "localSkills": [
+      "heron-architecture",
+      "heron-design-tokens",
+      "heron-accessibility"
+    ],
     "libraries": [],
     "libraryMigrations": [],
-    "codeLanguage": "unknown"
+    "codeLanguage": "ts"
   }
 }

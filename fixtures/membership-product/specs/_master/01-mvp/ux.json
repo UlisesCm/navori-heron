@@ -1,0 +1,135 @@
+{
+  "schemaVersion": 1,
+  "masterStage": "01-mvp",
+  "surfaces": [
+    {
+      "id": "MOBILE",
+      "name": "Mobile"
+    },
+    {
+      "id": "DASHBOARD",
+      "name": "Dashboard"
+    },
+    {
+      "id": "PARTNER",
+      "name": "Partner"
+    }
+  ],
+  "screens": [
+    {
+      "id": "SCR-MOBILE-01",
+      "surface": "MOBILE",
+      "name": "Screen SCR-MOBILE-01"
+    },
+    {
+      "id": "SCR-MOBILE-02",
+      "surface": "MOBILE",
+      "name": "Screen SCR-MOBILE-02"
+    },
+    {
+      "id": "SCR-DASHBOARD-01",
+      "surface": "DASHBOARD",
+      "name": "Screen SCR-DASHBOARD-01"
+    },
+    {
+      "id": "SCR-DASHBOARD-02",
+      "surface": "DASHBOARD",
+      "name": "Screen SCR-DASHBOARD-02"
+    },
+    {
+      "id": "SCR-PARTNER-01",
+      "surface": "PARTNER",
+      "name": "Screen SCR-PARTNER-01"
+    },
+    {
+      "id": "SCR-PARTNER-02",
+      "surface": "PARTNER",
+      "name": "Screen SCR-PARTNER-02"
+    }
+  ],
+  "flows": [
+    {
+      "id": "F01",
+      "name": "Join",
+      "screens": [
+        "SCR-MOBILE-01",
+        "SCR-MOBILE-02"
+      ]
+    },
+    {
+      "id": "F02",
+      "name": "Manage members",
+      "screens": [
+        "SCR-DASHBOARD-01",
+        "SCR-DASHBOARD-02"
+      ]
+    },
+    {
+      "id": "F03",
+      "name": "Offer benefits",
+      "screens": [
+        "SCR-PARTNER-01",
+        "SCR-PARTNER-02"
+      ]
+    }
+  ],
+  "patterns": [
+    {
+      "id": "PT01",
+      "name": "Benefit card",
+      "screens": [
+        "SCR-MOBILE-01",
+        "SCR-PARTNER-01"
+      ]
+    },
+    {
+      "id": "PT02",
+      "name": "Data table",
+      "screens": [
+        "SCR-DASHBOARD-01",
+        "SCR-DASHBOARD-02"
+      ]
+    }
+  ],
+  "actors": [
+    {
+      "id": "A01",
+      "name": "Member"
+    }
+  ],
+  "journeys": [
+    {
+      "id": "J01",
+      "name": "First benefit",
+      "flows": [
+        "F01"
+      ]
+    }
+  ],
+  "functionalComponents": [
+    {
+      "id": "FC01",
+      "name": "Benefit list",
+      "patterns": [
+        "PT01"
+      ]
+    }
+  ],
+  "uxRequirements": [
+    {
+      "id": "UXR-1",
+      "text": "Benefits are reachable in two taps."
+    }
+  ],
+  "traceability": [
+    {
+      "requirement": "RF-1",
+      "screens": [
+        "SCR-MOBILE-01"
+      ],
+      "rules": [
+        "RN-1"
+      ]
+    }
+  ]
+}

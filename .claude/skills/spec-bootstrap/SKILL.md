@@ -15,14 +15,14 @@ metadata:
   # margin (697/720) instead of reproducing the same 3-word squeeze.
   maxWords: 720
   # Spec 0026 T16 (R35): the critical-areas challenge interpolates
-  # ej: src/auth, src/billing INSIDE the managed zone, same defect as
+  # src/core/store, src/core/state, src/core/contracts, src/security, src/intake/adapters/navori-master, src/agents/adapters, src/penpot, src/web/auth, tests/repo/boundaries.test.ts INSIDE the managed zone, same defect as
   # review-diff (#683) — a verbose repo config pushes the composed file past
   # the asset's own cap with no plugin involved. Margin measured against the
   # skill-caps-composed.test.ts fixture.
   maxWordsComposed: 750
 ---
 
-<!-- navori:managed id="spec-bootstrap" hash="31f8fd54" version="0.11.0" source="@navori/core" fmkeys="name,description,metadata" -->
+<!-- navori:managed id="spec-bootstrap" hash="3655d3f1" version="0.11.0" source="@navori/core" fmkeys="name,description,metadata" -->
 # spec-bootstrap — kickoff of an SDD spec
 
 ## Before scaffolding — blocking precondition
@@ -35,7 +35,7 @@ When SDD-scope work has been agreed with the user. The threshold and its opt-in 
 
 Produces `specs/<feature>/{requirements.md, design.md, tasks.md}` ready to implement. Scaffolding is done by `orchestrator`, not a nested subagent.
 
-**Challenge on critical areas.** WHEN the spec touches `ej: src/auth, src/billing`, a fresh-context `auditor` challenges it with `solution-design`'s falsification brief before handoff. One round, no verdict — `orchestrator` decides.
+**Challenge on critical areas.** WHEN the spec touches `src/core/store, src/core/state, src/core/contracts, src/security, src/intake/adapters/navori-master, src/agents/adapters, src/penpot, src/web/auth, tests/repo/boundaries.test.ts`, a fresh-context `auditor` challenges it with `solution-design`'s falsification brief before handoff. One round, no verdict — `orchestrator` decides.
 
 ## Order
 

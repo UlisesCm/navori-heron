@@ -7,7 +7,7 @@ effort: xhigh
 maxWords: 3050
 ---
 
-<!-- navori:managed id="orchestrator-base" hash="5ae6ad99" version="0.11.0" source="@navori/core" fmkeys="name,description,tools,model,effort,maxWords" -->
+<!-- navori:managed id="orchestrator-base" hash="f92eb095" version="0.11.0" source="@navori/core" fmkeys="name,description,tools,model,effort,maxWords" -->
 # Orchestrator Playbook (embodied by the main agent)
 
 > This file is a **depth reference** — the orchestrator role **is embodied by the main agent**, not a subagent. The essential mechanics (escalation table, parallelism, synthesis) live in the "## Role: orchestrator" block, which the `SessionStart` hook delivers to the session, not to a subagent: only the main agent can act on it. Below: extended detail and the **Project rules**. Do NOT invoke `Agent(subagent_type: orchestrator)`.
@@ -129,7 +129,7 @@ When `.navori/state/handoffs/review_<feature>.md` contains `APPROVED`:
 
 1. **Before** invoking `publisher`: apply `cierre-sesion`'s History + Clear current steps now — that commit must land inside this PR, per that block's timing rule (and its no-PR exception).
 2. Invoke `publisher` to draft the title + body following the repo's format and open the PR.
-3. Pre-flight on you before invoking — the list in `## Role: orchestrator` and nothing more: not on `main`, `gh auth status` ok. No clean working tree (the publisher's trigger IS the uncommitted diff, now including `progress/`) and no gate re-run on you: the publisher owns both that commit and the PR gate, with the reviewer's Pass-2 evidence behind it.
+3. Pre-flight on you before invoking — the list in `## Role: orchestrator` and nothing more: not on `develop`, `gh auth status` ok. No clean working tree (the publisher's trigger IS the uncommitted diff, now including `progress/`) and no gate re-run on you: the publisher owns both that commit and the PR gate, with the reviewer's Pass-2 evidence behind it.
 4. Return to the user only the PR URL + title.
 
 If the review returned `CHANGES_REQUESTED`, do NOT invoke `publisher`: launch a **fresh** `implementer` scoped to just the findings — not a resume of the hot one (dragging a large transcript re-feeds its whole history every turn and rarely pays for a bounded fix round), and not the publisher.
@@ -150,8 +150,8 @@ And never take a merged PR as proof on its own: **squash merge leaves no ancestr
 ## Quality gate
 
 ```bash
-(quality gate sin configurar — corre 'navori configure quality-gate')    # fast gate — pre-step to the reviewer
-(quality gate sin configurar — corre 'navori configure quality-gate')    # full gate — before closing the session / creating the PR
+bun run check    # fast gate — pre-step to the reviewer
+bun run check    # full gate — before closing the session / creating the PR
 ```
 
 If the repo has no test suite, the `implementer` still can't claim "done" without fresh evidence (a correct diff plus whatever checks exist) — but browser/visual validation stays **on-request only, never automatic**. The `verify-before-done` skill enforces the "fresh evidence rule" over any "done" claim.
