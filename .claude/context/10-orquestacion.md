@@ -1,4 +1,4 @@
-<!-- navori:managed id="orquestacion" hash="86170a04" version="0.11.0" source="@navori/core" -->
+<!-- navori:managed id="orquestacion" hash="3abb1848" version="0.11.0" source="@navori/core" -->
 ## Role: orchestrator (every change goes through the harness)
 
 You are the main agent. **Every change to source goes through `implementer` → `reviewer`. There is no inline route and no threshold to judge.** You **embody** the orchestrator role: **you decompose, you coordinate, you synthesize** — but you **NEVER delegate that role**: **do not invoke `Agent(subagent_type: orchestrator)`**. `.claude/agents/orchestrator.md` is a depth reference, not a subagent; delegating it serializes work.
@@ -24,7 +24,7 @@ You are the main agent. **Every change to source goes through `implementer` → 
 - **1 focused `implementer`** with an explicit scope (no SDD state), then **1 fresh `reviewer`**. Serial — the reviewer depends on the implementer's output.
 - **Review AFTER implementing, never before.**
 - **Parallel `implementer`s only on disjoint files** (when in doubt, serial).
-- **`(quality gate sin configurar — corre 'navori configure quality-gate')` green** is the reviewer's Pass 2, over the diff that ships.
+- **`bun run check` green** is the reviewer's Pass 2, over the diff that ships.
 - **A verification brief names the probe criterion**, never an open "verify X"; track a long agent by its on-disk artifact, not only `done ->`.
 
 ### How much analysis does this task deserve (signal → mechanism)
@@ -34,7 +34,7 @@ Reading depth:
 | Signal (verifiable, in the task or the ticket) | Mechanism |
 |---|---|
 | A non-trivial ticket arrives (ID, URL, pasted text) | `resolve-ticket` — the pipeline that chains the rest |
-| …and it hits a critical area (`ej: src/auth, src/billing`), a structural migration, >3 layers, or has no clear location | `auditor` (ticket encargo) → `audit_ticket_<ID>.md`, before decomposing |
+| …and it hits a critical area (`src/core/store, src/core/state, src/core/contracts, src/security, src/intake/adapters/navori-master, src/agents/adapters, src/penpot, src/web/auth, tests/repo/boundaries.test.ts`), a structural migration, >3 layers, or has no clear location | `auditor` (ticket encargo) → `audit_ticket_<ID>.md`, before decomposing |
 | …**and** it cites evidence in 2+ repos, crosses frontend/backend, or names modules with no dependency between them | one `auditor` PER AREA, all calls in the SAME turn; you synthesize (`resolve-ticket`, phase 2) |
 | New shared abstraction · state ownership change · shared contract (API/DTO/schema/event) · migration or schema change · new external dependency · concurrency/state sync · a critical area · hard-to-reverse decision · ≥2 genuinely viable approaches | the architectural pass (below) |
 | Real scope, by the threshold the **SDD** block owns | propose SDD; it scaffolds once accepted, via prose or `/spec-bootstrap` — opt-in, never self-assigned; don't duplicate its criteria |
@@ -52,7 +52,7 @@ Emit **ALL `Agent` calls in a SINGLE turn** — Claude serializes by default; pa
 
 ### When delegation is genuinely impossible
 
-Rare, and it must leave a trace: the operator forbade subagents, or the `Agent` tool is unavailable. Then you do the work and **say why in your reply** — the `publisher` will require `(quality gate sin configurar — corre 'navori configure quality-gate')` green from you in pre-flight, since there is no review to trust. An undeclared inline change is a deviation, not a shortcut.
+Rare, and it must leave a trace: the operator forbade subagents, or the `Agent` tool is unavailable. Then you do the work and **say why in your reply** — the `publisher` will require `bun run check` green from you in pre-flight, since there is no review to trust. An undeclared inline change is a deviation, not a shortcut.
 
 ### Where the depth lives (read it when the moment asks)
 

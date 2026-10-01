@@ -1,4 +1,4 @@
-# navori:managed start id="guard-destructive-base" hash="8d8655cb" version="0.11.0" source="@navori/core"
+# navori:managed start id="guard-destructive-base" hash="221343f6" version="0.11.0" source="@navori/core"
 #!/usr/bin/env bash
 #
 # Defensive PreToolUse(Bash) guard.
@@ -507,7 +507,7 @@ fi
 # branchBase is shell-quoted at render time via the shq: marker (#197): a
 # hostile branchBase in navori.config.json lands here as an inert literal,
 # never executable.
-base='main'
+base='develop'
 
 block() {
   echo "[navori] BLOCKED by guard-destructive: $1" >&2

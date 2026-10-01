@@ -1,41 +1,98 @@
 # Heron
 
-Heron es una herramienta de línea de comandos que toma el contexto de un producto ya definido con Navori Master (`UX.md`, `ux.json`, `MASTER.md`) y prepara, con gates humanos, el trabajo de diseño visual sobre ese producto. Su estado vive en archivos versionados dentro de `.heron/`, en el propio repo del producto.
+Heron es una herramienta independiente (CLI hoy, Web UI más adelante) que convierte el modelo funcional de un producto en un contrato de diseño neutral y versionado: research con provenance, dirección visual, foundations, tokens W3C DTCG, componentes, pantallas y un export portable que cualquier stack consume sin instalar Heron.
 
-Heron decide un **modo** por producto: `full` (hay `UX.md` y un `ux.json` válido, y puede producir) o `reference-only` (falta o es inválido algún insumo de UX, o el harness declara solo `UX.md`: solo research visual, sin generación de producto completo). Ver [docs/architecture.md](docs/architecture.md).
+## 1. Qué es Heron y qué NO es
 
-> **Alcance de P1.** Esta versión implementa únicamente la base: `heron init`, `heron status`, `heron doctor` y `heron gate`. No hay todavía research, direcciones visuales, agentes de IA, integración con Penpot, generación de tokens ni exportación; las fases posteriores de la máquina de estados existen como tabla y contratos, pero ningún comando las produce aún.
+Actúa como **AI UX/UI Product Designer + Design Director + Design System Compiler**. Parte de un master-plan de Navori Master (`UX.md`, `ux.json`, `MASTER.md`) y trabaja con gates humanos; su estado vive en `.heron/`, versionado en el repo del producto.
 
-## Requisitos
+- **Independiente** de `navori-harness`: lee sus archivos, nunca importa su código.
+- **Contrato neutral:** el export no depende de React, Vue ni de ningún stack.
+- **Penpot** (self-hosted) es el lienzo editable, **no** la fuente de verdad.
+- **No es** un generador de componentes React, ni un wrapper de Penpot, ni un theme generator.
 
-- Bun 1.4.2 (`packageManager` de `package.json`). No se necesita Node.
-- Git, para versionar `.heron/` en el repo del producto.
+Invariante dual: sin `UX.md` + `ux.json` válidos Heron trabaja en `reference-only` (research, referencias y direcciones visuales) y bloquea toda operación de producción; con ambos válidos habilita `full`.
 
-## Instalación (desde un clon, D20)
+## 2. Estado actual y roadmap
+
+Solo **P1** está hecha. Fuente: `specs/_master/01-heron/parts.json` y `STATUS.md`.
+
+| Parte | Objetivo                                                            | Depende de  | Estado    |
+| ----- | ------------------------------------------------------------------- | ----------- | --------- |
+| P1    | Núcleo, `heron init` y detección de modo                            | -           | hecho     |
+| P2    | Research `reference-only` determinista y seguro                     | P1          | pendiente |
+| P3    | Agentes (Claude Code / Codex CLI) y 3 direcciones visuales          | P2          | pendiente |
+| P4    | Contrato UX y `ProductContext` con precedencia y `CONFLICT`         | P1          | pendiente |
+| P5    | Slice vertical `full`: un flow y 2-3 pantallas hasta export neutral | P3, P4, P12 | pendiente |
+| P6    | Penpot: sistema completo (tokens, componentes, pantallas)           | P5, P12     | pendiente |
+| P7    | Producto completo, revisiones y creator → reviewer                  | P5, P6      | pendiente |
+| P8    | Web UI control plane                                                | P5          | pendiente |
+| P9    | Self-host (Docker) y hardening                                      | P6, P8      | pendiente |
+| P10   | Refero como fuente opcional de research                             | P3          | pendiente |
+| P11   | Validación `full` con un producto real                              | P7          | pendiente |
+| P12   | Penpot base y propuestas visuales                                   | P3          | pendiente |
+
+Las 3 propuestas de dirección visual se revisan y comparan **solo en Penpot**, una página por dirección (D23-D25); en `full` Penpot es obligatorio para pasar el gate `direction` (D26). Por eso P12 se insertó entre P3 y P5 sin renumerar: el orden lo dan las dependencias.
+
+## 3. Arquitectura en 1 minuto
+
+Regla: `bin → cli|web → app (run* → UseCaseResult) → dominio puro y puertos→adapters; contratos Zod versionados en core/contracts; solo core/store toca el filesystem; fronteras en tests/repo/boundaries.test.ts`.
+
+| Módulo                                                                        | Estado                |
+| ----------------------------------------------------------------------------- | --------------------- |
+| `bin/`, `src/cli/`, `src/app/`                                                | existe (P1)           |
+| `src/core/{contracts,state,store}`                                            | existe (P1)           |
+| `src/intake/` (navori-master, filesystem)                                     | existe (P1)           |
+| `src/research/`, `src/agents/`                                                | planeado (P2, P3)     |
+| `src/penpot/`, `src/tokens/`, `src/design/`, `src/validation/`, `src/export/` | planeado (P5-P7, P12) |
+| `src/security/`                                                               | planeado (P2)         |
+| `src/web/`                                                                    | planeado (P8)         |
+
+```mermaid
+flowchart LR
+  BIN[bin/heron.ts] --> CLI[cli]
+  WEB[web, planeado] -.-> APP
+  CLI --> APP[app: casos de uso]
+  APP --> STATE[core/state: dominio puro]
+  APP --> INTAKE[intake: puertos y adapters]
+  APP --> STORE[core/store: único acceso a fs]
+  STATE --> CONTRACTS[core/contracts: Zod]
+  STORE --> CONTRACTS
+  STORE --> HERON[(.heron/)]
+```
+
+Detalle: [docs/architecture.md](docs/architecture.md), [docs/adr/](docs/adr/) y la skill [`heron-architecture`](.claude/skills/heron-architecture/SKILL.md).
+
+## 4. Uso del CLI (P1)
+
+Requisitos: Bun 1.4.2 (sin Node) y Git.
 
 ```bash
 git clone <url-del-repo> navori-heron
 cd navori-heron
 bun install
-bun link        # expone el comando `heron` desde bin/heron.ts
-heron --version # 0.1.0
+bun link          # expone `heron` desde bin/heron.ts
+heron --version   # 0.1.0
 ```
 
-Sin `bun link` se puede correr igual: `bun bin/heron.ts <comando>` o `bun run heron <comando>`.
-
-## Primer `heron init`
-
-`heron init [path]` detecta el contexto, decide el modo y escribe `.heron/` (el path por defecto es `.`). Si hay varias etapas y ninguna activa usa la última `cerrada` y lo avisa; `--stage <NN-slug>` fuerza una.
-
-### Producto sin UX: `reference-only`
-
-`fixtures/no-ux` tiene plan maestro pero ni `UX.md` ni `ux.json`:
-
-```bash
-heron init fixtures/no-ux
-```
+Sin `bun link`: `bun bin/heron.ts <comando>` o `bun run heron <comando>`.
 
 ```text
+heron init [path] [--stage <NN-slug>] [--dry-run] [--json]
+heron status [path] [--json]
+heron doctor [path] [--json]
+heron gate <gate> approve|reject [path] [--note <text>] [--reason <text>] [--yes] [--json]
+```
+
+- `init`: detecta el contexto, decide el modo y escribe `.heron/`. Con varias etapas y ninguna activa usa la última `cerrada` y lo avisa; `--stage` fuerza una.
+- `status`: modo, etapa, fase, gates y artefactos obsoletos. Solo lectura.
+- `doctor`: revisa Bun, la ruta, `.heron/`, el lock, el `.gitignore` y la detección. Solo lectura.
+- `gate`: registra una decisión humana ligada a hashes. Gates: `intake`, `research`, `direction`, `foundations`, `representative-screens`, `visual-review`. Rechazar exige `--reason`; sin TTY hay que pasar `--yes`. En P1 `approve` nunca llega a aprobar (exit 3: ninguna parte produce aún los artefactos exigidos); `reject` sí funciona.
+
+### `reference-only` (`fixtures/no-ux`, sin `UX.md` ni `ux.json`)
+
+```text
+$ heron init --dry-run fixtures/no-ux      # exit 0
 Project detected
 Navori Master: yes
 Stage: 01-mvp
@@ -53,19 +110,14 @@ REFERENCE ONLY
 
 Full product generation disabled.
 Visual research is available.
+
+Dry run: nothing was written to .heron/
 ```
 
-Termina con exit 0: `reference-only` no es un error.
-
-### Producto completo: `full`
-
-`fixtures/membership-product` tiene `UX.md` y un `ux.json` válido (todos los fixtures son sintéticos):
-
-```bash
-heron init fixtures/membership-product
-```
+### `full` (`fixtures/membership-product`)
 
 ```text
+$ heron init --dry-run fixtures/membership-product      # exit 0
 Project detected
 Navori Master: yes
 Stage: 01-mvp
@@ -93,41 +145,20 @@ Flows: 3
 Patterns: 2
 
 Ready for research.
+
+Dry run: nothing was written to .heron/
 ```
 
-Advertencia: sin `--dry-run`, `init` escribe `.heron/` dentro del path indicado. Los fixtures no deben modificarse (los tests trabajan sobre copias temporales); para probar con escritura real, copia el fixture a otro directorio o usa `--dry-run`.
+`--dry-run` calcula y muestra todo sin escribir. Sin él, `init` escribe `.heron/` en el path indicado: no lo uses sobre `fixtures/` (los tests trabajan sobre copias temporales).
 
-### `--dry-run`
+### `--json` y códigos de salida
 
-Calcula y muestra todo, pero no escribe nada; agrega al final `Dry run: nothing was written to .heron/`.
-
-```bash
-heron init --dry-run fixtures/no-ux   # exit 0, muestra REFERENCE ONLY
-```
-
-### `--json`
-
-Con `--json` la salida es exactamente un `CliEnvelope` (una línea JSON) en stdout, también en errores; el contrato está en `schemas/cli-envelope.v1.schema.json`.
-
-```bash
-heron init --dry-run --json fixtures/no-ux
-# {"kind":"CliEnvelope","schemaVersion":1,"command":"init","runId":"run-...","durationMs":4,"ok":true,"code":0,"data":{...}}
-```
-
-## Comandos de P1
+Con `--json` la salida es exactamente un `CliEnvelope` (una línea JSON en stdout, también en errores); contrato en `schemas/cli-envelope.v1.schema.json`.
 
 ```text
-heron init [path] [--stage <NN-slug>] [--dry-run] [--json]
-heron status [path] [--json]
-heron doctor [path] [--json]
-heron gate <gate> approve|reject [path] [--note <text>] [--reason <text>] [--yes] [--json]
+$ heron init --dry-run --json fixtures/no-ux
+{"kind":"CliEnvelope","schemaVersion":1,"command":"init","runId":"run-...","durationMs":4,"ok":true,"code":0,"data":{...}}
 ```
-
-- `status`: modo, etapa, fase, estado de cada gate y artefactos obsoletos. Solo lectura.
-- `doctor`: revisa Bun, la ruta, los documentos de `.heron/`, el lock, el `.gitignore` y la detección. Solo lectura.
-- `gate`: registra una decisión humana ligada a los hashes de los artefactos del gate. Gates: `intake`, `research`, `direction`, `foundations`, `representative-screens`, `visual-review`. Rechazar exige `--reason`; sin TTY hay que pasar `--yes`. En `reference-only` los gates de producción dan `MODE_BLOCKED`. En P1 ningún gate puede aprobarse de extremo a extremo: `approve` siempre termina en exit 3 (`PRECONDITION_UNMET` o `TRANSITION_NOT_ALLOWED`) porque ningún comando produce todavía los artefactos y hechos que exigen; `reject` sí funciona.
-
-## Códigos de salida
 
 | Código | Significado                                                                                         |
 | ------ | --------------------------------------------------------------------------------------------------- |
@@ -139,32 +170,42 @@ heron gate <gate> approve|reject [path] [--note <text>] [--reason <text>] [--yes
 | 5      | `doctor`: falla una dependencia (p. ej. versión de Bun)                                             |
 | 6      | Lock tomado por otro escritor o revisión de `state.json` cambiada                                   |
 
-## Quality gate
+## 5. Cómo se trabaja
 
-```bash
-bun run check   # format:check + lint + typecheck + test:coverage
-```
+- **Master-plan** en `specs/_master/` (`MASTER.md`, `DECISIONS.md`, `parts.json`, `STATUS.md`): define las partes P1-P12.
+- **Specs SDD** en `specs/NNNN-*` (p. ej. `specs/0001-heron-core`): una por parte, con requisitos `R<n>` trazables a tests.
+- **Harness navori** (`.claude/agents/`): `orchestrator` coordina, `implementer` implementa, `reviewer` revisa, `publisher` abre el PR.
+- **Quality gate:** `bun run check` (`format:check` + `lint` + `typecheck` + `test:coverage`). Otros scripts: `bun test`, `bun run gen:schemas`.
+- **CI:** `.github/workflows/ci.yml` corre `bun install --frozen-lockfile && bun run check` en cada PR.
+- **Git:** las ramas parten de `develop` y los PR apuntan a `develop`. Commits Conventional en español, **un commit por tarea y un PR por parte**.
 
-Otros scripts: `bun test`, `bun run gen:schemas` (regenera `schemas/`), `bun run heron <comando>`.
+## 6. Skills del proyecto
 
-## Estructura del repo
+Propias (`.claude/skills/`):
+
+- [`heron-architecture`](.claude/skills/heron-architecture/SKILL.md): capas, fronteras y recetas.
+- `heron-design-tokens`: convenciones de tokens.
+- `heron-accessibility`: criterios de accesibilidad.
+- [`dominio`](.claude/skills/dominio/SKILL.md): glosario y reglas del dominio.
+
+De terceros (vendorizadas): Penpot AI Kit (6 skills `penpot-*`, CC-BY-4.0), `frontend-design` y `webapp-testing` (Apache-2.0) y `refero-design` (MIT). Origen, SHA, licencias y modificaciones en [`docs/third-party-skills.md`](docs/third-party-skills.md). Las `penpot-*`, `refero-design` y `webapp-testing` tienen `disable-model-invocation: true`: solo corren si las invocas por nombre, porque asumen Penpot MCP, cuenta Refero o Playwright vivos.
+
+## 7. Estructura del repo
 
 ```text
-bin/heron.ts      punto de entrada del CLI
-src/cli/          parseo de argumentos, render y envelope (inglés)
-src/app/          casos de uso: init, status, doctor, gate
-src/core/         contracts (Zod), state (dominio puro), store (único acceso a fs)
-src/intake/       detección de contexto: puertos y adapters (navori-master, filesystem)
-schemas/          JSON Schemas generados desde los contratos
-scripts/          gen-schemas y check-coverage
-fixtures/         productos sintéticos para tests y pruebas manuales
-tests/            unit, e2e, repo (fronteras, schemas, CI) y perf
-specs/            especificaciones SDD
-docs/             arquitectura y ADR
+bin/heron.ts   entrada del CLI
+src/           cli, app, core (contracts, state, store), intake
+schemas/       JSON Schemas generados desde los contratos
+scripts/       gen-schemas y check-coverage
+fixtures/      productos sintéticos para tests y pruebas manuales
+tests/         unit, e2e, repo (fronteras, schemas, CI) y perf
+specs/         master-plan (_master) y specs SDD
+docs/          arquitectura y ADR
+.claude/       harness navori: agentes, skills, hooks
 ```
 
-## Documentación
+## 8. Contribuir y licencia
 
-- [docs/architecture.md](docs/architecture.md): módulos, fronteras, estados y layout de `.heron/`.
-- [docs/adr/0001-state-persistence.md](docs/adr/0001-state-persistence.md): por qué filesystem + Git.
-- [fixtures/README.md](fixtures/README.md): fixtures y resultado esperado.
+Trabaja en una rama desde `develop`, corre `bun run check` antes de abrir el PR y apunta el PR a `develop`. Más contexto en [docs/architecture.md](docs/architecture.md) y [fixtures/README.md](fixtures/README.md).
+
+Licencia: por definir.
