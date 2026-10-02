@@ -1,11 +1,15 @@
 import { hostname, userInfo } from "node:os";
-import type { RunId } from "../core/contracts/index.ts";
+import { AGENT_PROVIDERS } from "../agents/registry.ts";
+import { bunProcessRunner } from "../agents/process/bun-runner.ts";
+import type { AgentProvider, ProcessRunner } from "../agents/ports.ts";
+import type { AgentProviderId, RunId } from "../core/contracts/index.ts";
 import { nodeFs, type FsPort } from "../core/store/fs-port.ts";
 import {
   DEFAULT_LOCK_OPTIONS,
   defaultIsProcessAlive,
   type LockOptions,
 } from "../core/store/lock.ts";
+import { nodeTempDirs, type TempDirPort } from "../core/store/temp-dir.ts";
 import { DEFAULT_INPUT_LIMITS, type InputLimits } from "../intake/ports.ts";
 import { DEFAULT_RESEARCH_SETTINGS, type ResearchSettings } from "../research/ports.ts";
 import { createSafeFetcher } from "../security/fetch/safe-fetch.ts";
@@ -25,6 +29,16 @@ export interface IdentityProvider {
 }
 export type ProcessInfo = { pid: number; hostname: string; bunVersion: string | null };
 
+/** Everything agent tasks need from the outside world; tests inject a refusing runner and scripted providers (DR30). */
+export type AgentServices = {
+  runner: ProcessRunner;
+  temp: TempDirPort;
+  providers: Readonly<Partial<Record<AgentProviderId, AgentProvider>>>;
+  probeTimeoutMs: number;
+  deepTimeoutMs: number;
+  killGraceMs: number;
+};
+
 export type AppContext = {
   fs: FsPort;
   clock: Clock;
@@ -40,6 +54,11 @@ export type AppContext = {
   fetcher: Fetcher;
   images: ImageSanitizer;
   research: ResearchSettings;
+  /** Parent environment, only read: agent children get an allowlisted copy (DR14). */
+  env: Readonly<Record<string, string | undefined>>;
+  agents: AgentServices;
+  /** Days of `.heron/logs/` kept, and the window of the agent usage totals. */
+  logRetentionDays: number;
   /** Base of relative `--file` paths (the process working directory). */
   cwd: string;
 };
@@ -102,6 +121,16 @@ export function createDefaultContext(io: {
     }),
     images: sharpImageSanitizer,
     research: DEFAULT_RESEARCH_SETTINGS,
+    env: { ...process.env },
+    agents: {
+      runner: bunProcessRunner,
+      temp: nodeTempDirs,
+      providers: AGENT_PROVIDERS,
+      probeTimeoutMs: 4_000,
+      deepTimeoutMs: 60_000,
+      killGraceMs: 3_000,
+    },
+    logRetentionDays: 30,
     cwd: process.cwd(),
   };
 }

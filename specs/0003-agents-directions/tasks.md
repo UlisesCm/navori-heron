@@ -154,7 +154,7 @@ Lotes de 1–3 tareas, **en serie** (cada tarea declara de qué depende y con qu
   - **Comparte archivos con:** T13 (`invoke.test.ts`).
   - **Fuera de alcance:** loop creator → reviewer (P7).
 
-- [ ] **T13** (R1, R2, R3, R6, R7, R15, R19, R21) — `AppContext` con agentes, `executeAgentStep` (config perezosa, entorno, pack, cache, log, redacción, aviso blando), totales de uso y `fixedContext` que rechaza CLIs reales.
+- [x] **T13** (R1, R2, R3, R6, R7, R15, R19, R21) — `AppContext` con agentes, `executeAgentStep` (config perezosa, entorno, pack, cache, log, redacción, aviso blando), totales de uso y `fixedContext` que rechaza CLIs reales.
   - **Archivos:** `src/app/context.ts`, `src/app/agent-task.ts`, `src/app/agent-usage.ts`, `tests/helpers/cli.ts`, `tests/helpers/agents.ts`, `tests/unit/app-context.test.ts`, `tests/unit/agents/invoke.test.ts`, `tests/unit/agents/roles.test.ts`, `tests/unit/app/agent-usage.test.ts`, `tests/repo/live-agents.test.ts`
   - **Interfaces:** AppContext; AgentServices; executeAgentStep; finalizeAgentRun; AGENT_STATUS_EXIT; AgentStepInput; AgentRunDraft; summarizeAgentUsage; AgentUsageTotals; withAgentSettings; scriptedProvider
   - **Patrón:** src/app/write-run.ts

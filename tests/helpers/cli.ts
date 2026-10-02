@@ -1,3 +1,6 @@
+import { fakeProvider } from "../../src/agents/adapters/fake/index.ts";
+import { nodeTempDirs } from "../../src/core/store/temp-dir.ts";
+import { refusingRunner } from "./agents.ts";
 import { DEFAULT_LOCK_OPTIONS, defaultIsProcessAlive } from "../../src/core/store/lock.ts";
 import { nodeFs } from "../../src/core/store/fs-port.ts";
 import { DEFAULT_INPUT_LIMITS } from "../../src/intake/ports.ts";
@@ -12,7 +15,7 @@ import { offlineFetcher } from "./research.ts";
 export type CapturedRun = { code: ExitCode; stdout: string; stderr: string };
 
 /** Fixed clock (2026-09-30T12:00:00.000Z unless given), sequential run ids, identity "tester", isTTY false,
- * confirm resolving to `confirmAnswer`, an offline fetcher (no test reaches the Internet), the real image sanitizer, lock.isProcessAlive overridable. */
+ * confirm resolving to `confirmAnswer`, an offline fetcher (no test reaches the Internet), env {}, the `fake` provider only and a runner that refuses to spawn (DR30), the real image sanitizer, lock.isProcessAlive overridable. */
 export function fixedContext(
   overrides: Partial<AppContext> & { confirmAnswer?: boolean } = {},
 ): AppContext {
@@ -37,6 +40,16 @@ export function fixedContext(
     fetcher: offlineFetcher,
     images: sharpImageSanitizer,
     research: DEFAULT_RESEARCH_SETTINGS,
+    env: {},
+    agents: {
+      runner: refusingRunner,
+      temp: nodeTempDirs,
+      providers: { fake: fakeProvider },
+      probeTimeoutMs: 4_000,
+      deepTimeoutMs: 60_000,
+      killGraceMs: 3_000,
+    },
+    logRetentionDays: 30,
     cwd: process.cwd(),
   };
   return { ...context, ...rest };

@@ -176,6 +176,7 @@ export const LAYERS: readonly LayerRule[] = [
     from: "src/app",
     allow: [
       "src/core",
+      "src/agents",
       "src/intake",
       "src/research",
       "src/security",
