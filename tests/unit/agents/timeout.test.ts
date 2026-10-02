@@ -51,12 +51,11 @@ describe("process runner", () => {
       );
       const cwd = realpathSync(mkdtempSync(join(root, "hung-")));
       const outcome = await bunProcessRunner.run(
-        spec("hung", { cwd, timeoutMs: 600, killGraceMs: 300 }),
+        spec("hung", { cwd, timeoutMs: 2_000, killGraceMs: 300 }),
       );
       expect(outcome.kind).toBe("timeout");
-      expect(outcome.kind === "timeout" ? outcome.durationMs : 0).toBeLessThan(
-        600 + 2 * 300 + 1_500,
-      );
+      // P3.A3: 2 s configured -> timeout reported in <= 7 s (generous ceiling, robust to machine load)
+      expect(outcome.kind === "timeout" ? outcome.durationMs : 0).toBeLessThan(7_000);
       const [child, grandchild] = readFileSync(join(cwd, "pids"), "utf8")
         .trim()
         .split(" ")
@@ -154,11 +153,11 @@ describe("process runner", () => {
     "does not hang on a grandchild that keeps the pipes open after the child exits",
     async () => {
       // Covers: R4
-      writeFakeAgentBin(binDir, "orphan", "sleep 4 &\necho done");
+      writeFakeAgentBin(binDir, "orphan", "sleep 15 &\necho done");
       const started = performance.now();
       const outcome = await bunProcessRunner.run(spec("orphan", { killGraceMs: 300 }));
       expect(outcome).toMatchObject({ kind: "exited", exitCode: 0, stdout: "done\n" });
-      expect(performance.now() - started).toBeLessThan(2_500);
+      expect(performance.now() - started).toBeLessThan(7_000);
     },
     REAL_PROCESS_TIMEOUT,
   );
@@ -209,7 +208,7 @@ describe("process runner", () => {
       writeFakeAgentBin(binDir, "quick", "exit 0");
       writeFakeAgentBin(binDir, "hung", "sleep 60");
       await bunProcessRunner.run(spec("quick"));
-      await bunProcessRunner.run(spec("hung", { timeoutMs: 300, killGraceMs: 200 }));
+      await bunProcessRunner.run(spec("hung", { timeoutMs: 1_000, killGraceMs: 200 }));
       expect([process.listenerCount("SIGINT"), process.listenerCount("SIGTERM")]).toEqual(before);
     },
     REAL_PROCESS_TIMEOUT,

@@ -7,7 +7,7 @@
   },
   "type": "module",
   "scripts": {
-    "heron": "bun bin/heron.ts",
+    "heron": "bun --no-env-file --config=/dev/null bin/heron.ts",
     "gen:schemas": "bun scripts/gen-schemas.ts",
     "format": "bun --bun oxfmt",
     "format:check": "bun --bun oxfmt --check",
@@ -17,6 +17,8 @@
     "test:live": "bun tests/live/agents.live.ts",
     "test:perf": "bun test --path-ignore-patterns \"node_modules/**\" tests/perf",
     "test:coverage": "bun test --coverage && bun scripts/check-coverage.ts",
+    "test:staged": "bun scripts/test-staged.ts",
+    "check:fast": "bun run format:check && bun run lint && bun run typecheck && bun run test:staged",
     "check": "bun run format:check && bun run lint && bun run typecheck && bun run test:coverage"
   },
   "dependencies": {

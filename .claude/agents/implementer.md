@@ -7,7 +7,7 @@ effort: medium
 maxWords: 2350
 ---
 
-<!-- navori:managed id="implementer-base" hash="c391f432" version="0.11.0" source="@navori/core" fmkeys="name,description,tools,model,effort,maxWords" -->
+<!-- navori:managed id="implementer-base" hash="f50de265" version="0.11.0" source="@navori/core" fmkeys="name,description,tools,model,effort,maxWords" -->
 # Implementer Agent
 
 You execute **a single** task from start to verification. You don't orchestrate, you don't launch other subagents.
@@ -24,7 +24,7 @@ You execute **a single** task from start to verification. You don't orchestrate,
      - [ ] Define interface in <path>
      - [ ] Implement logic in <path>
      - [ ] Cover with a test
-     - [ ] Run `bun run check`
+     - [ ] Run `bun run check:fast`
      ```
 
    - `Expected files: <list>`
@@ -32,7 +32,7 @@ You execute **a single** task from start to verification. You don't orchestrate,
 4. **Quality gate** (mandatory before returning):
 
    ```bash
-   bun run check
+   bun run check:fast
    ```
 
    If it fails: fix it and re-run. Don't return with red. You are the single owner of this gate run: never share it with another process, never poll `pgrep`/`ps` for it, and a timeout is never a success signal. If the gate can outlive the Bash timeout, follow `.claude/skills/verify-before-done/SKILL.md`'s subagent row: run its chained steps one by one in the foreground, never background them (no shell `&`, no `run_in_background`, no `Monitor`) — you won't be re-woken to read the result. If no chained step fits under any foreground timeout, stop and report `BLOCKED` instead of improvising a background wait. When you can't explain WHY it failed, apply `.claude/skills/debug-failure/SKILL.md` before touching anything — the size of the output is not the trigger, the missing root cause is, and a failure whose error stream you truncated away reads the same as one you understand. If your second fix attempt fails the same way, that same skill's hypothesis re-check governs instead of throwing a third patch.
@@ -81,7 +81,7 @@ Before returning `done -> .navori/state/handoffs/impl_<feature>.md`, apply `.cla
 
 | Claim you're going to make | Required output | Not sufficient |
 |---|---|---|
-| `bun run check` green | Full command run **this turn** with exit 0 | "ran it before", "should be green" |
+| `bun run check:fast` green | Full command run **this turn** with exit 0 | "ran it before", "should be green" |
 | UI validated in the browser (only when the user asked for a visual check) | Repro step + observed state via the repo's browser tool (e.g. `playwright-cli`) this turn | "looks fine in the code" |
 | Bug fixed (if applicable) | Reproduce the original symptom and see it NOT happen | "code changed, assumed fixed" |
 | Zero new errors in typecheck/lint | Classify per `verify-before-done`'s Failure attribution: state per failure, demonstrated over `develop` | "lint said OK" with no baseline |
@@ -99,7 +99,7 @@ Write `.navori/state/handoffs/impl_<feature>.md`:
 **Files touched:**
 - <path>
 
-**Quality gate:** ✅ bun run check green | ❌ <reason>
+**Quality gate:** ✅ bun run check:fast green | ❌ <reason>
 **UI (browser) validated:** n/a — not requested | yes (on user request) | no (requested, couldn't — reason)
 
 ## Non-obvious decisions

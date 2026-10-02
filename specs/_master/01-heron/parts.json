@@ -7,7 +7,7 @@
       "objective": "El usuario corre `heron init <repo>` y en ≤ 2 s sabe qué modo aplica y por qué, con estado persistido, gates atados a hashes y guard de producción probado (primer slice de context/md/PLAN.md §80).",
       "scope": [
         "Scaffold de un solo paquete (D4): Bun 1.4.2, TS 7.0.2 strict, Zod 4.6.5, oxlint 1.86.0, oxfmt 0.71.0, `bun test --coverage` con umbrales, `bun run check` y test de fronteras entre módulos",
-        "Workflow de GitHub Actions con `bun install --frozen-lockfile && bun run check` (D21)",
+        "Workflow de GitHub Actions con `bun install --frozen-lockfile` y el gate completo en PR y push a `main`, jscpd + semgrep en PR a `develop` (D21, D33)",
         "`core/contracts`: HeronProject, HeronState, ModeDecision, CliEnvelope; gate de versión; `gen:schemas` con prueba de deriva",
         "`core/store`: escritura atómica, staging, lock con reclamo de lock vencido, sha256, rutas seguras",
         "`core/state`: tabla completa de estados y transiciones, gates atados a hashes (RN-28), guard de modo, propagación de `stale`",
@@ -297,7 +297,7 @@
         },
         {
           "id": "A16",
-          "description": "El workflow de CI existe y ejecuta `bun install --frozen-lockfile` y `bun run check` en PR y en `main`",
+          "description": "El workflow de CI existe: en PR a `develop` ejecuta solo jscpd y semgrep; en PR y push a `main` ejecuta `bun install --frozen-lockfile`, `format:check`, `lint`, `typecheck`, `test:coverage` y `test:perf` como paso propio (D33)",
           "evidence": {
             "kind": "run",
             "command": "bun test tests/repo/ci.test.ts",

@@ -77,7 +77,7 @@ bun link          # expone `heron` desde bin/heron.ts
 heron --version   # 0.1.0
 ```
 
-Sin `bun link`: `bun bin/heron.ts <comando>` o `bun run heron <comando>`.
+Sin `bun link`: `bun run heron <comando>` (o `bun --no-env-file --config=/dev/null bin/heron.ts <comando>`). El launcher ignora el `bunfig.toml` y el `.env` del directorio actual: en un repo no confiable un `preload` o un `.env` ajenos no se ejecutan ni se cargan.
 
 ```text
 heron init [path] [--stage <NN-slug>] [--locale <bcp47>] [--dry-run] [--json]
@@ -190,8 +190,8 @@ $ heron init --dry-run --json fixtures/no-ux
 - **Master-plan** en `specs/_master/` (`MASTER.md`, `DECISIONS.md`, `parts.json`, `STATUS.md`): define las partes P1-P12.
 - **Specs SDD** en `specs/NNNN-*` (p. ej. `specs/0001-heron-core`): una por parte, con requisitos `R<n>` trazables a tests.
 - **Harness navori** (`.claude/agents/`): `orchestrator` coordina, `implementer` implementa, `reviewer` revisa, `publisher` abre el PR.
-- **Quality gate:** `bun run check` (`format:check` + `lint` + `typecheck` + `test:coverage`). Otros scripts: `bun test`, `bun run gen:schemas`.
-- **CI:** `.github/workflows/ci.yml` corre `bun install --frozen-lockfile && bun run check` en cada PR.
+- **Quality gate:** `bun run check` (`format:check` + `lint` + `typecheck` + `test:coverage`); lo corren los revisores y el CI de `main`. El pre-commit (hook de Claude Code) corre solo `bun run check:fast`: `format:check` + `lint` + `typecheck` + los tests `tests/**/*.test.ts` incluidos en el commit (`scripts/test-staged.ts`; nada si no hay ninguno). `bun run test:perf` (latencias p95) va aparte. Otros scripts: `bun test`, `bun run gen:schemas`.
+- **CI:** `.github/workflows/ci.yml`. PR a `develop`: solo jscpd 5.4.0 y semgrep 1.179.0 sobre los `.ts` cambiados (mismos umbrales que tenían los hooks). PR a `main` y push a `main`: `format:check`, `lint`, `typecheck`, `test:coverage` y `test:perf` como pasos separados, tras `bun install --frozen-lockfile`.
 - **Git:** las ramas parten de `develop` y los PR apuntan a `develop`. Commits Conventional en español, **un commit por tarea y un PR por parte**.
 
 ## 6. Skills del proyecto
@@ -221,6 +221,6 @@ docs/          arquitectura, research, seguridad y ADR
 
 ## 8. Contribuir y licencia
 
-Trabaja en una rama desde `develop`, corre `bun run check` antes de abrir el PR y apunta el PR a `develop`. Más contexto en [docs/architecture.md](docs/architecture.md) y [fixtures/README.md](fixtures/README.md).
+Trabaja en una rama desde `develop`, corre `bun run check` antes de abrir el PR (el pre-commit solo hace `check:fast`; jscpd y semgrep corren en el CI del PR a `develop`) y apunta el PR a `develop`. Más contexto en [docs/architecture.md](docs/architecture.md) y [fixtures/README.md](fixtures/README.md).
 
 Licencia: por definir.
