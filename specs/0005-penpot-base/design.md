@@ -665,6 +665,7 @@ export type PenpotSyncInput = { path: string; proposals: boolean; references: bo
  * sources (DR20, exit 3) -> buildProposalPage x3 / buildReferencesPage (renderScript too large -> exit 4) -> session: inspect ->
  * file id check (exit 3) -> planReviewSync -> dryRun: data with would-* actions, nothing written -> apply each write in heronId order,
  * stop at the first failure, conflict (exit 5) or human-shapes (exit 3) -> inspect again if anything was attempted -> reviewRecord ->
+ * Flags select the write plan; the record includes all available non-stale desired pages confirmed in the last read (R15).
  * unchanged bytes and no writes: ok without writing -> withWriteRun(R): penpot/review-sync.json + recordCommand + withArtifacts +
  * freshen -> partial: PENPOT_SYNC_PARTIAL (5) or PENPOT_HUMAN_SHAPES_INSIDE (3) with data (after the commit). */
 export declare function runPenpotSync(ctx: AppContext, input: PenpotSyncInput): Promise<UseCaseResult<PenpotSyncData>>;

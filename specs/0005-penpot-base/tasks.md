@@ -204,7 +204,7 @@ Lotes de 1–3 tareas, **en serie** (cada tarea declara de qué depende y con qu
   - **Comparte archivos con:** T17 (`tests/helpers/penpot.ts`); T19 (e2e de `link` e `inspect`).
   - **Fuera de alcance:** verificación en vivo de `doctor` al aprobar el gate `direction` (P5).
 
-- [ ] **T17** (R10–R17) — `heron penpot sync` como caso de uso: fuentes, plan, escrituras por página, relectura, registro, corrida parcial, formas humanas y escritura tardía.
+- [x] **T17** (R10–R17) — `heron penpot sync` como caso de uso: fuentes, plan, escrituras por página, relectura, registro, corrida parcial, formas humanas y escritura tardía.
   - **Archivos:** `src/app/penpot-sync.ts`, `tests/helpers/penpot.ts`, `tests/unit/penpot/proposals.test.ts`
   - **Interfaces:** runPenpotSync; PenpotSyncInput
   - **Patrón:** src/app/references.ts

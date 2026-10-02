@@ -1,7 +1,12 @@
 import { expect } from "bun:test";
 import { runPenpotLink } from "../../src/app/penpot.ts";
 import type { AppContext } from "../../src/app/context.ts";
-import type { PenpotConnectRequest, PenpotFailure, PenpotGateway } from "../../src/penpot/ports.ts";
+import type {
+  PenpotConnectRequest,
+  PenpotExecution,
+  PenpotFailure,
+  PenpotGateway,
+} from "../../src/penpot/ports.ts";
 import { initializedRoot, withAgentSettings } from "./agents.ts";
 import { fixedContext, runCliCaptured } from "./cli.ts";
 import { createFakePenpot, runPenpotScript } from "./fake-penpot.ts";
@@ -13,6 +18,12 @@ export const penpotEnv = (): Record<string, string> => ({
   PENPOT_MCP_KEY: CANARY_MCP_KEY,
 });
 
+type FakeGatewayControls = {
+  connectFailure: PenpotFailure | null;
+  executeFailure: PenpotFailure | null;
+  beforeExecute: ((code: string, timeoutMs: number) => Promise<PenpotExecution | null>) | null;
+};
+
 /** Production session/templates over the Plugin API double, never a socket or real Penpot. */
 export function fakePenpotContext(): {
   ctx: AppContext;
@@ -20,14 +31,15 @@ export function fakePenpotContext(): {
   calls: { code: string; timeoutMs: number }[];
   connections: PenpotConnectRequest[];
   closed: () => number;
-  controls: { connectFailure: PenpotFailure | null; executeFailure: PenpotFailure | null };
+  controls: FakeGatewayControls;
 } {
   const fake = createFakePenpot();
   const calls: { code: string; timeoutMs: number }[] = [];
   const connections: PenpotConnectRequest[] = [];
-  const controls: { connectFailure: PenpotFailure | null; executeFailure: PenpotFailure | null } = {
+  const controls: FakeGatewayControls = {
     connectFailure: null,
     executeFailure: null,
+    beforeExecute: null,
   };
   let closes = 0;
   const gateway: PenpotGateway = {
@@ -42,13 +54,28 @@ export function fakePenpotContext(): {
         runner: {
           execute: async (code, timeoutMs) => {
             calls.push({ code, timeoutMs });
+            const intercepted = await controls.beforeExecute?.(code, timeoutMs);
+            if (intercepted != null) return intercepted;
             if (controls.executeFailure !== null)
               return { ok: false, failure: controls.executeFailure, durationMs: 0 };
-            return {
-              ok: true,
-              text: JSON.stringify({ result: await runPenpotScript(fake, code), log: "" }),
-              durationMs: 0,
-            };
+            try {
+              return {
+                ok: true,
+                text: JSON.stringify({ result: await runPenpotScript(fake, code), log: "" }),
+                durationMs: 0,
+              };
+            } catch (error) {
+              return {
+                ok: false,
+                failure: {
+                  kind: "script-failed",
+                  detail: request
+                    .redact(error instanceof Error ? error.message : "Script execution failed")
+                    .slice(0, 500),
+                },
+                durationMs: 0,
+              };
+            }
           },
           close: async () => {
             closes += 1;
