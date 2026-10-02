@@ -1,5 +1,5 @@
 import { describe, expect, test } from "bun:test";
-import { readFileSync, writeFileSync } from "node:fs";
+import { copyFileSync, readFileSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import {
   ExitCode,
@@ -86,6 +86,30 @@ describe("heron research render", () => {
     expect(repaired.stdout).toContain("State revision: 3");
   });
 
+  // Covers: R16
+  test("renders agent documents into REFERENCES.md and leaves the other views alone", async () => {
+    const root = await initialized("no-ux");
+    expect((await runCliCaptured(referenceArgs(root))).code).toBe(ExitCode.Ok);
+    const dir = join(root, ".heron", "research");
+    const moodboard = readFileSync(join(dir, "moodboards", "index.html"), "utf8");
+    // Fixed asset: the hostile payload lives in data, not in test source.
+    copyFileSync(
+      join(import.meta.dir, "..", "assets", "research", "hostile-brief.json"),
+      join(dir, "brief.json"),
+    );
+    const rendered = await runCliCaptured(["research", "render", root]);
+    expect(rendered.code).toBe(ExitCode.Ok);
+    expect(rendered.stdout).toContain("- research/REFERENCES.md: written");
+    expect(rendered.stdout).toContain("- research/moodboards/index.html: unchanged");
+    const markdown = readFileSync(join(dir, "REFERENCES.md"), "utf8");
+    expect(markdown).toContain("## Research brief");
+    expect(markdown).toContain("\\<script\\>alert");
+    expect(markdown).not.toContain("<script>");
+    expect(readFileSync(join(dir, "moodboards", "index.html"), "utf8")).toBe(moodboard);
+    const again = await runCliCaptured(["research", "render", root]);
+    expect(again.stdout).toContain("- research/REFERENCES.md: unchanged");
+  });
+
   // Covers: R13
   test("renders the es catalog without LOCALE_FALLBACK after init --locale es-MX", async () => {
     const root = await initialized("no-ux");
@@ -109,7 +133,9 @@ describe("heron research render", () => {
     const root = await initialized("no-ux");
     const unknown = await runCliCaptured(["research", "show", root]);
     expect(unknown.code).toBe(ExitCode.Usage);
-    expect(unknown.stderr).toContain('Unknown research command "show". Expected: render.');
+    expect(unknown.stderr).toContain(
+      'Unknown research command "show". Expected: brief, analyze, render.',
+    );
     const extra = await runCliCaptured(["research", "render", root, "extra"]);
     expect(extra.code).toBe(ExitCode.Usage);
   });

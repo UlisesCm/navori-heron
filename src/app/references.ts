@@ -41,6 +41,7 @@ import {
 import { availableSourceKinds, sourceFor } from "../research/registry.ts";
 import type { AppContext } from "./context.ts";
 import {
+  agentDocuments,
   readResearch,
   researchCounts,
   stageResearchOutputs,
@@ -251,6 +252,7 @@ function commitAdditions<T extends ReferencesAddData>(
     currentMode: ws.mode,
     locale: ws.project.product?.locale ?? null,
     minimum: ctx.research.minReferences,
+    agent: agentDocuments(research),
   });
   for (const output of staged.outputs) if (output.written) written.push(output.path);
   const outcome = applyTransition(
@@ -594,6 +596,7 @@ export async function runReferencesRemove(
         currentMode: ws.mode,
         locale: ws.project.product?.locale ?? null,
         minimum: ctx.research.minReferences,
+        agent: agentDocuments(current),
       });
       const state = withArtifacts(recordCommand(previous, meta), staged.artifacts, RESEARCH_REASON);
       const data: ReferencesRemoveData = {

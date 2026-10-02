@@ -1,6 +1,16 @@
 import { join } from "node:path";
+import { buildContextPack } from "../agents/context-pack.ts";
+import type { AgentProvider, AgentRequest, ProviderServices } from "../agents/ports.ts";
 import {
+  DEFAULT_AGENT_SETTINGS,
+  resolveAgentSettings,
+  type AgentSettings,
+} from "../agents/settings.ts";
+import { AGENT_TASKS } from "../agents/tasks.ts";
+import {
+  DOCTOR_CHECK_IDS,
   ExitCode,
+  type AgentProviderId,
   HERON_PROJECT_DOCUMENT,
   HERON_STATE_DOCUMENT,
   MODE_DECISION_DOCUMENT,
@@ -10,6 +20,7 @@ import {
   type DoctorData,
 } from "../core/contracts/index.ts";
 import { detectMode } from "../core/state/mode.ts";
+import { readLogEvents } from "../core/store/append-log.ts";
 import {
   HERON_DIR,
   HERON_GITIGNORE,
@@ -22,6 +33,9 @@ import {
 } from "../core/store/file-store.ts";
 import { isLockStale, readLockOwner } from "../core/store/lock.ts";
 import { detectProject } from "../intake/detect.ts";
+import { buildAgentEnv } from "../security/env.ts";
+import { createValueRedactor } from "../security/redact.ts";
+import { summarizeAgentUsage } from "./agent-usage.ts";
 import type { AppContext } from "./context.ts";
 import { resolveDirectory, storeErrorResult, type UseCaseResult } from "./result.ts";
 
@@ -29,7 +43,7 @@ export const DOCTOR_CHECK_TIMEOUT_MS = 10_000;
 /** Minimum Bun version Heron runs on. */
 const MIN_BUN: readonly [number, number, number] = [1, 4, 2];
 
-export type DoctorInput = { path: string };
+export type DoctorInput = { path: string; deep: boolean };
 
 type Outcome = { status: DoctorCheckStatus; message: string; remedy: string | null };
 type CheckSpec = {
@@ -197,6 +211,255 @@ function detectionCheck(ctx: AppContext, root: string): Outcome {
   return pass(`adapter ${report.adapter}, stage ${report.stage?.dir ?? "none"}`);
 }
 
+/** Cap on detail text echoed from a provider (already redacted). */
+const MAX_DETAIL_CHARS = 300;
+/** Redacts loaded secret values and caps provider-originated detail text. */
+const safeDetail =
+  (ctx: AppContext) =>
+  (text: string): string =>
+    createValueRedactor(ctx.env).redact(text).text.slice(0, MAX_DETAIL_CHARS);
+const LOGIN_COMMAND: Readonly<Record<AgentProviderId, string>> = {
+  "claude-code": "claude auth login",
+  "codex-cli": "codex login",
+  fake: "",
+};
+const DAY_MS = 86_400_000;
+
+type AgentCheckId = Extract<DoctorCheckId, `agents.${string}` | `probe.${string}`>;
+
+/** Builds a check with its own timer (DR20: agent checks do not go through runCheck). */
+async function timedCheck(
+  id: AgentCheckId,
+  kind: DoctorCheck["kind"],
+  timeoutMs: number,
+  onTimeout: (message: string) => Outcome,
+  run: () => Outcome | Promise<Outcome>,
+): Promise<DoctorCheck> {
+  const started = performance.now();
+  let outcome: Outcome;
+  try {
+    const result = await withTimeout(run, timeoutMs);
+    outcome = result.timedOut ? onTimeout(`timed out after ${timeoutMs} ms`) : result.value;
+  } catch (error) {
+    outcome = onTimeout(`check failed: ${error instanceof Error ? error.message : String(error)}`);
+  }
+  return {
+    id,
+    kind,
+    ...outcome,
+    durationMs: Math.max(0, Math.round(performance.now() - started)),
+  };
+}
+
+/** Basic probe (version + session, exit codes only; never reads credentials) as a WARNING-at-worst outcome. */
+async function availabilityOutcome(
+  provider: AgentProvider,
+  services: ProviderServices,
+  roles: readonly string[],
+  ignoredEnv: readonly string[],
+  safe: (text: string) => string,
+): Promise<Outcome> {
+  const probe = await provider.probe(services, "basic");
+  const login = LOGIN_COMMAND[provider.id];
+  const { label } = provider;
+  const minimum = probe.minimum ?? provider.minimumVersion;
+  switch (probe.status) {
+    case "ready": {
+      const ignored =
+        ignoredEnv.length > 0
+          ? ` · ${ignoredEnv.join(", ")} set but not passed (docs/agent-providers.md)`
+          : "";
+      const version = [probe.cliVersion, minimum === null ? null : `(minimum ${minimum})`]
+        .filter((part) => part !== null)
+        .join(" ");
+      return pass(`${label} ${version}, logged in; roles: ${roles.join(", ")}${ignored}`);
+    }
+    case "missing":
+      return warn(
+        `${label} was not found on PATH`,
+        `Install ${label} ${minimum ?? ""} or newer and run: ${login}`.replace("  ", " "),
+      );
+    case "outdated":
+      return warn(
+        `${label} ${probe.cliVersion ?? ""} is older than ${minimum ?? "the minimum"}`.replace(
+          "  ",
+          " ",
+        ),
+        `Update ${label} to ${minimum ?? "the latest version"} or newer.`,
+      );
+    case "logged-out":
+      return warn(`${label} is not logged in`, `Run: ${login}`);
+    case "unsupported":
+    case "error":
+      return warn(
+        `${label}: ${safe(probe.detail)}`,
+        `Update ${label} (minimum ${minimum ?? "n/a"}).`,
+      );
+  }
+}
+
+/** Full probe, then one schema-bound `probe` task through the provider; any failure is a FAIL dependency. */
+async function deepOutcome(
+  ctx: AppContext,
+  provider: AgentProvider,
+  services: ProviderServices,
+  model: string | null,
+): Promise<Outcome> {
+  const safe = safeDetail(ctx);
+  const probe = await provider.probe(services, "full");
+  if (probe.status !== "ready") {
+    return fail(`${probe.status}: ${safe(probe.detail)}`, `Run: heron doctor (without --deep).`);
+  }
+  const spec = AGENT_TASKS.probe;
+  const built = buildContextPack({
+    task: spec.id,
+    budget: DEFAULT_AGENT_SETTINGS.contextBudgetChars,
+    allowed: spec.allowedItems,
+    items: [
+      {
+        kind: "task-input",
+        id: "task-input",
+        trust: "heron",
+        priority: 0,
+        content: "Reply with status ok and one facet.",
+        findings: 0,
+      },
+    ],
+  });
+  if (!built.ok) return fail("probe context pack over budget");
+  const request: AgentRequest = {
+    task: spec.id,
+    attempt: 1,
+    templateId: spec.template.id,
+    system: spec.template.text,
+    pack: built.pack,
+    outputSchema: spec.output,
+    model,
+    timeoutMs: ctx.agents.deepTimeoutMs,
+  };
+  const started = performance.now();
+  const attempt = await provider.invoke(request, services);
+  if (attempt.status !== "succeeded") return fail(`${attempt.status}: ${safe(attempt.detail)}`);
+  const seconds = ((performance.now() - started) / 1000).toFixed(1);
+  return pass(`structured output OK in ${seconds} s (model ${model ?? "default"})`);
+}
+
+/**
+ * Not wrapped by runCheck (DR20): the providers assigned to a role run in parallel, each with its own timeout.
+ * `agents.<id>` (basic probe, WARNING at worst), `agents.config` (WARNING when project.agents is invalid),
+ * `agents.usage` (local log, WARNING over the soft budget; only when the log has calls) and, with `deep`,
+ * `probe.<id>` (full probe + the `probe` task; FAIL on any non-succeeded status). Never writes and never reads credentials.
+ */
+export async function agentChecks(
+  ctx: AppContext,
+  rawSettings: unknown,
+  deep: boolean,
+  heronDir: string | null = null,
+): Promise<DoctorCheck[]> {
+  const resolved = resolveAgentSettings(rawSettings);
+  const settings: AgentSettings = resolved.ok ? resolved.settings : DEFAULT_AGENT_SETTINGS;
+  const roles = new Map<AgentProviderId, string[]>();
+  for (const [role, id] of Object.entries(settings.roles) as [string, AgentProviderId][]) {
+    roles.set(id, [...(roles.get(id) ?? []), role]);
+  }
+  const agentEnv = buildAgentEnv(ctx.env);
+  const services: ProviderServices = {
+    runner: ctx.agents.runner,
+    temp: ctx.agents.temp,
+    env: agentEnv.env,
+    probeTimeoutMs: ctx.agents.probeTimeoutMs,
+    killGraceMs: ctx.agents.killGraceMs,
+  };
+  const pending: Promise<DoctorCheck>[] = [];
+  const done: DoctorCheck[] = [];
+
+  if (!resolved.ok) {
+    const first = resolved.issues[0];
+    done.push(
+      await timedCheck("agents.config", "workspace", 1_000, warn, () =>
+        warn(
+          `.heron/project.json "agents" is invalid (${resolved.issues.length} issue(s)): ${first?.pointer ?? ""}: ${first?.message ?? ""}`,
+          'Fix the "agents" block (docs/agent-providers.md).',
+        ),
+      ),
+    );
+  }
+
+  const now = ctx.clock.now();
+  const summary = summarizeAgentUsage(
+    heronDir === null
+      ? []
+      : readLogEvents(
+          ctx.fs,
+          heronDir,
+          new Date(now.getTime() - (ctx.logRetentionDays - 1) * DAY_MS),
+        ),
+    now,
+    { windowDays: ctx.logRetentionDays, softBudget: settings.warnTokensPerDay },
+  );
+  if (summary.window.invocations > 0) {
+    const used = summary.today.inputTokens + summary.today.outputTokens;
+    done.push(
+      await timedCheck("agents.usage", "workspace", 1_000, warn, () =>
+        summary.overBudget
+          ? warn(
+              `today ${used} tokens exceed the soft budget ${summary.softBudget ?? 0}`,
+              "Nothing is blocked; raise agents.warnTokensPerDay or run fewer agent commands.",
+            )
+          : pass(
+              `today ${used} tokens in ${summary.today.invocations} call(s)${summary.softBudget === null ? "" : ` (soft budget ${summary.softBudget})`}`,
+            ),
+      ),
+    );
+  }
+
+  const basicTimeout = 2 * ctx.agents.probeTimeoutMs + 2 * ctx.agents.killGraceMs;
+  for (const [id, assigned] of roles) {
+    const provider = ctx.agents.providers[id];
+    const agentId = `agents.${id}` as const;
+    pending.push(
+      timedCheck(agentId, "dependency", basicTimeout, warn, () => {
+        if (id === "fake") {
+          return warn("fake provider: outputs are deterministic and SYNTHETIC");
+        }
+        if (provider === undefined) {
+          return warn(
+            `${id} has no registered provider`,
+            'Pick another provider in project.json "agents".',
+          );
+        }
+        return availabilityOutcome(provider, services, assigned, agentEnv.ignored, safeDetail(ctx));
+      }),
+    );
+    if (deep) {
+      pending.push(
+        timedCheck(`probe.${id}`, "dependency", ctx.agents.deepTimeoutMs, fail, () =>
+          provider === undefined
+            ? fail("unavailable: no provider is registered")
+            : deepOutcome(ctx, provider, services, settings.models[id] ?? null),
+        ),
+      );
+    }
+  }
+  const all = [...done, ...(await Promise.all(pending))];
+  return all.toSorted((a, b) => DOCTOR_CHECK_IDS.indexOf(a.id) - DOCTOR_CHECK_IDS.indexOf(b.id));
+}
+
+/** The raw `agents` block and the .heron/ dir, read-only; an unreadable or absent workspace yields defaults. */
+function agentWorkspace(
+  ctx: AppContext,
+  root: string | null,
+): { rawSettings: unknown; heronDir: string | null } {
+  if (root === null) return { rawSettings: undefined, heronDir: null };
+  try {
+    const store = openFileStore(ctx.fs, root, { create: false });
+    const project = store.readDocument(PROJECT_FILE, HERON_PROJECT_DOCUMENT);
+    return { rawSettings: project?.agents, heronDir: store.heronDir };
+  } catch {
+    return { rawSettings: undefined, heronDir: null };
+  }
+}
+
 const skipped = (): Outcome => warn("Skipped: the target path is not a directory.");
 
 /** Read-only (DP16): no lock, no writes. Exit 5 when a dependency check fails, 4 when another one does. */
@@ -238,6 +501,8 @@ export async function runDoctor(
   ];
   const checks: DoctorCheck[] = [];
   for (const spec of specs) checks.push(await runCheck(spec, DOCTOR_CHECK_TIMEOUT_MS));
+  const { rawSettings, heronDir } = agentWorkspace(ctx, root);
+  checks.push(...(await agentChecks(ctx, rawSettings, input.deep, heronDir)));
   const data: DoctorData = { checks };
   const failed = checks.filter((check) => check.status === "FAIL");
   if (failed.length === 0) return { ok: true, data, findings: [], next: [] };

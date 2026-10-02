@@ -15,9 +15,12 @@ import {
   isApprovalValid,
   latestDecision,
 } from "../core/state/gates.ts";
+import { readLogEvents } from "../core/store/append-log.ts";
+import { resolveAgentSettings } from "../agents/settings.ts";
 import { describeModeBlock } from "../core/state/mode.ts";
 import { compareStrings } from "../core/state/stale.ts";
 import { allowedEvents } from "../core/state/transitions.ts";
+import { summarizeAgentUsage } from "./agent-usage.ts";
 import type { AppContext } from "./context.ts";
 import { unacknowledgedCount } from "../intake/conflicts.ts";
 import { collectIntakeFacts } from "./facts.ts";
@@ -141,13 +144,36 @@ function readStatus(
     }
   }
 
+  // DR21: an invalid "agents" block never breaks status; it only drops the soft budget. DR45: null without a local log.
+  const resolvedAgents = resolveAgentSettings(workspace.project.agents);
+  const now = ctx.clock.now();
+  // Dates come only from ctx.clock: a second reading, moved back to the start of the retention window.
+  const since = ctx.clock.now();
+  since.setTime(since.getTime() - (ctx.logRetentionDays - 1) * 86_400_000);
+  const usage = summarizeAgentUsage(readLogEvents(ctx.fs, store.heronDir, since), now, {
+    windowDays: ctx.logRetentionDays,
+    softBudget: resolvedAgents.ok ? resolvedAgents.settings.warnTokensPerDay : null,
+  });
+  const agentUsage = usage.window.invocations === 0 ? null : usage;
+  if (usage.overBudget && usage.softBudget !== null) {
+    findings.push(
+      makeFinding(
+        "AGENT_BUDGET_WARNING",
+        "warning",
+        `Agent usage today is ${usage.today.inputTokens + usage.today.outputTokens} tokens (input + output), over the soft budget of ${usage.softBudget} (agents.warnTokensPerDay); nothing is blocked.`,
+      ),
+    );
+  }
+
   const statuses = gateStatuses(state, current);
   const gatesWithRows = new Set<GateName>();
   let canAddReferences = false;
+  let canPropose = false;
   for (const event of allowedEvents({ ...state, mode: effective })) {
     if (event.type === "approve-gate" || event.type === "reject-gate")
       gatesWithRows.add(event.gate);
     if (event.type === "reference-added") canAddReferences = true;
+    if (event.type === "directions-proposed") canPropose = true;
   }
   const data: StatusData = {
     adapter: detection.adapter,
@@ -163,7 +189,7 @@ function readStatus(
     stale: state.stale,
     inputsChanged,
     openConflicts: stored === null ? null : unacknowledgedCount(stored),
-    agentUsage: null, // totals arrive with the agent log reader (P3 later task)
+    agentUsage,
     allowedCommands: [
       "heron init",
       "heron status",
@@ -177,6 +203,12 @@ function readStatus(
       "heron research render",
       "heron intake",
       "heron conflicts list|ack",
+      // P3 commands go after the fixed P1/P2/P4 prefix. Select needs a stored proposal, so it follows the proposal phases.
+      ...(canAddReferences ? ["heron research brief|analyze"] : []),
+      ...(canPropose ? ["heron direction propose"] : []),
+      ...(state.phase === "directions-ready" || state.phase === "direction-selected"
+        ? ["heron direction select"]
+        : []),
     ],
   };
   if (effective === "reference-only") {

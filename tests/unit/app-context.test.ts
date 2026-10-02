@@ -48,6 +48,16 @@ describe("app context", () => {
     expect(ctx.isTTY).toBe(true);
     expect(ctx.process.pid).toBe(process.pid);
     expect(ctx.identity.current()).not.toBe("");
+    expect(Object.keys(ctx.agents.providers).toSorted()).toEqual([
+      "claude-code",
+      "codex-cli",
+      "fake",
+    ]);
+    expect([ctx.agents.probeTimeoutMs, ctx.agents.deepTimeoutMs, ctx.agents.killGraceMs]).toEqual([
+      4_000, 60_000, 3_000,
+    ]);
+    expect(ctx.logRetentionDays).toBe(30);
+    expect(ctx.env["PATH"]).toBe(process.env["PATH"]);
     expect(await ctx.confirm("Approve? ")).toBe(true);
     expect(await ctx.confirm("Approve? ")).toBe(false);
     expect(await ctx.confirm("Approve? ")).toBe(false);

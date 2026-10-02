@@ -17,6 +17,7 @@ export type CommandName =
   | "references"
   | "brand"
   | "research"
+  | "direction"
   | "intake"
   | "conflicts";
 export type InitParsed = {
@@ -33,7 +34,8 @@ export type InitParsed = {
   context?: string[];
 };
 export type StatusParsed = { command: "status"; path: string; json: boolean };
-export type DoctorParsed = { command: "doctor"; path: string; json: boolean };
+/** `deep` exists only when --deep was passed. */
+export type DoctorParsed = { command: "doctor"; path: string; json: boolean; deep?: true };
 export type GateParsed = {
   command: "gate";
   path: string;
@@ -80,8 +82,37 @@ export type BrandParsed = {
   input: BrandInputDraft;
   json: boolean;
 };
-/** `heron research render`: the only research action P2 needs. */
-export type ResearchParsed = { command: "research"; action: "render"; path: string; json: boolean };
+/** `heron research <action>`: render (P2), brief and analyze (P3). `resetQueries` and `force` exist only when the flag was given. */
+export type ResearchParsed =
+  | { command: "research"; action: "render"; path: string; json: boolean }
+  | {
+      command: "research";
+      action: "brief";
+      path: string;
+      queries: string[];
+      resetQueries?: true;
+      force?: true;
+      json: boolean;
+    }
+  | {
+      command: "research";
+      action: "analyze";
+      path: string;
+      refs: string[];
+      force?: true;
+      json: boolean;
+    };
+/** `heron direction <action>`: propose (`force` exists only when the flag was given) and select (P3). */
+export type DirectionParsed =
+  | { command: "direction"; action: "propose"; path: string; force?: true; json: boolean }
+  | {
+      command: "direction";
+      action: "select";
+      path: string;
+      direction: string;
+      note: string | null;
+      json: boolean;
+    };
 /** `heron intake`: `--refresh` is parsed and ignored (DR31). */
 export type IntakeParsed = { command: "intake"; path: string; dryRun: boolean; json: boolean };
 /** `heron conflicts <action>`: one variant per action, discriminated by `action`. */
@@ -104,6 +135,7 @@ export type ParsedCommand =
   | ReferencesParsed
   | BrandParsed
   | ResearchParsed
+  | DirectionParsed
   | IntakeParsed
   | ConflictsParsed
   | { command: "help" }

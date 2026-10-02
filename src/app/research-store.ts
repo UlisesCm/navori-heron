@@ -1,16 +1,22 @@
 import { join } from "node:path";
 import {
   BRAND_INPUTS_DOCUMENT,
+  RESEARCH_ANALYSIS_DOCUMENT,
+  RESEARCH_BRIEF_DOCUMENT,
   RESEARCH_PROVENANCE_DOCUMENT,
   RESEARCH_REFERENCES_DOCUMENT,
+  VISUAL_DIRECTIONS_DOCUMENT,
   type BoundArtifact,
   type BrandInput,
   type BrandInputs,
   type HeronMode,
   type ResearchCounts,
+  type ResearchAnalysis,
+  type ResearchBrief,
   type ResearchOutputStatus,
   type ResearchReference,
   type ResearchReferences,
+  type VisualDirections,
 } from "../core/contracts/index.ts";
 import type { FileStore, StoreTransaction } from "../core/store/file-store.ts";
 import type { ReadonlyFs } from "../core/store/fs-port.ts";
@@ -18,15 +24,32 @@ import { sha256Hex } from "../core/store/hash.ts";
 import { RESEARCH_FILES } from "../research/layout.ts";
 import { missingProvenance } from "../research/provenance.ts";
 import { renderResearchOutputs } from "../research/render/outputs.ts";
+import type { AgentDocuments } from "../research/render/references-md.ts";
 
 /** null = the file is absent (no references yet is not an error). */
-export type ResearchSnapshot = { references: ResearchReferences | null; brand: BrandInputs | null };
+export type ResearchSnapshot = {
+  references: ResearchReferences | null;
+  brand: BrandInputs | null;
+  brief: ResearchBrief | null;
+  analysis: ResearchAnalysis | null;
+  directions: VisualDirections | null;
+};
+
+/** The agent documents of a snapshot, as the research views take them. */
+export const agentDocuments = (snapshot: ResearchSnapshot): AgentDocuments => ({
+  brief: snapshot.brief,
+  analysis: snapshot.analysis,
+  directions: snapshot.directions,
+});
 
 /** Throws the store's and the document's errors; callers map them with storeErrorResult. */
 export function readResearch(store: FileStore): ResearchSnapshot {
   return {
     references: store.readDocument(RESEARCH_FILES.references, RESEARCH_REFERENCES_DOCUMENT),
     brand: store.readDocument(RESEARCH_FILES.brand, BRAND_INPUTS_DOCUMENT),
+    brief: store.readDocument(RESEARCH_FILES.brief, RESEARCH_BRIEF_DOCUMENT),
+    analysis: store.readDocument(RESEARCH_FILES.analysis, RESEARCH_ANALYSIS_DOCUMENT),
+    directions: store.readDocument(RESEARCH_FILES.directions, VISUAL_DIRECTIONS_DOCUMENT),
   };
 }
 
@@ -62,6 +85,7 @@ export function stageResearchOutputs(
     currentMode: HeronMode;
     locale: string | null;
     minimum: number;
+    agent: AgentDocuments;
   },
 ): StagedOutputs {
   const rendered = renderResearchOutputs(input);

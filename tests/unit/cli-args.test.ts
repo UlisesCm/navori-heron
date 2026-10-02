@@ -27,6 +27,12 @@ describe("parseCliArgs", () => {
       json: true,
     });
     expect(parseCliArgs(["doctor", "x"])).toEqual({ command: "doctor", path: "x", json: false });
+    expect(parseCliArgs(["doctor", "--deep", "x", "--json"])).toEqual({
+      command: "doctor",
+      path: "x",
+      json: true,
+      deep: true,
+    });
     expect(
       parseCliArgs(["gate", "intake", "reject", "p", "--reason", "no", "--note", "n", "--yes"]),
     ).toEqual({
@@ -302,5 +308,115 @@ describe("parseCliArgs", () => {
     ]) {
       expect(parseCliArgs(argv) instanceof UsageError).toBe(true);
     }
+  });
+
+  // Covers: R9, R10, R19
+  test("parses research brief and analyze with repeatable flags and derives their usage footer", () => {
+    expect(
+      parseCliArgs([
+        "research",
+        "brief",
+        "repo",
+        "--query",
+        "flow:onboarding",
+        "--query",
+        "ui-element:card",
+        "--reset-queries",
+        "--force",
+      ]),
+    ).toEqual({
+      command: "research",
+      action: "brief",
+      path: "repo",
+      queries: ["flow:onboarding", "ui-element:card"],
+      resetQueries: true,
+      force: true,
+      json: false,
+    });
+    // Flags that were not passed do not exist in the result.
+    expect(parseCliArgs(["research", "brief", "--json"])).toEqual({
+      command: "research",
+      action: "brief",
+      path: ".",
+      queries: [],
+      json: true,
+    });
+    expect(parseCliArgs(["research", "analyze", "--ref", "REF-1", "--ref", "REF-2"])).toEqual({
+      command: "research",
+      action: "analyze",
+      path: ".",
+      refs: ["REF-1", "REF-2"],
+      json: false,
+    });
+    for (const argv of [
+      ["research", "brief", "a", "b"],
+      ["research", "brief", "--ref", "REF-1"],
+      ["research", "analyze", "--query", "flow:x"],
+      ["research", "analyze", "--reset-queries"],
+    ]) {
+      expect({ argv, usage: parseCliArgs(argv) instanceof UsageError }).toEqual({
+        argv,
+        usage: true,
+      });
+    }
+    const unknown = parseCliArgs(["research", "bogus"]);
+    expect(unknown instanceof UsageError && unknown.message).toBe(
+      'Unknown research command "bogus". Expected: brief, analyze, render.',
+    );
+    expect(USAGE_TEXT).toContain("  research brief [path] [--query <facet>:<text>]...");
+    expect(USAGE_TEXT).toContain("Research facets: product-category, flow,");
+    expect(USAGE_TEXT).toContain("Agent roles: creator, reviewer");
+  });
+
+  // Covers: R11, R13, R19
+  test("parses direction propose and select and derives their usage lines", () => {
+    expect(parseCliArgs(["direction", "propose", "repo", "--force"])).toEqual({
+      command: "direction",
+      action: "propose",
+      path: "repo",
+      force: true,
+      json: false,
+    });
+    // A flag that was not passed does not exist in the result.
+    expect(parseCliArgs(["direction", "propose", "--json"])).toEqual({
+      command: "direction",
+      action: "propose",
+      path: ".",
+      json: true,
+    });
+    expect(parseCliArgs(["direction", "select", "DIR-B", "repo", "--note", "calm"])).toEqual({
+      command: "direction",
+      action: "select",
+      path: "repo",
+      direction: "DIR-B",
+      note: "calm",
+      json: false,
+    });
+    expect(parseCliArgs(["direction", "select", "DIR-A"])).toEqual({
+      command: "direction",
+      action: "select",
+      path: ".",
+      direction: "DIR-A",
+      note: null,
+      json: false,
+    });
+    for (const argv of [
+      ["direction", "select"],
+      ["direction", "select", "DIR-A", "a", "b"],
+      ["direction", "propose", "a", "b"],
+      ["direction", "propose", "--note", "x"],
+      ["direction", "select", "DIR-A", "--force"],
+    ]) {
+      expect({ argv, usage: parseCliArgs(argv) instanceof UsageError }).toEqual({
+        argv,
+        usage: true,
+      });
+    }
+    const unknown = parseCliArgs(["direction", "bogus"]);
+    expect(unknown instanceof UsageError && unknown.message).toBe(
+      'Unknown direction command "bogus". Expected: propose, select.',
+    );
+    expect(USAGE_TEXT).toContain("  direction propose [path] [--force] [--json]");
+    expect(USAGE_TEXT).toContain("  direction select <DIR-x> [path] [--note <text>] [--json]");
   });
 });

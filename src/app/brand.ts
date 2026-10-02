@@ -16,7 +16,7 @@ import { RESEARCH_FILES } from "../research/layout.ts";
 import { loadWorkspace, type Workspace } from "./workspace.ts";
 import type { AppContext } from "./context.ts";
 import { captureFailureResult } from "./references.ts";
-import { readResearch, stageResearchOutputs } from "./research-store.ts";
+import { agentDocuments, readResearch, stageResearchOutputs } from "./research-store.ts";
 import { failure, makeFinding, storeErrorResult, type UseCaseResult } from "./result.ts";
 import { withWriteRun, type WriteBodyResult } from "./write-run.ts";
 
@@ -144,6 +144,7 @@ export async function runBrandAdd(
         currentMode: ws.mode,
         locale: ws.project.product?.locale ?? null,
         minimum: ctx.research.minReferences,
+        agent: agentDocuments(research),
       });
       for (const output of staged.outputs) if (output.written) written.push(output.path);
       const state = withArtifacts(

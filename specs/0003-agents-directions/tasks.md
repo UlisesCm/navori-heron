@@ -10,7 +10,7 @@ Lotes de 1–3 tareas, **en serie** (cada tarea declara de qué depende y con qu
 
 ## Lote 1 — Términos de uso
 
-- [ ] **T1** (R17) — `docs/agent-providers.md` §Términos con fuentes, fechas y la conclusión de DR35 (P3.A11), y su test.
+- [x] **T1** (R17) — `docs/agent-providers.md` §Términos con fuentes, fechas y la conclusión de DR35 (P3.A11), y su test.
   - **Archivos:** `docs/agent-providers.md`, `tests/repo/docs.test.ts`
   - **Interfaces:** DR35; AGENT_API_KEY_VARS; AGENT_ROUTE_VARS
   - **Patrón:** docs/research.md
@@ -23,7 +23,7 @@ Lotes de 1–3 tareas, **en serie** (cada tarea declara de qué depende y con qu
 
 ## Lote 2 — Zonas de escritura y primitivas de seguridad
 
-- [ ] **T2** (R1, R15, R17, R21) — `TempDirPort`, sink append-only de logs con poda y lectura, `FsPort` con `"a"` y ADR 0002.
+- [x] **T2** (R1, R15, R17, R21) — `TempDirPort`, sink append-only de logs con poda y lectura, `FsPort` con `"a"` y ADR 0002.
   - **Archivos:** `src/core/store/temp-dir.ts`, `src/core/store/append-log.ts`, `src/core/store/fs-port.ts`, `tests/helpers/faulty-fs.ts`, `tests/unit/store/temp-dir.test.ts`, `tests/unit/store/append-log.test.ts`, `tests/repo/boundaries.test.ts`, `docs/adr/0002-store-write-zones.md`
   - **Interfaces:** TempDirPort; TempWorkspace; nodeTempDirs; openAppendLog; pruneLogs; readLogEvents; LogSink
   - **Patrón:** src/core/store/fs-port.ts
@@ -34,7 +34,7 @@ Lotes de 1–3 tareas, **en serie** (cada tarea declara de qué depende y con qu
   - **Comparte archivos con:** T6, T8, T10 (`tests/repo/boundaries.test.ts`).
   - **Fuera de alcance:** logger y redacción (T3); `ExportWriter` (P5).
 
-- [ ] **T3** (R2, R6, R15) — Entorno del hijo por lista blanca (DR35), redactor por valor cargado y logger JSONL.
+- [x] **T3** (R2, R6, R15) — Entorno del hijo por lista blanca (DR35), redactor por valor cargado y logger JSONL.
   - **Archivos:** `src/security/env.ts`, `src/security/redact.ts`, `src/security/logger.ts`, `tests/unit/security/env.test.ts`, `tests/unit/security/logger.test.ts`, `tests/unit/security/redact.test.ts`
   - **Interfaces:** buildAgentEnv; AGENT_ENV_ALLOWLIST; AGENT_API_KEY_VARS; AGENT_ROUTE_VARS; createValueRedactor; Redactor; createLogger; Logger; nullLogger; LOG_EVENT_NAMES
   - **Patrón:** src/security/redact.ts
@@ -143,7 +143,7 @@ Lotes de 1–3 tareas, **en serie** (cada tarea declara de qué depende y con qu
 
 ## Lote 7 — Ejecución de tareas y paso de IA en `app`
 
-- [ ] **T12** (R3, R6, R11, R12, R15, R19, R20) — `runAgentTask` con reparación compacta y registro de intentos, clave de cache, proveedor `fake` y registro de proveedores.
+- [x] **T12** (R3, R6, R11, R12, R15, R19, R20) — `runAgentTask` con reparación compacta y registro de intentos, clave de cache, proveedor `fake` y registro de proveedores.
   - **Archivos:** `src/agents/invoke.ts`, `src/agents/cache.ts`, `src/agents/registry.ts`, `src/agents/adapters/fake/index.ts`, `src/agents/adapters/fake/responders.ts`, `tests/unit/agents/invoke.test.ts`, `tests/unit/agents/cache.test.ts`
   - **Interfaces:** runAgentTask; RunTaskInput; TaskOutcome; agentCacheKey; analysisInputKey; AGENT_PROVIDERS; providerFor; fakeProvider; createFakeProvider; FakeStep
   - **Patrón:** src/research/registry.ts
@@ -154,7 +154,7 @@ Lotes de 1–3 tareas, **en serie** (cada tarea declara de qué depende y con qu
   - **Comparte archivos con:** T13 (`invoke.test.ts`).
   - **Fuera de alcance:** loop creator → reviewer (P7).
 
-- [ ] **T13** (R1, R2, R3, R6, R7, R15, R19, R21) — `AppContext` con agentes, `executeAgentStep` (config perezosa, entorno, pack, cache, log, redacción, aviso blando), totales de uso y `fixedContext` que rechaza CLIs reales.
+- [x] **T13** (R1, R2, R3, R6, R7, R15, R19, R21) — `AppContext` con agentes, `executeAgentStep` (config perezosa, entorno, pack, cache, log, redacción, aviso blando), totales de uso y `fixedContext` que rechaza CLIs reales.
   - **Archivos:** `src/app/context.ts`, `src/app/agent-task.ts`, `src/app/agent-usage.ts`, `tests/helpers/cli.ts`, `tests/helpers/agents.ts`, `tests/unit/app-context.test.ts`, `tests/unit/agents/invoke.test.ts`, `tests/unit/agents/roles.test.ts`, `tests/unit/app/agent-usage.test.ts`, `tests/repo/live-agents.test.ts`
   - **Interfaces:** AppContext; AgentServices; executeAgentStep; finalizeAgentRun; AGENT_STATUS_EXIT; AgentStepInput; AgentRunDraft; summarizeAgentUsage; AgentUsageTotals; withAgentSettings; scriptedProvider
   - **Patrón:** src/app/write-run.ts
@@ -167,7 +167,7 @@ Lotes de 1–3 tareas, **en serie** (cada tarea declara de qué depende y con qu
 
 ## Lote 8 — Vistas y research con agentes
 
-- [ ] **T14** (R7, R16) — Vistas: `REFERENCES.md` con brief, notas inferidas y direcciones (escapadas); todos los escritores de research pasan los documentos de agente.
+- [x] **T14** (R7, R16) — Vistas: `REFERENCES.md` con brief, notas inferidas y direcciones (escapadas); todos los escritores de research pasan los documentos de agente.
   - **Archivos:** `src/app/research-store.ts`, `src/app/references.ts`, `src/app/brand.ts`, `src/app/research.ts`, `src/research/render/references-md.ts`, `src/research/render/copy.ts`, `src/research/render/outputs.ts`, `tests/unit/research/render.test.ts`, `tests/e2e/research-render.test.ts`, `tests/e2e/p2-compat.test.ts`
   - **Interfaces:** renderResearchOutputs; stageResearchOutputs; readResearch; ResearchSnapshot; renderReferencesMarkdown
   - **Patrón:** src/research/render/references-md.ts
@@ -178,7 +178,7 @@ Lotes de 1–3 tareas, **en serie** (cada tarea declara de qué depende y con qu
   - **Comparte archivos con:** T15 (`src/app/research.ts`).
   - **Fuera de alcance:** moodboard (DR24).
 
-- [ ] **T15** (R6, R9, R10, R16, R19) — `heron research brief|analyze` de punta a punta con cache y `--force`, pie de `USAGE_TEXT` y prueba de secretos sobre un run del `fake`.
+- [x] **T15** (R6, R9, R10, R16, R19) — `heron research brief|analyze` de punta a punta con cache y `--force`, pie de `USAGE_TEXT` y prueba de secretos sobre un run del `fake`.
   - **Archivos:** `src/app/research.ts`, `src/cli/command.ts`, `src/cli/commands/research.ts`, `src/cli/main.ts`, `src/cli/args.ts`, `src/cli/render-agents.ts`, `tests/e2e/research-agents.test.ts`, `tests/unit/agents/run-record.test.ts`, `tests/unit/cli-args.test.ts`
   - **Interfaces:** runResearchBrief; runResearchAnalyze; ResearchBriefInput; ResearchAnalyzeInput; ResearchParsed; renderResearchBriefText; renderResearchAnalyzeText; USAGE_TEXT
   - **Patrón:** src/app/references.ts
@@ -191,7 +191,7 @@ Lotes de 1–3 tareas, **en serie** (cada tarea declara de qué depende y con qu
 
 ## Lote 9 — Direcciones, status y doctor
 
-- [ ] **T16** (R11, R12, R13, R19, R20) — `heron direction propose|select` de punta a punta, alimentado por el análisis guardado y con cache.
+- [x] **T16** (R11, R12, R13, R19, R20) — `heron direction propose|select` de punta a punta, alimentado por el análisis guardado y con cache.
   - **Archivos:** `src/app/directions.ts`, `src/cli/commands/direction.ts`, `src/cli/commands/index.ts`, `src/cli/command.ts`, `src/cli/main.ts`, `src/cli/render-agents.ts`, `tests/e2e/directions.test.ts`, `tests/unit/cli-args.test.ts`
   - **Interfaces:** runDirectionPropose; runDirectionSelect; DirectionProposeInput; DirectionSelectInput; directionCommand; DirectionParsed; renderDirectionProposeText; renderDirectionSelectText
   - **Patrón:** src/app/references.ts
@@ -202,7 +202,7 @@ Lotes de 1–3 tareas, **en serie** (cada tarea declara de qué depende y con qu
   - **Comparte archivos con:** T15, T17 (`src/cli/command.ts`, `tests/unit/cli-args.test.ts`).
   - **Fuera de alcance:** direcciones `full` y gate `direction` con Penpot (P5, P12).
 
-- [ ] **T17** (R9, R11, R13, R14, R21) — `doctor` con checks de agentes en paralelo, `--deep` y uso de tokens; `status` con las órdenes de P3 y los totales del log local.
+- [x] **T17** (R9, R11, R13, R14, R21) — `doctor` con checks de agentes en paralelo, `--deep` y uso de tokens; `status` con las órdenes de P3 y los totales del log local.
   - **Archivos:** `src/app/doctor.ts`, `src/cli/commands/doctor.ts`, `src/cli/command.ts`, `src/app/status.ts`, `src/cli/render.ts`, `tests/e2e/doctor.test.ts`, `tests/e2e/status.test.ts`, `tests/unit/cli-args.test.ts`
   - **Interfaces:** agentChecks; DoctorInput; DoctorParsed; AgentUsageSummary
   - **Patrón:** src/app/doctor.ts
@@ -215,7 +215,7 @@ Lotes de 1–3 tareas, **en serie** (cada tarea declara de qué depende y con qu
 
 ## Lote 10 — Documentación y recorrido real
 
-- [ ] **T18** (R17, R18, R20) — ADR 0005, resto de `docs/agent-providers.md` (incluida la economía de tokens), docs de arquitectura/seguridad/research, README y quality gate.
+- [x] **T18** (R17, R18, R20) — ADR 0005, resto de `docs/agent-providers.md` (incluida la economía de tokens), docs de arquitectura/seguridad/research, README y quality gate.
   - **Archivos:** `docs/adr/0005-ai-provider-boundary.md`, `docs/agent-providers.md`, `docs/architecture.md`, `docs/security.md`, `docs/research.md`, `README.md`, `tests/repo/docs.test.ts`
   - **Interfaces:** CLAUDE_FIXED_ARGS; CODEX_FIXED_ARGS; CODEX_ALLOWED_ITEM_TYPES; AGENT_ENV_ALLOWLIST; PACK_LIMITS
   - **Patrón:** docs/adr/0003-research-source-boundary.md

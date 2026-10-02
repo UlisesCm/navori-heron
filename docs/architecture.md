@@ -1,27 +1,29 @@
-# Arquitectura de Heron (P1, P2 y P4)
+# Arquitectura de Heron (P1 a P4)
 
-Un solo paquete con módulos por frontera en `src/` (D4). Se dividirá en paquetes solo cuando exista un segundo entregable real. Este documento describe lo que P1, P2 y P4 implementan; los módulos de agentes, diseño, tokens, Penpot y web aparecen en `MASTER.md` pero no existen todavía.
+Un solo paquete con módulos por frontera en `src/` (D4). Se dividirá en paquetes solo cuando exista un segundo entregable real. Este documento describe lo que P1, P2, P3 y P4 implementan; los módulos de diseño, tokens, Penpot y web aparecen en `MASTER.md` pero no existen todavía.
 
 ## Módulos y reglas de frontera
 
-| Módulo                | Responsabilidad                                                                                                                               | Puede importar                                        |
-| --------------------- | --------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------- |
-| `src/core/contracts/` | Esquemas Zod, tipos, JSON canónico, versionado, códigos de salida                                                                             | solo `zod` y archivos hermanos                        |
-| `src/core/state/`     | Dominio puro: fases, transiciones, gates, modo, obsolescencia                                                                                 | `core/contracts` y hermanos; sin `Bun`/`bun:`         |
-| `src/core/store/`     | `FileStore`, escritura atómica, lock, hash                                                                                                    | `core/contracts`; **único** que importa `node:fs`     |
-| `src/intake/`         | Puerto `ProductContextAdapter`, adapters (`navori-master`, `filesystem`, `markdown`, `manual`), precedencia, conflictos y lector de `ux.json` | `core`; recibe el filesystem como lectura inyectada   |
-| `src/security/`       | Primitivas puras o inyectables: clasificador SSRF, `Fetcher`, saneo de imágenes, escáner de texto no confiable, escape, redacción             | solo `core/contracts`; no toca el filesystem          |
-| `src/research/`       | Puerto `ResearchSource`, registro y adapters (`manual`, `url`, `image`, `design-md`), validación de provenance, renderers                     | `core/contracts`, lectura de `core/store`, `security` |
-| `src/app/`            | Casos de uso (init, status, doctor, gate, intake, conflicts, references, brand, research render) compartidos por CLI y, más adelante, web     | `core`, `intake`, `research`, `security`              |
-| `src/cli/`            | Parseo de argumentos, render, envelope, `runCli` (copy en inglés, D14)                                                                        | `app`, `core`                                         |
-| `bin/heron.ts`        | Entrada del proceso                                                                                                                           | `cli`                                                 |
+| Módulo                | Responsabilidad                                                                                                                               | Puede importar                                           |
+| --------------------- | --------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------- |
+| `src/core/contracts/` | Esquemas Zod, tipos, JSON canónico, versionado, códigos de salida                                                                             | solo `zod` y archivos hermanos                           |
+| `src/core/state/`     | Dominio puro: fases, transiciones, gates, modo, obsolescencia                                                                                 | `core/contracts` y hermanos; sin `Bun`/`bun:`            |
+| `src/core/store/`     | `FileStore`, escritura atómica, lock, hash                                                                                                    | `core/contracts`; **único** que importa `node:fs`        |
+| `src/intake/`         | Puerto `ProductContextAdapter`, adapters (`navori-master`, `filesystem`, `markdown`, `manual`), precedencia, conflictos y lector de `ux.json` | `core`; recibe el filesystem como lectura inyectada      |
+| `src/security/`       | Primitivas puras o inyectables: clasificador SSRF, `Fetcher`, saneo de imágenes, escáner de texto no confiable, escape, redacción             | solo `core/contracts`; no toca el filesystem             |
+| `src/research/`       | Puerto `ResearchSource`, registro y adapters (`manual`, `url`, `image`, `design-md`), validación de provenance, renderers                     | `core/contracts`, lectura de `core/store`, `security`    |
+| `src/agents/`         | Puerto `AgentProvider`, registro, adapters (`claude-code`, `codex-cli`, `fake`), runner de procesos, context packs, cache y uso de tokens     | `core/contracts`, `security`, `core/store` (hash y temp) |
+| `src/app/`            | Casos de uso (init, status, doctor, gate, intake, conflicts, references, brand, research render) compartidos por CLI y, más adelante, web     | `core`, `intake`, `research`, `security`                 |
+| `src/cli/`            | Parseo de argumentos, render, envelope, `runCli` (copy en inglés, D14)                                                                        | `app`, `core`                                            |
+| `bin/heron.ts`        | Entrada del proceso                                                                                                                           | `cli`                                                    |
 
 Reglas:
 
 - `contracts` no importa nada interno.
 - `core` no importa `intake`, `app` ni `cli`; `intake` no importa `app` ni `cli`; `app` no importa `cli`.
 - Los adapters implementan puertos y no se importan entre sí (`src/intake/adapters/<a>` no importa `<b>`); lo mismo en `src/research/adapters/`, que solo importa el registro (`src/research/registry.ts`).
-- `src/security/` solo importa `core/contracts`; `src/research/` no importa `intake` (salvo tipos), `app` ni `cli`. `fetch(` y `node:dns` solo aparecen en `src/security/fetch/system.ts`, y `sharp` solo en `src/security/images/` (ADR [0003](adr/0003-research-source-boundary.md) y [0004](adr/0004-sharp-image-sanitizing.md)).
+- `src/security/` solo importa `core/contracts`; `src/research/` no importa `intake` (salvo tipos), `app` ni `cli`. `fetch(` y `node:dns` solo aparecen en `src/security/fetch/system.ts`, y `sharp` solo en `src/security/images/` (ADR [0003](adr/0003-research-source-boundary.md) y [0004](adr/0004-sharp-image-sanitizing.md)). Las zonas de escritura fuera de `.heron/` están en el [ADR 0002](adr/0002-store-write-zones.md).
+- `src/agents/` solo importa los adapters desde `src/agents/registry.ts`; `bunProcessRunner` es el único archivo con `Bun.spawn` y `Bun.which` (ADR [0005](adr/0005-ai-provider-boundary.md)). El tema de los agentes se detalla en [docs/agent-providers.md](agent-providers.md).
 - Ningún módulo importa `navori`, `navori/*` ni `@navori/*`: Heron lee los archivos del harness, no su código.
 - Solo `src/core/store/**` importa `node:fs` (DP2). Excepción acotada: `scripts/gen-schemas.ts` y `scripts/check-coverage.ts` son herramientas de build, no se distribuyen ni escriben en `.heron/`.
 
@@ -96,9 +98,14 @@ Las transiciones válidas son la tabla `TRANSITIONS` (`src/core/state/transition
     moodboards/index.html  vista estática con CSP
     assets/{sha256}.webp   imágenes saneadas
     sources/{sha256}.md|.txt  texto externo, untrusted
+    brief.json        P3; ResearchBrief (consultas, agente)
+    analysis.json     P3; ResearchAnalysis (notas inferred)
+    visual-directions.json  P3; VisualDirections (3 direcciones)
   brand/
     brand.json        BrandInputs v1
     assets/{sha256}.webp   imágenes de marca saneadas
+  runs/{runId}.json   P3; AgentRun de runs exitosos (fuera de state.artifacts)
+  logs/{fecha}.jsonl  P3; eventos agent.invocation y security.finding, poda a 30 días
   staging/{runId}/    transitorio (ignorado)
   .lock               transitorio (ignorado)
   .lock.reclaim       transitorio (ignorado)

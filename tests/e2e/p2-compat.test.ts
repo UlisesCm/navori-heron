@@ -10,6 +10,7 @@ import {
   parseVersionedDocument,
   type CliEnvelope,
   type DocumentSpec,
+  type ResearchRenderData,
 } from "../../src/core/contracts/index.ts";
 import { runCliCaptured } from "../helpers/cli.ts";
 import { copyP2Workspace } from "../helpers/fixtures.ts";
@@ -99,5 +100,22 @@ describe("P2 workspaces", () => {
         { gate: "intake", status: "approved" },
       ]),
     });
+  });
+
+  // Covers: R16
+  test("reads P2 workspaces with agent defaults and unchanged research views", async () => {
+    const root = copyP2Workspace("membership-product");
+    copies.push(root);
+    const views = ["REFERENCES.md", "moodboards/index.html", "references.json", "provenance.json"];
+    const read = (): string[] =>
+      views.map((view) => readFileSync(join(root, ".heron", "research", view), "utf8"));
+    const before = read();
+    const run = await runCliCaptured(["research", "render", root, "--json"]);
+    expect(run.code).toBe(ExitCode.Ok);
+    const data = (JSON.parse(run.stdout) as CliEnvelope).data as ResearchRenderData;
+    // No agent documents on disk: nothing is regenerated and no agent section appears.
+    expect(data.outputs.every((output) => !output.written)).toBe(true);
+    expect(read()).toEqual(before);
+    expect(before[0]).not.toContain("## Research brief");
   });
 });

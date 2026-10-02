@@ -57,9 +57,23 @@ La CSP es defensa en profundidad: el control primario es el escape total y no em
 
 `redactUrl` quita userinfo y fragmento y sustituye por `REDACTED` el valor de los parámetros sensibles (`token`, `key`, `api_key`, `password`, `secret`, `signature`, `code`, `session`, firmas de AWS, entre otros). Se aplica a orígenes, a `fetch.requestedUrl`/`finalUrl`/`redirects` y a los mensajes. Los orígenes que parsean como URL http(s) también se redactan antes de escribirse.
 
+## Agentes (P3)
+
+Claude Code y Codex CLI reciben texto de terceros y devuelven texto que Heron trata como dato. Frontera y justificación en el [ADR 0005](adr/0005-ai-provider-boundary.md); banderas literales y economía de tokens en [docs/agent-providers.md](agent-providers.md).
+
+- **Entorno por lista blanca.** `buildAgentEnv` copia solo `AGENT_ENV_ALLOWLIST` (`src/security/env.ts`), agrega `NO_COLOR=1` y nunca copia `HERON_*`, `PENPOT_*`, las API keys (`AGENT_API_KEY_VARS`) ni las rutas de nube o gateway (`AGENT_ROUTE_VARS`); lo ignorado se informa con `AGENT_ENV_IGNORED`. `CLAUDE_CODE_OAUTH_TOKEN` pasa y se trata como secreto.
+- **Aislamiento del hijo.** Argv como arreglo, pack por stdin, cwd en un directorio temporal vacío y privado, grupo de procesos propio con timeout. Claude: sin herramientas, sin MCP y con `--safe-mode --restricted`. Codex: sandbox `read-only`, `--ignore-user-config`, `--ignore-rules` y sin web search (`CLAUDE_FIXED_ARGS`, `CODEX_FIXED_ARGS`).
+- **Monitor de Codex por lista blanca.** Solo se admiten los eventos documentados y los ítems `agent_message` y `reasoning` (`CODEX_ALLOWED_ITEM_TYPES`). Cualquier otra cosa (un ítem de herramienta, un evento desconocido, una línea que no es JSON) detiene el proceso con `AGENT_POLICY_VIOLATION` (exit 3). Falla cerrado.
+- **Redacción.** Un redactor por valor cargado (`src/security/redact.ts`) cubre el entorno permitido y los secretos conocidos: pasa por el log JSONL, por la salida del agente antes de escribirla (`SECRET_REDACTED`) y por los mensajes. stdout y stderr del hijo no se guardan.
+- **Contenido del agente como no confiable.** La salida se valida con schemas estrictos y `scanUntrustedText` registra hallazgos (`AGENT_OUTPUT_SUSPICIOUS`) sin bloquear. Los ítems de un pack, salvo las instrucciones de Heron, van delimitados con `<<<data:{trust}:{sha8}>>>` y los caracteres ocultos o bidi se reescriben como `\u{XXXX}`.
+- **Control characters.** En vistas y terminal se eliminan los caracteres de control C0 (salvo CR, LF y TAB, que pasan a espacio), DEL y C1 (`src/security/markdown.ts`; `src/cli/render-research.ts` para el texto libre de una referencia). Todo texto de agente en `REFERENCES.md` pasa por `escapeMarkdownText`, de modo que enlaces, imágenes y autolinks quedan inertes.
+- **Lanzador.** `bin/heron.ts` arranca con `#!/usr/bin/env -S bun --no-env-file --config=/dev/null`, de modo que Bun ignora el `bunfig.toml` y el `.env` del cwd y un repo ajeno no cambia la configuración de Heron ni inyecta variables (ver §Launcher en repos no confiables; `tests/repo/launcher.test.ts`).
+- **Logs.** `.heron/logs/<fecha>.jsonl`, append sin fsync, poda a 30 días y todo por el redactor. Eventos de P3: `agent.invocation` y `security.finding`.
+- **Suscripción.** Sin API key; el uso es individual con el binario oficial. El riesgo aceptado frente a los términos está en [agent-providers.md](agent-providers.md#términos).
+
 ## Fuera de alcance de P2
 
-Sink de logs JSONL y redacción por valor cargado (P3), subida de archivos y CSP por header (P8), imágenes por URL y SVG, y `http` público (descartado por D29).
+Sink de logs JSONL y redacción por valor cargado (entran en P3, ver arriba), subida de archivos y CSP por header (P8), imágenes por URL y SVG, y `http` público (descartado por D29).
 
 ## Launcher en repos no confiables
 

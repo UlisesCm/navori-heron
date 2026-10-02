@@ -1,5 +1,5 @@
 import { describe, expect, test } from "bun:test";
-import { readFileSync, unlinkSync, writeFileSync } from "node:fs";
+import { appendFileSync, readFileSync, unlinkSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import { rejectionToFinding } from "../../src/app/result.ts";
 import {
@@ -11,6 +11,7 @@ import {
 import { createInitialState } from "../../src/core/state/lifecycle.ts";
 import { canTransition } from "../../src/core/state/transitions.ts";
 import { DEFAULT_RESEARCH_SETTINGS } from "../../src/research/ports.ts";
+import { withAgentSettings } from "../helpers/agents.ts";
 import { fixedContext, runCliCaptured } from "../helpers/cli.ts";
 import { e2eSetup } from "../helpers/e2e.ts";
 import { hashTree, patchHarnessState } from "../helpers/fixtures.ts";
@@ -265,5 +266,46 @@ describe("heron status", () => {
     expect(run.stdout).not.toContain("PRODUCT_CONTEXT_STALE");
     expect(run.stdout).not.toContain("GATE_APPROVAL_INVALIDATED");
     expect(run.stdout).toContain("- intake: approved");
+  });
+
+  // Covers: R21
+  test("shows agent token totals and the soft budget", async () => {
+    const root = await initialized("no-ux");
+    expect((await runCliCaptured(["status", root])).stdout).not.toContain("Agent usage");
+    withAgentSettings(root, { roles: { creator: "fake" }, warnTokensPerDay: 1_000 });
+    expect((await runCliCaptured(["init", root])).code).toBe(ExitCode.Ok);
+    expect((await runCliCaptured(referenceArgs(root))).code).toBe(ExitCode.Ok);
+    expect((await runCliCaptured(["research", "brief", root])).code).toBe(ExitCode.Ok);
+
+    const json = JSON.parse(
+      (await runCliCaptured(["status", root, "--json"])).stdout,
+    ) as CliEnvelope;
+    const usage = (json.data as StatusData).agentUsage;
+    expect(usage?.today.invocations).toBe(1);
+    expect(usage?.window.days).toBe(30);
+    expect(usage?.softBudget).toBe(1_000);
+    expect(usage?.overBudget).toBe(false);
+    expect(json.findings.map((finding) => finding.code)).not.toContain("AGENT_BUDGET_WARNING");
+
+    const text = await runCliCaptured(["status", root]);
+    expect(text.code).toBe(ExitCode.Ok);
+    const line = text.stdout.split("\n").find((l) => l.startsWith("Agent usage (local log): "));
+    expect(line).toBe(
+      `Agent usage (local log): today ${usage?.today.inputTokens} in / ${usage?.today.outputTokens} out / 0 cached tokens in 1 call(s); last 30 days ${usage?.window.inputTokens} / ${usage?.window.outputTokens} / 0; soft budget 1000/day`,
+    );
+    expect(text.stdout).toContain("heron research brief|analyze");
+
+    appendFileSync(
+      join(root, ".heron", "logs", "2026-09-30.jsonl"),
+      `${JSON.stringify({ at: "2026-09-30T11:00:00.000Z", event: "agent.invocation", inputTokens: 5000, outputTokens: 10, cachedInputTokens: 4000, costUsd: null })}\n`,
+    );
+    const over = JSON.parse(
+      (await runCliCaptured(["status", root, "--json"])).stdout,
+    ) as CliEnvelope;
+    expect((over.data as StatusData).agentUsage?.overBudget).toBe(true);
+    expect(over.findings.map((finding) => finding.code)).toContain("AGENT_BUDGET_WARNING");
+    // An invalid "agents" block never breaks status (DR21).
+    withAgentSettings(root, { timeoutMs: 5 });
+    expect((await runCliCaptured(["status", root])).code).toBe(ExitCode.Ok);
   });
 });

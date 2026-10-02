@@ -1,4 +1,5 @@
 import type {
+  AgentUsageSummary,
   DoctorData,
   Finding,
   StoredFinding,
@@ -119,10 +120,18 @@ export function renderStatusText(data: StatusData, findings: readonly Finding[])
         ? "Stale artifacts: none"
         : ["Stale artifacts:", ...data.stale.map((s) => `- ${s.path}: ${s.reason}`)].join("\n"),
       `Open conflicts: ${data.openConflicts === null ? "not tracked yet" : data.openConflicts}`,
+      ...(data.agentUsage === null ? [] : [renderAgentUsageLine(data.agentUsage)]),
       `Allowed commands: ${data.allowedCommands.join(", ")}`,
     ],
     rest.length === 0 ? [] : [renderFindings(rest)],
   ]);
+}
+
+/** `Agent usage (local log): ...` line of `status` (DR45). */
+function renderAgentUsageLine(usage: AgentUsageSummary): string {
+  const { today, window } = usage;
+  const budget = usage.softBudget === null ? "" : `; soft budget ${usage.softBudget}/day`;
+  return `Agent usage (local log): today ${today.inputTokens} in / ${today.outputTokens} out / ${today.cachedInputTokens} cached tokens in ${today.invocations} call(s); last ${window.days} days ${window.inputTokens} / ${window.outputTokens} / ${window.cachedInputTokens}${budget}`;
 }
 
 /** One line per check (`STATUS(7) id(18) message`), `        Remedy: ...` when there is one, then the summary. */

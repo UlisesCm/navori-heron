@@ -15,13 +15,15 @@ import type {
 import { splitNotices, type TextOutput } from "./output.ts";
 import { MODE_LABELS, renderFindings } from "./render.ts";
 
-/** Free text of a reference (user input or fetched content) made safe for a terminal: control characters, including
- * ESC, are shown as \xNN so stored content can never drive the terminal. */
+/** Free text of a reference (user input or fetched content) made safe for a terminal: control characters (C0, DEL, C1),
+ * including ESC, are shown as \xNN so stored content can never drive the terminal. */
 export function safeText(text: string): string {
   return [...text]
     .map((ch) => {
       const code = ch.codePointAt(0) ?? 0;
-      return code < 0x20 || code === 0x7f ? `\\x${code.toString(16).padStart(2, "0")}` : ch;
+      return code < 0x20 || (code >= 0x7f && code <= 0x9f)
+        ? `\\x${code.toString(16).padStart(2, "0")}`
+        : ch;
     })
     .join("");
 }
