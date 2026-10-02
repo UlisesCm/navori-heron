@@ -169,7 +169,7 @@ Lotes de 1–3 tareas, **en serie** (cada tarea declara de qué depende y con qu
   - **Comparte archivos con:** T3, T20, T21 (`docs/penpot.md`, `tests/repo/docs.test.ts`); T10 (`compatibility.ts`); T12 (sonda).
   - **Fuera de alcance:** subir la versión si #12003 sigue abierto (D7).
 
-- [ ] **T14** (R22) — Lanzador sin `.env` ni `bunfig.toml` del directorio de trabajo y su test.
+- [x] **T14** (R22) — Lanzador sin `.env` ni `bunfig.toml` del directorio de trabajo y su test. El arreglo del lanzador ya se integró por separado en `c4d1f40` (PR #16); este lote verifica el contrato completo y refuerza la prueba de versión y el script npm.
   - **Archivos:** `bin/heron.ts`, `package.json`, `tests/repo/launcher.test.ts`
   - **Interfaces:** runCli
   - **Patrón:** tests/repo/ci.test.ts
