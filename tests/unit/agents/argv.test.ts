@@ -9,6 +9,13 @@ import {
   claudeArgv,
   claudeCodeProvider,
 } from "../../../src/agents/adapters/claude-code/index.ts";
+import {
+  CODEX_DISABLED_FEATURES,
+  CODEX_FIXED_ARGS,
+  codexArgv,
+  codexCliProvider,
+  codexPrompt,
+} from "../../../src/agents/adapters/codex-cli/index.ts";
 import { bunProcessRunner } from "../../../src/agents/process/bun-runner.ts";
 import type {
   AgentRequest,
@@ -236,4 +243,113 @@ describe("claude-code argv", () => {
       await claudeCodeProvider.probe(services("/x", {}, refusingRunner), "basic"),
     ).toMatchObject({ status: "error" });
   });
+});
+
+const run = (dir: string, level: "basic" | "full") => codexCliProvider.probe(services(dir), level);
+
+const recorder = (specs: ProcessSpec[]): ProcessRunner => ({
+  run: (spec) => {
+    specs.push(spec);
+    return Promise.resolve({ kind: "not-found", command: spec.command });
+  },
+});
+
+describe("codex-cli argv", () => {
+  test("invokes agent CLIs isolated, tool-less and schema-bound", () => {
+    // Covers: R1
+    const argv = codexArgv({
+      schemaFile: "/io/schema.json",
+      lastMessageFile: "/io/out.json",
+      model: null,
+    });
+    expect(argv.slice(0, CODEX_FIXED_ARGS.length)).toEqual([...CODEX_FIXED_ARGS]);
+    expect(argv.slice(-5)).toEqual([
+      "--output-schema",
+      "/io/schema.json",
+      "-o",
+      "/io/out.json",
+      "-",
+    ]);
+    expect(argv).toContain("--ignore-user-config");
+    expect(argv).toContain("--ignore-rules");
+    expect(argv[argv.indexOf("--sandbox") + 1]).toBe("read-only");
+    expect(argv[argv.indexOf("-c") + 1]).toBe('web_search="disabled"');
+    for (const feature of CODEX_DISABLED_FEATURES) {
+      const at = argv.indexOf(feature);
+      expect(argv[at - 1]).toBe("--disable");
+    }
+    expect(argv).not.toContain("--model");
+    expect(codexArgv({ schemaFile: "s", lastMessageFile: "o", model: "gpt-5" }).slice(-3)).toEqual([
+      "-m",
+      "gpt-5",
+      "-",
+    ]);
+    expect(codexPrompt("SYS", { text: "PACK" } as AgentRequest["pack"])).toBe(
+      "<heron-instructions>\nSYS\n</heron-instructions>\n\nPACK",
+    );
+  });
+
+  test("sends the template by stdin and only allowlisted environment, never API keys", async () => {
+    // Covers: R1, R20
+    const specs: ProcessSpec[] = [];
+    const env = {
+      ...fakeBinEnv("/x"),
+      OPENAI_API_KEY: "sk-secret",
+      CODEX_API_KEY: "sk-codex",
+      CODEX_HOME: "/home/codex",
+      HERON_SECRET: "h",
+    };
+    await codexCliProvider.invoke(request(), { ...services("/x", {}, recorder(specs)), env });
+    const [spec] = specs;
+    expect(spec?.command).toBe("codex");
+    expect(spec?.stdin?.startsWith("<heron-instructions>\nSYSTEM\n")).toBe(true);
+    expect(spec?.stdin?.endsWith("PACK")).toBe(true);
+    expect(spec?.captureStdout).toBe(false);
+    expect(spec?.env["CODEX_HOME"]).toBe("/home/codex");
+    for (const name of ["OPENAI_API_KEY", "CODEX_API_KEY", "HERON_SECRET"]) {
+      expect(Object.keys(spec?.env ?? {})).not.toContain(name);
+    }
+    expect(spec?.args).toContain("--output-schema");
+    expect(spec?.args.join(" ")).not.toContain("PACK");
+  });
+
+  test("rejects a model name that could be read as a flag before building argv", async () => {
+    // Covers: R1
+    for (const model of ["--evil", "-m", " x", "a b", "x".repeat(101), ""]) {
+      expect(() => claudeArgv({ schemaJson: "{}", system: "S", model })).toThrow();
+      expect(() => codexArgv({ schemaFile: "s", lastMessageFile: "o", model })).toThrow();
+    }
+    const specs: ProcessSpec[] = [];
+    for (const provider of [claudeCodeProvider, codexCliProvider]) {
+      const attempt = await provider.invoke(
+        request({ model: "--dangerously-bypass" }),
+        services("/x", {}, recorder(specs)),
+      );
+      expect(attempt.status).toBe("failed");
+    }
+    expect(specs).toEqual([]);
+  });
+
+  test("probes version, session and capabilities of codex without launching an agent", async () => {
+    // Covers: R1
+    const flags = [...new Set(CODEX_FIXED_ARGS.filter((a) => a.startsWith("--")))].join(" ");
+    const bin = (version: string, loginExit: number, help: string): string => {
+      const dir = newBin();
+      writeFakeAgentBin(
+        dir,
+        "codex",
+        `case "$1" in --version) echo "codex-cli ${version}";; login) exit ${loginExit};; exec) echo "${help}";; esac`,
+      );
+      return dir;
+    };
+    expect(await run(newBin(), "basic")).toMatchObject({ status: "missing" });
+    expect(await run(bin("0.159.1", 0, flags), "basic")).toMatchObject({ status: "outdated" });
+    expect(await run(bin("0.160.0", 1, flags), "basic")).toMatchObject({ status: "logged-out" });
+    expect(await run(bin("0.160.0", 0, "--json"), "full")).toMatchObject({ status: "unsupported" });
+    expect(await run(bin("0.160.0", 0, `${flags} --output-schema`), "full")).toMatchObject({
+      status: "ready",
+      cliVersion: "0.160.0",
+      minimum: "0.159.2",
+    });
+  }, 30_000);
 });
