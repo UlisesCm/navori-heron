@@ -5,7 +5,7 @@ metadata:
   type: reference
 ---
 
-<!-- navori:managed id="plan-simple" hash="d68f5bb9" version="0.11.0" source="@navori/core" fmkeys="name,description,metadata" -->
+<!-- navori:managed id="plan-simple" hash="594f5447" version="0.11.1" source="@navori/core" fmkeys="name,description,metadata" -->
 # plan-simple — level-1 workplan
 
 ## Steps
@@ -19,7 +19,7 @@ metadata:
    show the rendered `.md` and wait for the user's approval.
 4. "Open every implementer encargo with `workplan: <feature>` and list the `A<n>` that sub-task covers."
 5. "When a sub-task closes, record it with `navori plan update`" (each `A<n>`'s status and
-   decisions); `progress/current.md` points at the workplan, it doesn't copy it.
+   decisions); `progress/current.md` points at the workplan, it doesn't copy it. `--progress A<n>=cumplido` is accepted only with acceptance evidence, which the routing-watch hook records when the host itself ran the exact `command` of that `A<n>`; the update never runs it. Run the command as written, then mark.
 6. A change outside the approved files is a decision: record it and ask the user before
    dispatching it.
 7. "Never write `workplan_<feature>.md` by hand — it is `navori plan render` output."
@@ -32,7 +32,7 @@ metadata:
       lines; a level ≥ 2 result switched to `plan-advanced`.
 - [ ] `navori plan render` and `navori plan check` both green; the user approved the rendered `.md`.
 - [ ] Every implementer encargo opened with `workplan: <feature>` and its `A<n>` list.
-- [ ] Each closed sub-task recorded with `navori plan update`.
+- [ ] Each closed sub-task recorded with `navori plan update`, `cumplido` only after the host ran the exact `A<n>` command.
 - [ ] A file outside the approved scope was either recorded as a decision with the user's
       go-ahead, or never dispatched.
 

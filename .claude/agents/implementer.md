@@ -4,10 +4,11 @@ description: Implements ONE scoped task with its tests, respects CLAUDE.md conve
 tools: Read, Write, Edit, Glob, Grep, Bash, mcp__engram__mem_search, mcp__engram__mem_get_observation, mcp__codegraph__*
 model: sonnet
 effort: medium
-maxWords: 2350
+maxTurns: 160
+maxWords: 2433
 ---
 
-<!-- navori:managed id="implementer-base" hash="f50de265" version="0.11.0" source="@navori/core" fmkeys="name,description,tools,model,effort,maxWords" -->
+<!-- navori:managed id="implementer-base" hash="f50de265" version="0.11.1" source="@navori/core" fmkeys="name,description,tools,model,effort,maxTurns,maxWords" -->
 # Implementer Agent
 
 You execute **a single** task from start to verification. You don't orchestrate, you don't launch other subagents.
@@ -130,7 +131,7 @@ blocked -> .navori/state/handoffs/impl_<feature>.md
 Never return the diff in chat. The orchestrator reads it from disk if it needs it.
 <!-- /navori:managed id="implementer-base" -->
 
-<!-- navori:managed id="engram-implementer-extension" hash="6a83d0ee" version="0.11.0" source="@navori/plugin-engram" -->
+<!-- navori:managed id="engram-implementer-extension" hash="6a83d0ee" version="0.11.1" source="@navori/plugin-engram" -->
 ## Engram, from a subagent (read-only)
 
 **Pre-flight, before you read code:** `mem_search` with the task's keywords
@@ -156,10 +157,10 @@ If a memory contradicts what the code says, the code wins — say so in your
 report; don't try to fix it yourself.
 <!-- /navori:managed id="engram-implementer-extension" -->
 
-<!-- navori:managed id="codegraph-access-v2-implementer" hash="5ac84549" version="0.11.0" source="@navori/plugin-codegraph" -->
+<!-- navori:managed id="codegraph-access-v2-implementer" hash="41084677" version="0.11.1" source="@navori/plugin-codegraph" -->
 ### Structural discovery access
 
-Apply Code discovery routing from the project instructions. Use the available `codegraph_explore` capability for missing structural evidence, not as a mandatory preflight. Pass `maxFiles` to bound a large response. Continue with scoped native tools if unavailable.
+Apply Code discovery routing from the project instructions. Use the available `codegraph_explore` capability for missing structural evidence, not as a mandatory preflight. Continue with scoped native tools if unavailable.
 <!-- /navori:managed id="codegraph-access-v2-implementer" -->
 
 ## Project rules

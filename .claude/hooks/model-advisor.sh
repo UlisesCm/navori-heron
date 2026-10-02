@@ -1,4 +1,4 @@
-# navori:managed start id="model-advisor-base" hash="9fa53bd0" version="0.11.0" source="@navori/core"
+# navori:managed start id="model-advisor-base" hash="3e5fa50d" version="0.11.1" source="@navori/core"
 #!/usr/bin/env bash
 #
 # Advisory-only main-session model recommendation. The hook reads only payload
@@ -16,7 +16,7 @@ mode=${1:-}
 case "$mode" in
   claude-session-start|codex-session-start) navori_audit_phase="SessionStart" ;;
   claude-post-model-switch) navori_audit_phase="PostModelSwitch" ;;
-  claude-pre-tool-use) navori_audit_phase="PreToolUse" ;;
+  claude-stop) navori_audit_phase="Stop" ;;
   *) navori_audit_phase="unknown" ;;
 esac
 navori_audit_name="model-advisor"
@@ -317,22 +317,24 @@ navori_audit_on_exit() {
 }
 trap navori_audit_on_exit EXIT
 
-# Tool events fire inside every subagent too, and a subagent firing can only
-# reach the `agent_id || agent_type` exit below, so its `node` spawn is pure
-# waste. Discard it here with a fork-free substring test: the same condition,
-# `agent_type` included, so a session started with `--agent` keeps behaving as
-# before. It sits after the trap so audit mode still records the firing.
+# `Stop` fires for the main agent, but a session started with `--agent` carries
+# `agent_type`, and any payload with `agent_id` belongs to a subagent: neither
+# can advise, so their `node` spawn is pure waste. Discard it here with a
+# fork-free substring test. It sits after the trap so audit mode still records
+# the firing.
 case "$payload" in *'"agent_id"'* | *'"agent_type"'*) exit 0 ;; esac
 
-# Second layer of the same guard, for main-thread tool events. The only decision
-# input that can change mid-session is the effort, and Claude hands it to the
-# shell for free in `$CLAUDE_EFFORT`; there is no `$CLAUDE_MODEL`, so the model
-# keeps coming from the session state that `node` writes once per lifecycle
-# event. That asymmetry is what lets the shell answer alone: the same `node` run
-# leaves a sentinel naming what is already settled, and a non-candidate tuple
-# stops paying a spawn per tool call while `medium` -> `high` stays detectable.
+# Second layer of the same guard, for the main-thread `Stop` event (spec 0039
+# R27: it used to ride `PreToolUse(.*)`, a spawn per tool call; now it runs once
+# per finished turn). The only decision input that can change mid-session is the
+# effort, and Claude hands it to the shell for free in `$CLAUDE_EFFORT`; there
+# is no `$CLAUDE_MODEL`, so the model keeps coming from the session state that
+# `node` writes once per lifecycle event. That asymmetry is what lets the shell
+# answer alone: the same `node` run leaves a sentinel naming what is already
+# settled, and a non-candidate tuple stops paying a spawn per turn while
+# `medium` -> `high` stays detectable.
 # See `claude-effort-env` and `claude-no-model-env` in host-contracts.ts.
-if [ "$mode" = "claude-pre-tool-use" ]; then
+if [ "$mode" = "claude-stop" ]; then
   # Parameter expansion only: no fork, and no dependency on optional `jq`.
   # A payload without the key leaves the path empty and falls through to `node`.
   navori_scratchpad=""
@@ -443,10 +445,15 @@ if (mode === "claude-session-start" || mode === "claude-post-model-switch") {
   process.exit(0);
 }
 
-if (mode !== "claude-pre-tool-use") process.exit(0);
+if (mode !== "claude-stop") process.exit(0);
 const state = readState();
 if (!state || state.notified) process.exit(0);
-const effort = payload.effort && typeof payload.effort.level === "string" ? payload.effort.level : null;
+// `Stop` carries `effort.level` when the model has an effort parameter; the
+// host exports the same level as `$CLAUDE_EFFORT`, which covers a payload
+// without the field.
+const envEffort = process.env.CLAUDE_EFFORT || null;
+const effort =
+  payload.effort && typeof payload.effort.level === "string" ? payload.effort.level : envEffort;
 const isFable = state.model === "claude-fable-5";
 const isHighOpus = /opus/i.test(state.model) && ["high", "xhigh", "max"].includes(effort);
 if (!isFable && !isHighOpus) process.exit(0);

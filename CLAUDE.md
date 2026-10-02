@@ -1,4 +1,4 @@
-<!-- navori:managed id="idioma-rol" hash="5d83b387" version="0.11.0" source="@navori/core" -->
+<!-- navori:managed id="idioma-rol" hash="5d83b387" version="0.11.1" source="@navori/core" -->
 ## Idioma y rol
 
 - Código y comentarios (JSDoc/docstrings): inglés. Chat: español MX.
@@ -8,7 +8,7 @@
 - Nunca inyectes tono o énfasis de persona (mayúsculas, exclamaciones, coloquialismos) en artefactos — eso es exclusivo del chat.
 <!-- /navori:managed id="idioma-rol" -->
 
-<!-- navori:managed id="formato-respuesta" hash="f6a393d6" version="0.11.0" source="@navori/core" -->
+<!-- navori:managed id="formato-respuesta" hash="f6a393d6" version="0.11.1" source="@navori/core" -->
 ## Concisión (aplica a todo: chat y subagentes)
 
 - Lidera con el resultado: la primera línea responde "qué pasó / qué encontré", no el preámbulo.
@@ -30,7 +30,7 @@ CAUSA: <1 línea> / ARCHIVO: <path>:<línea> / FIX: <diff mínimo>
 **Commits/PRs**: atómicos, estilo `commits`, sin rastro de IA (`Co-Authored-By`, "Generated with…", código, comentarios).
 <!-- /navori:managed id="formato-respuesta" -->
 
-<!-- navori:managed id="tipado-fuerte" hash="775c6205" version="0.11.0" source="@navori/core" -->
+<!-- navori:managed id="tipado-fuerte" hash="775c6205" version="0.11.1" source="@navori/core" -->
 ## Strong typing
 
 `any` is forbidden. Use `unknown` + narrowing. Type explicitly: parameters, returns, callbacks, events, props, hooks, and service responses.
@@ -38,7 +38,7 @@ CAUSA: <1 línea> / ARCHIVO: <path>:<línea> / FIX: <diff mínimo>
 Exception: `// any justified: <reason>` — last resort, not a shortcut. If there's no clear reason, it's not justified.
 <!-- /navori:managed id="tipado-fuerte" -->
 
-<!-- navori:managed id="operaciones-seguras" hash="a7fdfad8" version="0.11.0" source="@navori/core" -->
+<!-- navori:managed id="operaciones-seguras" hash="a7fdfad8" version="0.11.1" source="@navori/core" -->
 ## Operations on data and infrastructure
 
 Read-only by default. Before mutating data, schema, or infrastructure (DB, deploys, cloud), read and propose — no mutation without the user's explicit opt-in.
@@ -55,7 +55,7 @@ Read-only by default. Before mutating data, schema, or infrastructure (DB, deplo
 **The permission mode decides what you CAN do — read it before planning how.** The host sets it, you never change it. `dontAsk` isn't supported today (`Edit`/`Write` aren't pre-approved, so the implement/review cycle can't run). Reference: https://code.claude.com/docs/en/permission-modes
 <!-- /navori:managed id="operaciones-seguras" -->
 
-<!-- navori:managed id="sdd" hash="2a3ee093" version="0.11.0" source="@navori/core" -->
+<!-- navori:managed id="sdd" hash="2a3ee093" version="0.11.1" source="@navori/core" -->
 ## Spec Driven Development (SDD)
 
 **When to PROPOSE a spec**: real scope — a complete new feature, changes to auth/security/permissions, adapters or models with sensitive data, or scope > ~2 days. UI bugfixes, a new field in a form, isolated refactors, or copy tweaks go straight in. Crossing it makes SDD a **recommendation you put to the user**: the route is opt-in, so the spec starts only on their explicit request or accepted proposal.
@@ -67,7 +67,7 @@ Read-only by default. Before mutating data, schema, or infrastructure (DB, deplo
 Spec scaffolding — EARS templates, `R<n>↔test` traceability rules, and the agent flow (`orchestrator`→`implementer`→`reviewer`) — lives in `spec-bootstrap`: propose SDD; it scaffolds once accepted, via prose or `/spec-bootstrap`.
 <!-- /navori:managed id="sdd" -->
 
-<!-- navori:managed id="intake-tickets" hash="071e0101" version="0.11.0" source="@navori/core" -->
+<!-- navori:managed id="intake-tickets" hash="071e0101" version="0.11.1" source="@navori/core" -->
 ## Tickets: problem first, proposed solution second
 
 A ticket (bug or feature, from any board) describes a SYMPTOM and often ships a proposed solution. Treat them differently:
@@ -80,7 +80,7 @@ A ticket (bug or feature, from any board) describes a SYMPTOM and often ships a 
 The `resolve-ticket` skill runs this as a pipeline; the `auditor` agent produces the verdict with evidence.
 <!-- /navori:managed id="intake-tickets" -->
 
-<!-- navori:managed id="code-discovery-routing" hash="64eb5632" version="0.11.0" source="@navori/core" -->
+<!-- navori:managed id="code-discovery-routing" hash="64eb5632" version="0.11.1" source="@navori/core" -->
 ## Code discovery routing
 
 Choose by the missing information, not by keywords or a fixed tool sequence.
@@ -95,7 +95,7 @@ Choose by the missing information, not by keywords or a fixed tool sequence.
 - Validate changes with the project's compiler, linter and tests; discovery is not validation.
 <!-- /navori:managed id="code-discovery-routing" -->
 
-<!-- navori:managed id="gh-protocol" hash="b2d02c0b" version="0.11.0" source="@navori/plugin-gh" -->
+<!-- navori:managed id="gh-protocol" hash="b2d02c0b" version="0.11.1" source="@navori/plugin-gh" -->
 ## GitHub CLI (gh)
 
 To interact with GitHub (issues, PRs, repos) use **gh**:
@@ -110,19 +110,19 @@ To interact with GitHub (issues, PRs, repos) use **gh**:
 `gh auth status` shows whether you're authenticated. If it fails, run `gh auth login`.
 <!-- /navori:managed id="gh-protocol" -->
 
-<!-- navori:managed id="codegraph-search-v2" hash="6cf0aeee" version="0.11.0" source="@navori/plugin-codegraph" -->
+<!-- navori:managed id="codegraph-search-v2" hash="6e4d4dcc" version="0.11.1" source="@navori/plugin-codegraph" -->
 ### Structural provider: CodeGraph
 
-Use `codegraph_explore` for structural discovery when available. Pass the current checkout's absolute `projectPath`; do not substitute another worktree's index. Treat fresh verbatim source in context as already read. Covers only its indexed languages (see codegraph status); docs, shell and config usually fall outside, so an empty result there is a gap, not absence. Never initialize an index during ordinary discovery. If unindexed or the provider fails, use scoped native exploration. Pass `maxFiles` to bound a large response. Do not call tgrep merely to confirm the same symbol.
+Use `codegraph_explore` for structural discovery when available. Pass the current checkout's absolute `projectPath`; do not substitute another worktree's index. Treat fresh verbatim source in context as already read. Covers only its indexed languages (see codegraph status); docs, shell and config usually fall outside, so an empty result there is a gap, not absence. Never initialize an index during ordinary discovery. If unindexed or the provider fails, use scoped native exploration. Do not call tgrep merely to confirm the same symbol.
 <!-- /navori:managed id="codegraph-search-v2" -->
 
-<!-- navori:managed id="tgrep-search-v2" hash="0f13352d" version="0.11.0" source="@navori/plugin-tgrep" -->
+<!-- navori:managed id="tgrep-search-v2" hash="0f13352d" version="0.11.1" source="@navori/plugin-tgrep" -->
 ### Textual provider: tgrep
 
 Use `tgrep search -n [flags] -- PATTERN ROOT`; without `-n` piped output has no line numbers. Prefer `-F` for literals. Scope by directory or `-t TYPE`; broad queries start with `-l`, then selected files and `-C 2`. Positive `-g` forces a scan. Use `--hidden` only for intended hidden paths. A disk index refreshes only under `tgrep serve`; otherwise it silently misses changes since indexing. If `tgrep status` shows `Server: not running`, use `--no-index` or warn. Exit 1 means no matches, 2 means error. Preserve stderr. If unavailable, use native Grep. Do not install, start servers or reindex during ordinary discovery.
 <!-- /navori:managed id="tgrep-search-v2" -->
 
-<!-- navori:managed id="skills-index" hash="cacc9cda" version="0.11.0" source="@navori/core" -->
+<!-- navori:managed id="skills-index" hash="cacc9cda" version="0.11.1" source="@navori/core" -->
 ## Skills disponibles
 
 Skills que los agentes pueden aplicar. Toda skill vive en `.claude/skills/<id>/SKILL.md` — el directorio no es opcional: es la única forma que Claude Code descubre, también para las tuyas. El listado nativo del host entrega el "cuándo usar" de cada una.
@@ -151,7 +151,7 @@ Las `project-local` son tuyas — navori las indexa pero nunca toca su contenido
 - `heron-accessibility` — project-local
 <!-- /navori:managed id="skills-index" -->
 
-<!-- navori:managed id="contexto-proyecto" hash="0c965770" version="0.11.0" source="@navori/core" -->
+<!-- navori:managed id="contexto-proyecto" hash="0c965770" version="0.11.1" source="@navori/core" -->
 ## Contexto del proyecto
 
 Reglas activas derivadas de tu config (`project.*`). Aplican a todos los agentes.
