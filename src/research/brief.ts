@@ -1,4 +1,5 @@
 import {
+  BRIEF_QUERY_MAX_LENGTH,
   RESEARCH_FACETS,
   type AgentRunRef,
   type BriefQuery,
@@ -46,7 +47,7 @@ export const GENERIC_QUERY_TERMS: readonly string[] = [
 ];
 
 export type QueryIssue = {
-  code: "missing-facet" | "unknown-facet" | "generic-query" | "missing-job";
+  code: "missing-facet" | "unknown-facet" | "generic-query" | "missing-job" | "query-too-long";
   message: string;
 };
 
@@ -88,6 +89,11 @@ export function parseQueryFlag(raw: string): { facet: ResearchFacet; text: strin
       message: `unknown facet "${facet}"; expected one of: ${FACET_LIST}`,
     };
   }
+  if (text.length > BRIEF_QUERY_MAX_LENGTH)
+    return {
+      code: "query-too-long",
+      message: `the query must have at most ${BRIEF_QUERY_MAX_LENGTH} characters`,
+    };
   if (text === "" || onlyGeneric(text)) return genericIssue();
   return { facet, text };
 }
@@ -129,6 +135,7 @@ const POINTER_FIELD: Record<QueryIssue["code"], string> = {
   "unknown-facet": "facet",
   "missing-job": "job",
   "generic-query": "query",
+  "query-too-long": "query",
 };
 
 /** Pure. Per query (pointer /queries/{i}/{field}); at least 3 distinct facets; unique ids. */

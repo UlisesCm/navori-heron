@@ -108,7 +108,9 @@ describe("research brief", () => {
     expect(validateResearchQuery({ facet: "flow", job: "j", query: "a ".repeat(160_000) })).toEqual(
       [],
     );
-    expect(parseQueryFlag(`flow:${"x:".repeat(160_000)}`)).toMatchObject({ facet: "flow" });
+    expect(parseQueryFlag(`flow:${"x:".repeat(160_000)}`)).toMatchObject({
+      code: "query-too-long",
+    });
     expect(performance.now() - started).toBeLessThan(15_000);
   });
 });

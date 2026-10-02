@@ -176,10 +176,12 @@ const text = (max: number): z.ZodString => z.string().min(1).max(max);
 const list = (max: number, itemMax: number): z.ZodArray<z.ZodString> =>
   z.array(text(itemMax)).min(1).max(max);
 
+export const BRIEF_QUERY_MAX_LENGTH = 120;
+
 const BriefQueryOutputSchema: z.ZodType<BriefQueryOutput> = z.strictObject({
   facet: FacetSchema,
   job: text(200),
-  query: text(120),
+  query: text(BRIEF_QUERY_MAX_LENGTH),
   question: text(300),
   rationale: text(300),
 });
@@ -372,7 +374,7 @@ const BriefQuerySchema: z.ZodType<BriefQuery> = z.looseObject({
   id: QueryIdSchema,
   facet: FacetSchema,
   job: text(200),
-  query: text(120),
+  query: text(BRIEF_QUERY_MAX_LENGTH),
   question: z.string().nullable(),
   rationale: z.string().nullable(),
   origin: z.enum(["provided", "inferred"]),
