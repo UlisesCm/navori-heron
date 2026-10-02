@@ -208,6 +208,8 @@ describe("penpot docs", () => {
       "7/7 PASS",
       "0 escrituras",
       "review-page@v2",
+      "tres direcciones válidas de Codex",
+      "Las referencias originales no cambiaron",
       "T21 y la aceptación final permanecen pendientes",
     ])
       expect(docs).toContain(term);
