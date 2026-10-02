@@ -45,17 +45,25 @@ function strictNode(node: Node): Node {
   return out;
 }
 
-/** claude: `z.toJSONSchema` as is. openai-strict: keeps only OPENAI_STRICT_KEYWORDS at every node (DR13). */
+/**
+ * claude: draft-7 `z.toJSONSchema` without the root `$schema`, so the CLI's own validator applies its default dialect
+ * (its Ajv does not resolve the 2020-12 meta-schema; live probe 2026-10-01, DR13).
+ * openai-strict: keeps only OPENAI_STRICT_KEYWORDS at every node (DR13).
+ */
 export function toProviderSchema(
   schema: z.ZodType<unknown>,
   dialect: SchemaDialect,
 ): JsonSchemaObject {
   const json = z.toJSONSchema(schema, {
-    target: "draft-2020-12",
+    target: dialect === "claude" ? "draft-7" : "draft-2020-12",
     io: "output",
     unrepresentable: "throw",
   }) as Node;
-  return dialect === "claude" ? json : strictNode(json);
+  if (dialect === "claude") {
+    const { $schema: _dropped, ...rest } = json;
+    return rest;
+  }
+  return strictNode(json);
 }
 
 function check(node: Node, dialect: SchemaDialect, at: string): void {

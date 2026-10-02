@@ -39,9 +39,12 @@ describe("toProviderSchema", () => {
       const strict = toProviderSchema(schema, "openai-strict");
       expect(() => assertStrictCompatible(claude, "claude")).not.toThrow();
       expect(() => assertStrictCompatible(strict, "openai-strict")).not.toThrow();
-      expect(claude).toEqual(
-        z.toJSONSchema(schema, { target: "draft-2020-12", io: "output", unrepresentable: "throw" }),
-      );
+      const { $schema: _meta, ...draft7 } = z.toJSONSchema(schema, {
+        target: "draft-7",
+        io: "output",
+        unrepresentable: "throw",
+      }) as Record<string, unknown>;
+      expect(claude).toEqual(draft7);
       const used = new Set<string>();
       keywordsIn(strict, used);
       for (const key of used) expect(OPENAI_STRICT_KEYWORDS).toContain(key);
@@ -62,6 +65,18 @@ describe("toProviderSchema", () => {
       "openai-strict",
     );
     expect(Object.keys(odd["properties"] as object)).toEqual(["pattern", "tag"]);
+  });
+
+  test("claude dialect drops $schema and avoids keywords that need the 2020-12 meta-schema", () => {
+    // Covers: R1
+    for (const [name, schema] of Object.entries(OUTPUTS)) {
+      const claude = toProviderSchema(schema, "claude");
+      expect(claude, name).not.toHaveProperty("$schema");
+      const text = JSON.stringify(claude);
+      for (const keyword of ["$defs", "definitions", "prefixItems", "$ref", "$dynamicRef"]) {
+        expect(text, `${name}: ${keyword}`).not.toContain(`"${keyword}"`);
+      }
+    }
   });
 
   test("assertStrictCompatible rejects loose objects, optional keys and foreign keywords", () => {
