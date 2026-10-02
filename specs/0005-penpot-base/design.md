@@ -642,8 +642,11 @@ export declare function penpotRedactor(ctx: AppContext, key: string): (text: str
 /** openPenpotSession(ctx.penpot.gateway, …) -> fn(session) -> session.close() in finally. A PenpotFailure becomes the finding of
  * DR31 (PENPOT_UNREACHABLE | PENPOT_KEY_REJECTED | PENPOT_MCP_INCOMPATIBLE | PENPOT_PLUGIN_NOT_CONNECTED | PENPOT_TIMEOUT |
  * PENPOT_SCRIPT_FAILED) and, when `log` is set, one penpot.error event (DR28). Never holds the lock. */
-export declare function withPenpotSession<T>(ctx: AppContext, input: { baseUrl: string; key: string; command: string; runId: RunId;
-  log: boolean }, fn: (session: PenpotSession) => Promise<UseCaseResult<T>>): Promise<UseCaseResult<T>>;
+// T15 clarification: when logging, callers provide the loaded workspace's heronDir explicitly; ctx.cwd may name another repo.
+export type PenpotSessionInput = { baseUrl: string; key: string; command: string; runId: RunId }
+  & ({ log: false } | { log: true; heronDir: string });
+export declare function withPenpotSession<T>(ctx: AppContext, input: PenpotSessionInput,
+  fn: (session: PenpotSession) => Promise<UseCaseResult<T>>): Promise<UseCaseResult<T>>;
 
 // penpot.ts
 export type PenpotLinkInput = { path: string; fileId: string | null };

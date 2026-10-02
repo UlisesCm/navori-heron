@@ -11,6 +11,14 @@ import { runCli } from "../../src/cli/main.ts";
 import { DEFAULT_RESEARCH_SETTINGS } from "../../src/research/ports.ts";
 import { sharpImageSanitizer } from "../../src/security/images/sanitize.ts";
 import { offlineFetcher } from "./research.ts";
+import type { PenpotGateway } from "../../src/penpot/ports.ts";
+
+export const refusingGateway: PenpotGateway = {
+  id: "mcp",
+  connect() {
+    throw new Error("real Penpot connection in a default test");
+  },
+};
 
 export type CapturedRun = { code: ExitCode; stdout: string; stderr: string };
 
@@ -50,6 +58,12 @@ export function fixedContext(
       killGraceMs: 3_000,
     },
     logRetentionDays: 30,
+    penpot: {
+      gateway: refusingGateway,
+      connectTimeoutMs: 10_000,
+      readTimeoutMs: 10_000,
+      writeTimeoutMs: 60_000,
+    },
     cwd: process.cwd(),
   };
   return { ...context, ...rest };

@@ -182,7 +182,7 @@ Lotes de 1–3 tareas, **en serie** (cada tarea declara de qué depende y con qu
 
 ## Lote 7 — Contexto y casos de uso
 
-- [ ] **T15** (R4, R7, R19) — `AppContext.penpot`, `PENPOT_URL` y key solo del entorno, aviso de permisos del archivo de la key, vínculo y redactor, `withPenpotSession`, evento `penpot.error` y `refusingGateway` en `fixedContext`.
+- [x] **T15** (R4, R7, R19) — `AppContext.penpot`, `PENPOT_URL` y key solo del entorno, aviso de permisos del archivo de la key, vínculo y redactor, `withPenpotSession`, evento `penpot.error` y `refusingGateway` en `fixedContext`.
   - **Archivos:** `src/app/context.ts`, `src/app/penpot-config.ts`, `src/app/penpot-session.ts`, `src/security/logger.ts`, `src/core/store/fs-port.ts`, `tests/helpers/cli.ts`, `tests/unit/app/penpot-config.test.ts`, `tests/unit/app-context.test.ts`, `tests/repo/live-penpot.test.ts`
   - **Interfaces:** PenpotServices; AppContext; createDefaultContext; resolvePenpotUrl; resolvePenpotKey; readPenpotLink; PenpotLink; penpotRedactor; withPenpotSession; LOG_EVENT_NAMES; FileStat; refusingGateway; fixedContext
   - **Patrón:** src/app/write-run.ts

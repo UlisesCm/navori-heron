@@ -6,6 +6,7 @@ export type FileStat = {
   isSymbolicLink(): boolean;
   size: number;
   mtimeMs: number;
+  mode: number;
 };
 
 /** Synchronous filesystem port. The only place `node:fs` is imported (DP2). */

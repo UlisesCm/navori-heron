@@ -2,8 +2,22 @@
 import { expect, test } from "bun:test";
 import { readFileSync, readdirSync } from "node:fs";
 import { join } from "node:path";
+import { fixedContext } from "../helpers/cli.ts";
 
 const ROOT = join(import.meta.dir, "..", "..");
+
+test("keeps real Penpot connections out of the default test run", () => {
+  const ctx = fixedContext();
+  expect(() =>
+    ctx.penpot.gateway.connect({
+      baseUrl: "http://localhost:9001",
+      key: "SYNTHETIC",
+      timeoutMs: 1,
+      clientVersion: "0.1.0",
+      redact: (text) => text,
+    }),
+  ).toThrow("real Penpot connection in a default test");
+});
 
 test("keeps the live Penpot probe out of the default test run", async () => {
   const pkg = JSON.parse(readFileSync(join(ROOT, "package.json"), "utf8")) as {
