@@ -193,7 +193,7 @@ Lotes de 1–3 tareas, **en serie** (cada tarea declara de qué depende y con qu
   - **Comparte archivos con:** T16, T17 (`src/app/penpot-session.ts` y `penpot-config.ts` por uso).
   - **Fuera de alcance:** `doctor` (T18).
 
-- [ ] **T16** (R4, R5, R8, R15) — `heron penpot link` (solo `fileId`) e `inspect` como casos de uso, hecho `penpotProposalsWritten` y su uso en `gateFacts`.
+- [x] **T16** (R4, R5, R8, R15) — `heron penpot link` (solo `fileId`) e `inspect` como casos de uso, hecho `penpotProposalsWritten` y su uso en `gateFacts`.
   - **Archivos:** `src/app/penpot.ts`, `src/app/facts.ts`, `src/app/gate.ts`, `tests/helpers/penpot.ts`, `tests/unit/app/penpot-facts.test.ts`, `tests/unit/penpot/inspect.test.ts`
   - **Interfaces:** runPenpotLink; PenpotLinkInput; runPenpotInspect; PenpotInspectInput; collectPenpotFacts; directionsWorkspace; linkedWorkspace; CANARY_MCP_KEY; penpotEnv
   - **Patrón:** src/app/references.ts
