@@ -108,6 +108,10 @@ Todo script se mide completo en UTF-8 con presupuesto de **32 KiB**, elegido por
 
 **Medición local de v2 (2026-10-02):** las tres propuestas reales de Claude para `monorepo-fullstack` pasan de 52 802 / 49 204 / 49 308 bytes a 32 298 / 30 125 / 30 131 bytes, con reserva de UUID de 36 caracteres. Esta medición y el round-trip semántico no sustituyen la revisión visual ni P12.A8; cualquier propuesta futura que exceda 32 KiB seguirá bloqueada antes de conectar.
 
+**Prueba viva de v2 sobre el producto (2026-10-02):** en un archivo dedicado de Penpot 2.17.2, doctor dio 7/7 PASS y el dry-run anunció cuatro creaciones. `run-20261002T204216Z-c8b8c6d5` creó las tres propuestas reales de Claude y References con las cinco fuentes oficiales, en 36 708 ms, sin findings. La repetición `run-20261002T204339Z-91f8b15a` dio cuatro `unchanged`, **0 escrituras** remotas y locales, y ninguna diferencia en el árbol `.heron/`; inspect confirmó cuatro páginas `up-to-date`. El registro contiene cuatro entradas `review-page@v2`. No se tocaron las páginas del archivo de sonda anterior.
+
+El usuario prefirió **DIR-A — Mesa de triage compacta** como dirección inicial de Claude. Esa preferencia no aprueba la comparación con Codex ni P3.A12/P12.A8. La primera generación real de Codex fue rechazada por IDs inválidos de composición; tras corregir la pérdida de constraints en la proyección conservadora, la repetición sigue pendiente de evaluación. **T21 y la aceptación final permanecen pendientes.**
+
 ### Códigos de salida y fallos
 
 | Código | Situación                                                                                               |

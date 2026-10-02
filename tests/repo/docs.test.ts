@@ -200,6 +200,18 @@ describe("agent provider boundary docs", () => {
 });
 
 describe("penpot docs", () => {
+  // Covers: R18, R20
+  test("records live v2 evidence without claiming manual acceptance", async () => {
+    const docs = await read("docs/penpot.md");
+    for (const term of [
+      "Prueba viva de v2",
+      "7/7 PASS",
+      "0 escrituras",
+      "review-page@v2",
+      "T21 y la aceptación final permanecen pendientes",
+    ])
+      expect(docs).toContain(term);
+  });
   // Covers: R3, R19
   test("records the Penpot boundary ADR and the Penpot sections of the docs", async () => {
     const adr = await read("docs/adr/0007-penpot-boundary.md");
