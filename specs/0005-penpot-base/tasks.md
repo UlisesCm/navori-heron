@@ -86,7 +86,7 @@ Lotes de 1–3 tareas, **en serie** (cada tarea declara de qué depende y con qu
   - **Comparte archivos con:** T7 (`templates/penpot/*`, `tests/unit/penpot/script.test.ts`).
   - **Fuera de alcance:** páginas concretas (T8, T9); ejecución contra Penpot (T7, T17).
 
-- [ ] **T7** (R8, R9, R13, R17) — `FakePenpot` que ejecuta las plantillas como `ExecuteCodeTaskHandler`, prueba de inyección de P12.A4 y pruebas de comportamiento de las plantillas (marcas, formas humanas, intercalado, lectura sin mutar).
+- [x] **T7** (R8, R9, R13, R17) — `FakePenpot` que ejecuta las plantillas como `ExecuteCodeTaskHandler`, prueba de inyección de P12.A4 y pruebas de comportamiento de las plantillas (marcas, formas humanas, intercalado, lectura sin mutar).
   - **Archivos:** `tests/helpers/fake-penpot.ts`, `tests/unit/penpot/script.test.ts`, `tests/unit/penpot/templates.test.ts`, `templates/penpot/inspect@v1.penpot.js`, `templates/penpot/review-page@v1.penpot.js`
   - **Interfaces:** FakePenpot; FakePenpotCounters; runPenpotScript; createFakePenpot
   - **Patrón:** tests/helpers/faulty-fs.ts

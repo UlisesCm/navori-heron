@@ -166,6 +166,8 @@ if (
   found.size !== expected.size ||
   actual.some((shape) => !expected.has(mark(shape)) || written.get(mark(shape)) !== shape.id)
 ) {
+  // A late writer may have restored content after our initial clear (DR45).
+  page.setSharedPluginData("heron", "content", "");
   if (!humanShapes().length) removeOwned(page.root);
   return result("conflict", 0, [...fallback], []);
 }
