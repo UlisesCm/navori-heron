@@ -217,7 +217,7 @@ Lotes de 1–3 tareas, **en serie** (cada tarea declara de qué depende y con qu
 
 ## Lote 8 — Diagnóstico y CLI
 
-- [ ] **T18** (R6, R7) — `heron penpot doctor` (7 checks) y checks de Penpot en `heron doctor` (en paralelo con los de agentes, solo con vínculo).
+- [x] **T18** (R6, R7) — `heron penpot doctor` (7 checks) y checks de Penpot en `heron doctor` (en paralelo con los de agentes, solo con vínculo).
   - **Archivos:** `src/app/penpot-doctor.ts`, `src/app/doctor.ts`, `tests/unit/penpot/doctor.test.ts`, `tests/e2e/doctor.test.ts`
   - **Interfaces:** penpotChecks; runPenpotDoctor; DOCTOR_CHECK_IDS
   - **Patrón:** src/app/doctor.ts
