@@ -1,0 +1,72 @@
+#!/bin/sh
+# Fetch (and verify) the official Penpot docker-compose.yaml of a tag. See docs/penpot.md and specs/0005 DR3.
+set -eu
+
+usage() {
+  cat >&2 <<'USAGE'
+Usage: PENPOT_VERSION=<x.y.z> infra/penpot/fetch-compose [--update | --out <dir>]
+  (default)  verify the tag file against docker-compose.yaml.sha256 and write infra/penpot/docker-compose.yaml
+  --update   accept a new version: rewrite docker-compose.yaml, its .sha256 and PENPOT_VERSION in .env.example
+  --out DIR  download to DIR/docker-compose.yaml and print its sha256; touch nothing in infra/penpot
+Exit: 0 ok; 1 download or checksum failure (nothing replaced); 2 usage
+USAGE
+  exit 2
+}
+
+mode=verify
+out=""
+case "$#" in
+  0) ;;
+  1) [ "$1" = "--update" ] || usage; mode=update ;;
+  2) [ "$1" = "--out" ] && [ -n "$2" ] || usage; mode=out; out=$2 ;;
+  *) usage ;;
+esac
+
+version=${PENPOT_VERSION:-}
+if ! printf '%s' "$version" | grep -Eq '^[0-9]+\.[0-9]+\.[0-9]+$'; then
+  echo "fetch-compose: PENPOT_VERSION must look like x.y.z" >&2
+  usage
+fi
+
+here=$(cd "$(dirname "$0")" && pwd)
+target="$here/docker-compose.yaml"
+sumfile="$here/docker-compose.yaml.sha256"
+envfile="$here/.env.example"
+url="https://raw.githubusercontent.com/penpot/penpot/${version}/docker/images/docker-compose.yaml"
+
+tmp=$(mktemp "${TMPDIR:-/tmp}/penpot-compose.XXXXXX")
+trap 'rm -f "$tmp" "$tmp.env"' EXIT
+
+curl --fail --silent --show-error --location --proto '=https' --tlsv1.2 --output "$tmp" "$url" || {
+  echo "fetch-compose: download failed" >&2
+  exit 1
+}
+actual=$(shasum -a 256 "$tmp" | cut -d' ' -f1)
+
+case "$mode" in
+  out)
+    mkdir -p "$out"
+    mv "$tmp" "$out/docker-compose.yaml"
+    echo "$actual"
+    ;;
+  update)
+    mv "$tmp" "$target"
+    printf '%s  infra/penpot/docker-compose.yaml\n' "$actual" > "$sumfile"
+    awk -v v="$version" '/^PENPOT_VERSION=/ { print "PENPOT_VERSION=" v; next } { print }' "$envfile" > "$tmp.env"
+    cat "$tmp.env" > "$envfile"
+    echo "fetch-compose: updated to $version ($actual); review the diff before committing" >&2
+    ;;
+  verify)
+    pinned=$(sed -n 's/^PENPOT_VERSION=//p' "$envfile")
+    if [ "$version" != "$pinned" ]; then
+      echo "fetch-compose: PENPOT_VERSION differs from the pinned $pinned; use --update to accept a new version" >&2
+      exit 1
+    fi
+    expected=$(cut -d' ' -f1 "$sumfile")
+    if [ "$actual" != "$expected" ]; then
+      echo "fetch-compose: sha256 mismatch for $version (expected $expected, got $actual); nothing replaced" >&2
+      exit 1
+    fi
+    mv "$tmp" "$target"
+    ;;
+esac

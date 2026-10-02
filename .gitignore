@@ -3,3 +3,6 @@ progress/
 node_modules/
 coverage/
 /.heron/
+.env
+.env.*
+!.env.example

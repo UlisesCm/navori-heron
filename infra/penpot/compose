@@ -1,0 +1,34 @@
+#!/bin/sh
+# docker compose wrapper for Penpot: guards first, then `docker compose` (specs/0005 DR1, DR39, DR47).
+# Calling `docker compose` directly skips these guards.
+set -eu
+
+here=$(cd "$(dirname "$0")" && pwd)
+envfile=${PENPOT_ENV_FILE:-$here/.env}
+
+refuse() {
+  echo "compose: $1" >&2
+  exit 2
+}
+
+[ -f "$envfile" ] || refuse "$envfile is missing; run infra/penpot/init-env"
+
+# `ls -ln` is portable between macOS and Linux; chars 5-10 are the group and other bits.
+perms=$(ls -lnL "$envfile" | cut -c5-10)
+[ "$perms" = "------" ] || refuse "$envfile is readable by group or others; run chmod 600"
+
+env_flags=$(sed -n 's/^PENPOT_EXTRA_FLAGS=//p' "$envfile" | tail -n 1)
+for flags in "${PENPOT_EXTRA_FLAGS:-}" "$env_flags"; do
+  case "$flags" in
+    *disable-secure-session-cookies* | *disable-email-verification*)
+      refuse "PENPOT_EXTRA_FLAGS contains a forbidden flag (disable-secure-session-cookies, disable-email-verification)"
+      ;;
+  esac
+done
+
+if [ "${1:-}" = "--check" ]; then
+  exit 0
+fi
+
+exec docker compose -p penpot --env-file "$envfile" \
+  -f "$here/docker-compose.yaml" -f "$here/compose.override.yaml" "$@"

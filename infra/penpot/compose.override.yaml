@@ -1,0 +1,50 @@
+# Heron override of the vendored official compose (specs/0005 DR2, DR36, DR47). It removes every insecure default.
+x-flags: &penpot-flags
+  PENPOT_FLAGS: "enable-mcp enable-prepl-server disable-registration ${PENPOT_EXTRA_FLAGS:-}"
+
+x-secret-key: &penpot-secret-key
+  PENPOT_SECRET_KEY: "${PENPOT_SECRET_KEY:?PENPOT_SECRET_KEY is required (run infra/penpot/init-env)}"
+
+x-uri: &penpot-public-uri
+  PENPOT_PUBLIC_URI: "${PENPOT_PUBLIC_URI:?PENPOT_PUBLIC_URI is required}"
+
+services:
+  penpot-frontend:
+    image: "penpotapp/frontend:${PENPOT_VERSION:?PENPOT_VERSION is required}"
+    # Without !override Compose appends this entry and keeps the upstream 0.0.0.0:9001 too.
+    ports: !override
+      - "${PENPOT_BIND_ADDRESS:-127.0.0.1}:${PENPOT_HTTP_PORT:-9001}:8080"
+    environment:
+      <<: [*penpot-flags, *penpot-public-uri]
+
+  penpot-backend:
+    image: "penpotapp/backend:${PENPOT_VERSION:?PENPOT_VERSION is required}"
+    environment:
+      <<: [*penpot-flags, *penpot-public-uri, *penpot-secret-key]
+      PENPOT_DATABASE_PASSWORD: "${PENPOT_DB_PASSWORD:?PENPOT_DB_PASSWORD is required (run infra/penpot/init-env)}"
+      PENPOT_TELEMETRY_ENABLED: "${PENPOT_TELEMETRY_ENABLED:-false}"
+      # Optional SMTP: with an empty host and without enable-smtp Penpot sends no email.
+      PENPOT_SMTP_HOST: "${PENPOT_SMTP_HOST:-}"
+      PENPOT_SMTP_PORT: "${PENPOT_SMTP_PORT:-587}"
+      PENPOT_SMTP_USERNAME: "${PENPOT_SMTP_USERNAME:-}"
+      PENPOT_SMTP_PASSWORD: "${PENPOT_SMTP_PASSWORD:-}"
+      PENPOT_SMTP_TLS: "${PENPOT_SMTP_TLS:-true}"
+      PENPOT_SMTP_DEFAULT_FROM: "${PENPOT_SMTP_DEFAULT_FROM:-}"
+      PENPOT_SMTP_DEFAULT_REPLY_TO: "${PENPOT_SMTP_DEFAULT_REPLY_TO:-}"
+
+  penpot-mcp:
+    image: "penpotapp/mcp:${PENPOT_VERSION:?PENPOT_VERSION is required}"
+
+  penpot-exporter:
+    image: "penpotapp/exporter:${PENPOT_VERSION:?PENPOT_VERSION is required}"
+    environment:
+      <<: [*penpot-secret-key, *penpot-public-uri]
+
+  penpot-postgres:
+    environment:
+      - "POSTGRES_PASSWORD=${PENPOT_DB_PASSWORD:?PENPOT_DB_PASSWORD is required (run infra/penpot/init-env)}"
+
+  # Inactive (never started) and pinned, so no service in the merged model uses `latest`.
+  penpot-mailcatch:
+    image: sj26/mailcatcher:v0.11.0
+    profiles: ["disabled"]
