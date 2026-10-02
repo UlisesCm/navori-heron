@@ -182,6 +182,7 @@ Rutas exactas. "R" = requisitos de `requirements.md`. `(nuevo)` / `(mod)`. † =
 | `src/penpot/text-modules.d.ts` (nuevo) | `declare module "*.penpot.js"` | R9 |
 | `src/penpot/compiler/nodes.ts` (nuevo) | `PenpotNode`, `ReviewPage`, `PageMarks`, `HERON_NAMESPACE` | R10, R13 |
 | `src/penpot/compiler/templates.ts` (nuevo) | `PENPOT_TEMPLATES`, `penpotTemplate` (import de texto + sha256); único importador de `templates/penpot/` | R9 |
+| `src/penpot/compiler/transport.ts` (v2 aprobado) | `packPenpotNode`, `PackedPenpotNode`; codec posicional puro que conserva todos los campos semánticos | R9, R19 |
 | `src/penpot/compiler/script.ts` (nuevo) | `renderScript`, `safeJsonLiteral`, `MAX_SCRIPT_BYTES` | R9 |
 | `src/penpot/compiler/ids.ts` (nuevo) | `proposalPageId`, `REFERENCES_PAGE_ID`, `proposalSourceSha256`, `referencesSourceSha256`, `contentSha256` | R10, R15, R16 |
 | `src/penpot/compiler/copy.ts` (nuevo) | `PENPOT_COPY` (`en`, `es`), `resolvePenpotCopy` | R10, R16 |
@@ -504,7 +505,7 @@ export declare function isTestedVersion(reported: string): boolean; // MAJOR.MIN
 // results.ts — types and schemas of what the templates return (z.object; strings capped); compiler/plan.ts imports types only
 export type InspectedPage = { pageId: string; name: string; marks: { id: string; content: string | null; source: string | null; template: string | null; mode: string | null } };
 export type InspectedFile = { heron: "inspect@v1"; penpotVersion: string; file: PenpotFileRef | null; pages: InspectedPage[] /* heron-marked, file order, <= 500 */; unmanagedPages: number };
-export type WrittenPage = { heron: "review-page@v1"; pageId: string; outcome: "written" | "conflict" | "human-shapes"; created: boolean;
+export type WrittenPage = { heron: "review-page@v1" | "review-page@v2"; pageId: string; outcome: "written" | "conflict" | "human-shapes"; created: boolean;
   shapes: number; fontFallbacks: string[]; humanShapes: string[] /* <= 10 names, untrusted */ };
 export const InspectedFileSchema: z.ZodType<InspectedFile>;
 export const WrittenPageSchema: z.ZodType<WrittenPage>;
@@ -536,8 +537,8 @@ export type ReviewPage = { heronId: string; kind: ReviewPageKind; name: string; 
 
 // templates.ts (pattern 10; the only importer of templates/penpot/)
 export type PenpotTemplate = { id: "inspect" | "review-page"; version: number; text: string; sha256: Sha256Hex; ref: TemplateRef };
-export const PENPOT_TEMPLATES: readonly PenpotTemplate[]; // inspect@v1, review-page@v1
-export declare function penpotTemplate(id: PenpotTemplate["id"]): PenpotTemplate;
+export const PENPOT_TEMPLATES: readonly PenpotTemplate[]; // inspect@v1, review-page@v1, review-page@v2
+export declare function penpotTemplate(id: PenpotTemplate["id"], version?: number /* default 1; app review requests 2 */): PenpotTemplate;
 
 // script.ts
 export const MAX_SCRIPT_BYTES = 32_768; // Heron budget: S7 + JSON transport escaping
@@ -547,8 +548,12 @@ export declare function safeJsonLiteral(data: unknown): string;
 export declare function renderScript(template: PenpotTemplate, data: unknown): { ok: true; code: string } | { ok: false; bytes: number };
 /** Shared payload constructor: References budgeting and session.write serialize exactly the same fields. */
 export type ReviewScriptData = { page: Pick<ReviewPage, "heronId" | "kind" | "name" | "mode" | "sourceSha256" | "contentSha256"> & { template: string };
-  targetPageId: string | null; nodes: PenpotNode[] };
+  targetPageId: string | null; nodes: PenpotNode[] | PackedPenpotNode[] };
 export declare function reviewScriptData(page: ReviewPage, targetPageId: string | null): ReviewScriptData;
+
+// transport.ts: v2 only, pure reversible positional encoding; semantic nodes stay unchanged.
+export type PackedPenpotNode = readonly unknown[];
+export declare function packPenpotNode(node: PenpotNode): PackedPenpotNode;
 
 // ids.ts
 export const REFERENCES_PAGE_ID = "heron:references";

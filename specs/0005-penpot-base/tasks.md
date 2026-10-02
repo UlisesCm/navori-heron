@@ -241,6 +241,11 @@ Lotes de 1–3 tareas, **en serie** (cada tarea declara de qué depende y con qu
 
 ## Lote 9 — Documentación y aceptación
 
+- [x] **T20.V2** (R9, R17, R19) — Transporte reversible aprobado el 2026-10-02 para propuestas reales mayores a 32 KiB.
+  - **Archivos:** `src/penpot/compiler/{transport,script,templates}.ts`, `templates/penpot/review-page@v2.penpot.js`, `src/penpot/{session,results}.ts`, `src/app/{penpot,penpot-sync}.ts`, `tests/unit/penpot/{transport,script,session,inspect}.test.ts`, `docs/{penpot.md,adr/0007-penpot-boundary.md}`, `specs/0005-penpot-base/design.md`.
+  - **Contrato:** v1 intacta; nodos completos restaurados antes de mutar; fuente sin cambios, contenido con versión/SHA v2; respuesta ligada a versión solicitada; presupuesto de 32 KiB conservado y medido por el mismo payload en preflight y sesión.
+  - **Done:** round-trip semántico, bytes congelados, guardas humanas, discriminantes inválidos sin mutación, límite y rechazo de respuesta de otra versión; `bun run check`. La sonda viva y la aceptación visual siguen pendientes en T21; no se registra P12.A8 con tests locales.
+
 - [x] **T20** (R3, R19) — ADR 0007, `docs/penpot.md` completa con las órdenes `heron penpot`, secciones de arquitectura, seguridad y README, y skill actualizada.
   - **Archivos:** `docs/adr/0007-penpot-boundary.md`, `docs/penpot.md`, `docs/architecture.md`, `docs/security.md`, `README.md`, `.claude/skills/heron-architecture/references/layout.md`, `.claude/skills/heron-architecture/references/patterns.md`, `.claude/skills/heron-architecture/references/recipes.md`, `tests/repo/docs.test.ts`
   - **Interfaces:** mcpGateway; defaultPenpotGateway; renderScript; PENPOT_TEMPLATES; PENPOT_TESTED_VERSIONS

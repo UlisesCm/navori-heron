@@ -21,12 +21,15 @@ const bytes = (text: string): number => new TextEncoder().encode(text).byteLengt
 describe("Penpot scripts", () => {
   test("registers every Penpot template with its version and sha256", () => {
     expect(HERON_NAMESPACE).toBe("heron");
-    expect(PENPOT_TEMPLATES.map((entry) => entry.id)).toEqual(["inspect", "review-page"]);
+    expect(PENPOT_TEMPLATES.map((entry) => `${entry.id}@v${entry.version}`)).toEqual([
+      "inspect@v1",
+      "review-page@v1",
+      "review-page@v2",
+    ]);
     for (const entry of PENPOT_TEMPLATES) {
-      expect(entry.version).toBe(1);
       expect(entry.sha256).toBe(sha256Hex(new TextEncoder().encode(entry.text)));
       expect(entry.ref).toEqual({ id: entry.id, version: entry.version, sha256: entry.sha256 });
-      expect(penpotTemplate(entry.id)).toBe(entry);
+      expect(penpotTemplate(entry.id, entry.version)).toBe(entry);
       // oxlint-disable-next-line no-control-regex -- tests the template transport invariant
       expect(entry.text).not.toMatch(/[\u0000-\u0008\u000b\u000c\u000e-\u001f]/);
       expect(entry.text).not.toMatch(/\b(?:fetch|console|storage)\b/);

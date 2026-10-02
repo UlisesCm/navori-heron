@@ -28,6 +28,12 @@ Penpot es un lienzo editable, no la fuente de verdad. Las propuestas provienen d
 
 ## Consecuencias
 
+### Transporte v2 aprobado el 2026-10-02
+
+Las propuestas reales excedieron 32 KiB aun con JSON compacto. El usuario aprobó `review-page@v2` sin quitar contenido ni aumentar el presupuesto. `reviewScriptData` empaqueta exclusivamente los nodos de v2 como arrays posicionales con discriminantes 0 (texto), 1 (rectángulo) y 2 (tablero); un nombre igual a su clave usa `null` y se restaura exactamente. La plantilla decodifica antes de cualquier mutación y conserva el renderer y sus guardas. La reserva de UUID, el preflight y la sesión usan el mismo payload. La app pide v2 explícitamente; el registro conserva v1 por versión para reproducir sus bytes congelados. La sesión exige que la respuesta coincida con la versión solicitada.
+
+Los nodos semánticos y `sourceSha256` no cambian. `contentSha256` sí cambia porque incluye la versión/SHA de la plantilla; las páginas existentes se reconcilian mediante el plan normal, no se parchean marcas. References conserva su política previa de prefijo por presupuesto. No se prometen presupuestos para todas las salidas futuras: se mide y bloquea cada script completo.
+
 - Las propuestas son páginas de revisión: no escriben `design/**`, `penpot/sync-state.json`, validación ni export. En `reference-only` llevan banda y marca de modo; References usa texto, no imágenes.
 - Un timeout no garantiza que el script se haya detenido: espera a que Penpot quede libre antes de repetir. Las formas humanas se mueven fuera de los tableros propios para permitir actualizar.
 - Los tests por default usan `refusingGateway` o dobles; las pruebas vivas son opt-in y mutan únicamente un archivo desechable autorizado. La aceptación A8 sobre el producto real sigue siendo manual.

@@ -1,6 +1,7 @@
 import { canonicalJson } from "../../core/contracts/index.ts";
 import type { PenpotNode, ReviewPage } from "./nodes.ts";
 import type { PenpotTemplate } from "./templates.ts";
+import { packPenpotNode, type PackedPenpotNode } from "./transport.ts";
 
 export const MAX_SCRIPT_BYTES = 32_768;
 
@@ -26,7 +27,7 @@ export type ReviewScriptData = {
     "heronId" | "kind" | "name" | "mode" | "sourceSha256" | "contentSha256"
   > & { template: string };
   targetPageId: string | null;
-  nodes: PenpotNode[];
+  nodes: PenpotNode[] | PackedPenpotNode[];
 };
 
 /** Budgeting and session.apply must serialize exactly the same payload. */
@@ -42,6 +43,6 @@ export function reviewScriptData(page: ReviewPage, targetPageId: string | null):
       template: `${page.template.id}@v${page.template.version}`,
     },
     targetPageId,
-    nodes: page.nodes,
+    nodes: page.template.version === 2 ? page.nodes.map(packPenpotNode) : page.nodes,
   };
 }

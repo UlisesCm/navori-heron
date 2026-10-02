@@ -73,9 +73,11 @@ function session(runner: PenpotCodeRunner): PenpotSession {
     inspect: (timeoutMs) => execute(penpotTemplate("inspect"), {}, InspectedFileSchema, timeoutMs),
     async apply(page, targetPageId, timeoutMs) {
       const result = await execute(
-        penpotTemplate("review-page"),
+        penpotTemplate("review-page", page.template.version),
         reviewScriptData(page, targetPageId),
-        WrittenPageSchema,
+        WrittenPageSchema.refine(
+          (value) => value.heron === `review-page@v${page.template.version}`,
+        ),
         timeoutMs,
       );
       return result.ok && result.value.outcome === "conflict"

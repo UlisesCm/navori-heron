@@ -77,6 +77,29 @@ async function setup(): Promise<{
 }
 
 describe("Penpot session", () => {
+  test("executes the requested review version and rejects a mismatched result version", async () => {
+    const { session, setReply } = await setup();
+    const next = buildReferencesPage([sampleReference()], {
+      mode: "reference-only",
+      copy: resolvePenpotCopy("en"),
+      template: penpotTemplate("review-page", 2),
+    });
+    const result = await session.apply(next, null, 100);
+    expect(result).toMatchObject({
+      ok: true,
+      value: { heron: "review-page@v2", outcome: "written" },
+    });
+    if (!result.ok) throw new Error("v2 write failed");
+    setReply({
+      ok: true,
+      text: JSON.stringify({ result: { ...result.value, heron: "review-page@v1" }, log: "" }),
+      durationMs: 0,
+    });
+    expect(await session.apply(next, null, 100)).toMatchObject({
+      ok: false,
+      failure: { kind: "incompatible" },
+    });
+  });
   test("parses template results and maps execution failures", async () => {
     const schema = z.object({ ok: z.literal(1) });
     expect(

@@ -104,7 +104,9 @@ Sync verifica el archivo vinculado antes de escribir, detiene el plan al primer 
 
 La red corre fuera del lock: una modificación local concurrente produce exit 6 y no revierte Penpot. Repetir reconcilia las páginas ya escritas. Un timeout tampoco cancela necesariamente el script remoto: espera a que termine y Penpot esté libre antes de repetir. No edites el archivo mientras corre sync; este cambia la página activa y no restaura la anterior.
 
-Todo script se mide completo en UTF-8 con presupuesto de **32 KiB**, elegido por Heron tras el spike, no límite oficial de Penpot. Las propuestas que exceden el presupuesto fallan antes de conectar; References recorta su prefijo. El JSON de transporte es compacto y determinista sin alterar las huellas locales.
+Todo script se mide completo en UTF-8 con presupuesto de **32 KiB**, elegido por Heron tras el spike, no límite oficial de Penpot. Las propuestas que exceden el presupuesto fallan antes de conectar; References recorta su prefijo. El JSON de transporte es compacto y determinista. La revisión usa `review-page@v2`: codifica nodos en arrays posicionales y los restaura completos antes de tocar Penpot, sin omitir contenido. `inspect@v1` y `review-page@v1` permanecen intactas. La huella de fuente no cambia; la huella de contenido incluye la nueva versión y su SHA, por lo que una página v1 requiere una reescritura al migrar a v2. La guarda de formas humanas sigue aplicando.
+
+**Medición local de v2 (2026-10-02):** las tres propuestas reales de Claude para `monorepo-fullstack` pasan de 52 802 / 49 204 / 49 308 bytes a 32 298 / 30 125 / 30 131 bytes, con reserva de UUID de 36 caracteres. Esta medición y el round-trip semántico no sustituyen la revisión visual ni P12.A8; cualquier propuesta futura que exceda 32 KiB seguirá bloqueada antes de conectar.
 
 ### Códigos de salida y fallos
 

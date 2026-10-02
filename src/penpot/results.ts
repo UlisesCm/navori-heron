@@ -20,7 +20,7 @@ export type InspectedFile = {
   unmanagedPages: number;
 };
 export type WrittenPage = {
-  heron: "review-page@v1";
+  heron: "review-page@v1" | "review-page@v2";
   pageId: string;
   outcome: "written" | "conflict" | "human-shapes";
   created: boolean;
@@ -55,7 +55,7 @@ export const InspectedFileSchema: z.ZodType<InspectedFile> = z.object({
   unmanagedPages: count,
 });
 export const WrittenPageSchema: z.ZodType<WrittenPage> = z.object({
-  heron: z.literal("review-page@v1"),
+  heron: z.enum(["review-page@v1", "review-page@v2"]),
   pageId: id,
   outcome: z.enum(["written", "conflict", "human-shapes"]),
   created: z.boolean(),
