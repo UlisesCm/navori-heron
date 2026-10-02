@@ -60,3 +60,7 @@ La CSP es defensa en profundidad: el control primario es el escape total y no em
 ## Fuera de alcance de P2
 
 Sink de logs JSONL y redacción por valor cargado (P3), subida de archivos y CSP por header (P8), imágenes por URL y SVG, y `http` público (descartado por D29).
+
+## Launcher en repos no confiables
+
+`bin/heron.ts` arranca con `#!/usr/bin/env -S bun --no-env-file --config=/dev/null` (y `bun run heron` usa los mismos flags): Bun 1.4.2 ejecutaría el `preload` del `bunfig.toml` y cargaría el `.env` del directorio actual, que en un repo no confiable es input hostil (`tests/repo/launcher.test.ts`).
