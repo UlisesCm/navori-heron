@@ -1,7 +1,7 @@
 {
   "$navori": {
     "managed": true,
-    "version": "0.11.0",
+    "version": "0.11.1",
     "notes": "Archivo generado por navori. NO editar a mano — los cambios se pierden en el próximo `navori render`. Per-user / per-machine permissions van a settings.local.json (gitignored)."
   },
   "attribution": {
@@ -58,13 +58,13 @@
         ]
       },
       {
-        "matcher": ".*",
+        "matcher": "Agent",
         "hooks": [
           {
             "type": "command",
-            "command": "bash \"$CLAUDE_PROJECT_DIR/.claude/hooks/model-advisor.sh\" claude-pre-tool-use",
+            "command": "bash \"$CLAUDE_PROJECT_DIR/.claude/hooks/general-purpose-confirm.sh\"",
             "timeout": 10,
-            "statusMessage": "navori: model advisor"
+            "statusMessage": "navori: general-purpose-confirm"
           }
         ]
       }
@@ -110,6 +110,18 @@
         ]
       }
     ],
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash \"$CLAUDE_PROJECT_DIR/.claude/hooks/model-advisor.sh\" claude-stop",
+            "timeout": 10,
+            "statusMessage": "navori: model advisor"
+          }
+        ]
+      }
+    ],
     "PostToolUse": [
       {
         "matcher": "Bash|Edit|Write|NotebookEdit",
@@ -127,8 +139,8 @@
         "hooks": [
           {
             "type": "command",
-            "command": "bash \"$CLAUDE_PROJECT_DIR/.claude/hooks/routing-watch.sh\"",
-            "timeout": 10,
+            "command": "bash \"$CLAUDE_PROJECT_DIR/.claude/hooks/routing-watch.sh\" claude-post-tool-use",
+            "timeout": 30,
             "statusMessage": "navori: routing check"
           }
         ]
@@ -141,6 +153,19 @@
             "command": "bash \"$CLAUDE_PROJECT_DIR/.claude/hooks/subagent-stop-handoff.sh\"",
             "timeout": 15,
             "statusMessage": "navori: handoff check"
+          }
+        ]
+      }
+    ],
+    "PostToolUseFailure": [
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash \"$CLAUDE_PROJECT_DIR/.claude/hooks/bash-outcome-watch.sh\"",
+            "timeout": 10,
+            "statusMessage": "navori: repeat failure advice"
           }
         ]
       }
@@ -247,6 +272,7 @@
       "Bash(navori audit:*)",
       "Bash(navori receipt:*)",
       "Bash(navori handoff check:*)",
+      "Bash(navori handoff log-review:*)",
       "Bash(navori dominio list:*)",
       "Bash(navori dominio show:*)",
       "Bash(navori dominio doctor:*)",
@@ -320,6 +346,7 @@
       "Bash(gh issue create:*)",
       "Bash(navori master init:*)",
       "Bash(navori master mode:*)",
+      "Bash(navori master ux:*)",
       "Bash(navori master advance:*)",
       "Bash(navori master part:*)",
       "Bash(navori master close:*)"
