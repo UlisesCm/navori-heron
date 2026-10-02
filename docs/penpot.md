@@ -46,7 +46,7 @@ Para otro host u otro navegador que el de `localhost`, pon Penpot detrás de un 
 ## MCP
 
 1. En Penpot, abre un archivo y activa la integración MCP en el perfil (**Integrations**, "MCP Server") y genera la **key**. Se muestra una sola vez y no es recuperable: guárdala fuera de todo repo.
-2. En el archivo, conecta el plugin integrado ("Remote MCP"): **File → MCP Server → Connect** (la etiqueta exacta se confirma en S1).
+2. En el archivo, conecta el plugin integrado ("Remote MCP"): **Main menu → MCP Server → Connect** (la etiqueta exacta se confirma en S1).
 3. El MCP está activo en **una sola pestaña** a la vez; mantén esa pestaña en primer plano o aplica el ajuste de pestaña activa de Chrome/Edge para el sitio.
 4. Heron habla con `<PENPOT_URL>/mcp/stream?userToken=<key>` a través del frontend; el contenedor `penpot-mcp` no publica puertos. La página de Integrations entrega la URL **con la key incluida**: no la pegues como `PENPOT_URL`, Heron la rechaza.
 5. `sync` cambia la página activa de la vista (`openPage`): no edites el archivo mientras corre (DR29).
@@ -75,7 +75,7 @@ Heron **no lee `.env`** (DR43). Desde el PR #16 ya integrado (T14, el lanzador),
 ## Fuentes y egreso a terceros
 
 - La telemetría de Penpot está desactivada por default (`PENPOT_TELEMETRY_ENABLED=false`).
-- El proveedor de **Google Fonts** queda activo: el navegador pide fuentes a Google (egreso a un tercero). Se conserva porque las propuestas comparan tipografía y sin el proveedor las familias caen a la fuente por default. Opt-out: `PENPOT_EXTRA_FLAGS=disable-google-fonts-provider`, con la consecuencia de que Heron usa `PENPOT_FONT_FALLBACK`. S6 (2026-10-02): `Inter` está disponible, pero `fonts.findByName("Inter")` devuelve `Inter Tight`; la búsqueda es por coincidencia parcial. `fonts.all.find(font => font.name === "Inter")` devuelve la familia exacta y una familia inexistente devuelve `null`. La selección exacta debe resolverse en DR25 antes de escribir las plantillas.
+- El proveedor de **Google Fonts** queda activo: el navegador pide fuentes a Google (egreso a un tercero). Se conserva porque las propuestas comparan tipografía y sin el proveedor las familias caen a la fuente por default. Opt-out: `PENPOT_EXTRA_FLAGS=disable-google-fonts-provider`, con la consecuencia de que Heron usa `PENPOT_FONT_FALLBACK`. S6 (2026-10-02): `Inter` está disponible, pero `fonts.findByName("Inter")` devuelve `Inter Tight`; la búsqueda es por coincidencia parcial. `fonts.all.find(font => font.name === "Inter")` devuelve la familia exacta y una familia inexistente devuelve `null`. DR25 ya exige selección exacta de nombre completo, sin distinguir mayúsculas, antes de aplicar la fuente.
 - Fuera de eso, Penpot no contacta a terceros salvo el SMTP que configures.
 
 ## Backups
@@ -113,7 +113,7 @@ Antes del Lote 2 y sin Heron, con `infra/penpot/` y esta guía:
 
 | Id  | Comprobación                                                                                                                                                                                                        | Esperado                                                                                                         |
 | --- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------- |
-| S1  | `up -d`, login, MCP activado, key, plugin conectado; anota versión de Chrome y etiqueta exacta del botón                                                                                                            | Conecta; "File → MCP Server → Connect"                                                                           |
+| S1  | `up -d`, login, MCP activado, key, plugin conectado; anota versión de Chrome y etiqueta exacta del botón                                                                                                            | Conecta; "Main menu → MCP Server → Connect"                                                                      |
 | S2  | `create-profile` con verificación de email activa; ese perfil inicia sesión                                                                                                                                         | Entra sin verificar email                                                                                        |
 | S3  | `return { ok: 1 }`; `throw new Error("heron-spike")`; una key equivocada                                                                                                                                            | Texto `{ "result", "log" }`; `Tool execution failed: …`; 401/403 o "No Penpot instance connected for user token" |
 | S4  | `return penpot.version`                                                                                                                                                                                             | Cadena que empieza con `2.17.2`                                                                                  |
@@ -152,4 +152,10 @@ El spike se ejecutó con un cliente Streamable HTTP desechable en Bun, fuera del
 
 **S7 adicional (cuerpo JSON real):** 65 536 bytes de script con barras invertidas en el comentario generan 131 162 bytes de cuerpo RPC y HTTP 413. Con 32 768 bytes de script, el cuerpo mide 65 626 bytes y devuelve `result: 1` en 81 ms. **64 KiB no es un presupuesto seguro para contenido escapado**; se propone 32 KiB para el script completo y recortar References por tamaño real antes de enviar, sin aumentar el límite del servidor.
 
-**Estado de salida:** las comprobaciones terminaron; **T6–T7 todavía no empiezan**. Falta asentar los cambios de tamaño, presupuesto de References y selección exacta de fuentes en los contratos/tareas de la spec. Esta evidencia no sustituye T12, la sonda viva con el código de Heron, ni las aceptaciones manuales P12.A7/P12.A8.
+**Estado de salida:** el usuario aprobó los ajustes el 2026-10-02: presupuesto de 32 KiB, prefijo References por bytes reales y fuentes exactas. Los contratos/tareas de la spec ya los incorporan; **T6–T7 todavía no empiezan**. Esta evidencia no sustituye T12, la sonda viva con el código de Heron, ni las aceptaciones manuales P12.A7/P12.A8.
+
+### Fundamento oficial de los ajustes
+
+[Express 5](https://expressjs.com/en/5x/api/express/#express.json) documenta 100kb por cuerpo JSON; el [servidor MCP de Penpot 2.17.2](https://github.com/penpot/penpot/blob/2.17.2/mcp/packages/server/src/PenpotMcpServer.ts#L373-L378) no cambia ese default. **32 KiB es el presupuesto de Heron elegido por el usuario con el spike**, no una especificación oficial de Penpot. References conserva el prefijo más largo que quepa al renderizar el script final, hasta el techo de 48 tarjetas; informa cada referencia omitida y no divide la página.
+
+La [Plugin API oficial](https://doc.plugins.penpot.app/interfaces/FontsContext) expone `fonts.all`; la [implementación fijada](https://github.com/penpot/penpot/blob/2.17.2/frontend/src/app/plugins/fonts.cljs#L109-L118) explica por qué `findByName` puede seleccionar otra familia. Heron compara el nombre completo, sin distinguir mayúsculas, y usa fallback si esa familia no existe.
