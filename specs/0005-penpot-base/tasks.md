@@ -99,7 +99,7 @@ Lotes de 1–3 tareas, **en serie** (cada tarea declara de qué depende y con qu
 
 ## Lote 4 — Páginas de revisión y plan
 
-- [ ] **T8** (R10, R14) — Página de propuesta por dirección: ids y huellas, copy `en`/`es`, recetas de componentes, composición y layout fijo por sección.
+- [x] **T8** (R10, R14) — Página de propuesta por dirección: ids y huellas, copy `en`/`es`, recetas de componentes, composición y layout fijo por sección.
   - **Archivos:** `src/penpot/compiler/ids.ts`, `src/penpot/compiler/copy.ts`, `src/penpot/compiler/components.ts`, `src/penpot/compiler/composition.ts`, `src/penpot/compiler/proposal-page.ts`, `tests/assets/penpot/direction-proposal.json`, `tests/unit/penpot/proposal-page.test.ts`
   - **Interfaces:** proposalPageId; REFERENCES_PAGE_ID; proposalSourceSha256; referencesSourceSha256; contentSha256; PENPOT_COPY; resolvePenpotCopy; componentNodes; compositionNodes; buildProposalPage; PROPOSAL_LAYOUT; CHROME
   - **Patrón:** src/research/render/moodboard.ts

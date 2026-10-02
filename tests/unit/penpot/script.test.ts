@@ -50,6 +50,7 @@ describe("Penpot scripts", () => {
       text: '"); throw new Error("injected"); // ` ${penpot}\n\u0000\u2028\u2029😀\\',
     };
     const literal = safeJsonLiteral(hostile);
+    expect(JSON.parse(literal)).toBe(JSON.stringify(JSON.parse(canonicalJson(hostile))));
     expect(literal).not.toContain("\u2028");
     expect(literal).not.toContain("\u2029");
     const rendered = renderScript(echo, hostile);
@@ -79,8 +80,13 @@ describe("Penpot scripts", () => {
     expect(unicode.ok).toBe(false);
     expect(renderScript({ ...echo, text: " ".repeat(MAX_SCRIPT_BYTES) }, {}).ok).toBe(false);
     for (const unit of ["\\", "\u0000", "\n\r\t", "😀", "\ud800", "\u2028\u2029", '"']) {
-      let count = 1;
-      while (renderScript(echo, { text: unit.repeat(count + 1) }).ok) count += 1;
+      let count = 0;
+      let high = MAX_SCRIPT_BYTES;
+      while (count < high) {
+        const candidate = Math.ceil((count + high) / 2);
+        if (renderScript(echo, { text: unit.repeat(candidate) }).ok) count = candidate;
+        else high = candidate - 1;
+      }
       const rendered = renderScript(echo, { text: unit.repeat(count) });
       if (!rendered.ok) throw new Error("last fitting script refused");
       const body = JSON.stringify({

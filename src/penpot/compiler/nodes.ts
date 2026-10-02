@@ -60,3 +60,67 @@ export type ReviewPage = {
   contentSha256: Sha256Hex;
   issues: CompileIssue[];
 };
+
+export type BoardNode = Extract<PenpotNode, { type: "board" }>;
+export type TextNode = Extract<PenpotNode, { type: "text" }>;
+export type RectNode = Extract<PenpotNode, { type: "rect" }>;
+
+/** Small, pure constructors shared by the section, component and composition recipes. */
+export function makeBoard(
+  key: string,
+  children: PenpotNode[],
+  options: Partial<Omit<BoardNode, "type" | "key" | "children">> = {},
+): BoardNode {
+  return {
+    type: "board",
+    key,
+    name: key,
+    x: 0,
+    y: 0,
+    width: 320,
+    height: null,
+    fill: null,
+    radius: 0,
+    stroke: null,
+    layout: { kind: "flex", dir: "column", gap: 12, padding: 0, wrap: false },
+    ...options,
+    children,
+  };
+}
+export function makeText(
+  key: string,
+  characters: string,
+  options: Partial<Omit<TextNode, "type" | "key" | "characters">> = {},
+): TextNode {
+  return {
+    type: "text",
+    key,
+    name: key,
+    characters,
+    width: 320,
+    fontFamily: "Inter",
+    fontSize: 16,
+    fontWeight: 400,
+    lineHeight: 1.4,
+    color: "#18212B",
+    ...options,
+  };
+}
+export function makeRect(
+  key: string,
+  width: number,
+  height: number,
+  options: Partial<Omit<RectNode, "type" | "key" | "width" | "height">> = {},
+): RectNode {
+  return {
+    type: "rect",
+    key,
+    name: key,
+    width,
+    height,
+    fill: null,
+    radius: 0,
+    stroke: null,
+    ...options,
+  };
+}

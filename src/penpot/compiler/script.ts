@@ -4,11 +4,10 @@ import type { PenpotTemplate } from "./templates.ts";
 
 export const MAX_SCRIPT_BYTES = 32_768;
 
-/** A JS string literal containing canonical JSON, never executable user input. */
+/** Compact transport JSON with canonical key order; persisted hashes still use canonicalJson unchanged. */
 export function safeJsonLiteral(data: unknown): string {
-  return JSON.stringify(canonicalJson(data))
-    .replaceAll("\u2028", "\\u2028")
-    .replaceAll("\u2029", "\\u2029");
+  const json = JSON.stringify(JSON.parse(canonicalJson(data)));
+  return JSON.stringify(json).replaceAll("\u2028", "\\u2028").replaceAll("\u2029", "\\u2029");
 }
 
 /** The only producer of code sent to Penpot. Measures the entire UTF-8 script. */
