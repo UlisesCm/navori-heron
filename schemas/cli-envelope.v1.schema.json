@@ -57,7 +57,11 @@
             "research brief",
             "research analyze",
             "direction propose",
-            "direction select"
+            "direction select",
+            "penpot link",
+            "penpot doctor",
+            "penpot inspect",
+            "penpot sync"
           ],
           "type": "string"
         },
@@ -71,6 +75,264 @@
       "anyOf": [
         {
           "anyOf": [
+            {
+              "additionalProperties": false,
+              "properties": {
+                "dryRun": {
+                  "type": "boolean"
+                },
+                "file": {
+                  "additionalProperties": false,
+                  "properties": {
+                    "id": {
+                      "type": "string"
+                    },
+                    "name": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "id",
+                    "name"
+                  ],
+                  "type": "object"
+                },
+                "mode": {
+                  "enum": [
+                    "full",
+                    "reference-only"
+                  ],
+                  "type": "string"
+                },
+                "pages": {
+                  "items": {
+                    "additionalProperties": false,
+                    "properties": {
+                      "action": {
+                        "enum": [
+                          "created",
+                          "updated",
+                          "unchanged",
+                          "would-create",
+                          "would-update"
+                        ],
+                        "type": "string"
+                      },
+                      "heronId": {
+                        "type": "string"
+                      },
+                      "pageId": {
+                        "type": [
+                          "string",
+                          "null"
+                        ]
+                      }
+                    },
+                    "required": [
+                      "heronId",
+                      "action",
+                      "pageId"
+                    ],
+                    "type": "object"
+                  },
+                  "type": "array"
+                },
+                "stateRevision": {
+                  "anyOf": [
+                    {
+                      "maximum": 9007199254740991,
+                      "minimum": -9007199254740991,
+                      "type": "integer"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                },
+                "writes": {
+                  "maximum": 9007199254740991,
+                  "minimum": 0,
+                  "type": "integer"
+                },
+                "written": {
+                  "items": {
+                    "maxLength": 512,
+                    "type": "string"
+                  },
+                  "type": "array"
+                }
+              },
+              "required": [
+                "dryRun",
+                "mode",
+                "file",
+                "pages",
+                "writes",
+                "written",
+                "stateRevision"
+              ],
+              "type": "object"
+            },
+            {
+              "additionalProperties": false,
+              "properties": {
+                "bound": {
+                  "additionalProperties": false,
+                  "properties": {
+                    "fileId": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "matches": {
+                      "type": "boolean"
+                    }
+                  },
+                  "required": [
+                    "fileId",
+                    "matches"
+                  ],
+                  "type": "object"
+                },
+                "file": {
+                  "anyOf": [
+                    {
+                      "additionalProperties": false,
+                      "properties": {
+                        "id": {
+                          "type": "string"
+                        },
+                        "name": {
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "id",
+                        "name"
+                      ],
+                      "type": "object"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                },
+                "pages": {
+                  "items": {
+                    "additionalProperties": false,
+                    "properties": {
+                      "heronId": {
+                        "type": "string"
+                      },
+                      "name": {
+                        "type": [
+                          "string",
+                          "null"
+                        ]
+                      },
+                      "pageId": {
+                        "type": [
+                          "string",
+                          "null"
+                        ]
+                      },
+                      "status": {
+                        "enum": [
+                          "up-to-date",
+                          "outdated",
+                          "missing",
+                          "duplicate",
+                          "unknown"
+                        ],
+                        "type": "string"
+                      }
+                    },
+                    "required": [
+                      "heronId",
+                      "pageId",
+                      "name",
+                      "status"
+                    ],
+                    "type": "object"
+                  },
+                  "type": "array"
+                },
+                "penpotVersion": {
+                  "type": "string"
+                },
+                "unmanagedPages": {
+                  "maximum": 9007199254740991,
+                  "minimum": 0,
+                  "type": "integer"
+                }
+              },
+              "required": [
+                "penpotVersion",
+                "file",
+                "bound",
+                "pages",
+                "unmanagedPages"
+              ],
+              "type": "object"
+            },
+            {
+              "additionalProperties": false,
+              "properties": {
+                "file": {
+                  "additionalProperties": false,
+                  "properties": {
+                    "id": {
+                      "type": "string"
+                    },
+                    "name": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "id",
+                    "name"
+                  ],
+                  "type": "object"
+                },
+                "penpotVersion": {
+                  "type": "string"
+                },
+                "previousFileId": {
+                  "type": [
+                    "string",
+                    "null"
+                  ]
+                },
+                "stateRevision": {
+                  "anyOf": [
+                    {
+                      "maximum": 9007199254740991,
+                      "minimum": -9007199254740991,
+                      "type": "integer"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                },
+                "written": {
+                  "items": {
+                    "maxLength": 512,
+                    "type": "string"
+                  },
+                  "type": "array"
+                }
+              },
+              "required": [
+                "file",
+                "penpotVersion",
+                "previousFileId",
+                "written",
+                "stateRevision"
+              ],
+              "type": "object"
+            },
             {
               "additionalProperties": false,
               "properties": {
@@ -7271,7 +7533,14 @@
                           "agents.fake",
                           "probe.claude-code",
                           "probe.codex-cli",
-                          "probe.fake"
+                          "probe.fake",
+                          "penpot.config",
+                          "penpot.url",
+                          "penpot.key",
+                          "penpot.mcp",
+                          "penpot.plugin",
+                          "penpot.file",
+                          "penpot.version"
                         ],
                         "type": "string"
                       },
@@ -7507,7 +7776,29 @@
               "DIRECTION_NOT_FOUND",
               "DIRECTION_PREFERENCE_CLEARED",
               "DIRECTIONS_WITHOUT_UX_CONTEXT",
-              "SECRET_REDACTED"
+              "SECRET_REDACTED",
+              "PENPOT_NOT_CONFIGURED",
+              "PENPOT_URL_MISSING",
+              "PENPOT_CONFIG_INVALID",
+              "PENPOT_KEY_MISSING",
+              "PENPOT_KEY_FILE_PERMISSIONS",
+              "PENPOT_UNREACHABLE",
+              "PENPOT_KEY_REJECTED",
+              "PENPOT_MCP_INCOMPATIBLE",
+              "PENPOT_PLUGIN_NOT_CONNECTED",
+              "PENPOT_TIMEOUT",
+              "PENPOT_SCRIPT_FAILED",
+              "PENPOT_SCRIPT_TOO_LARGE",
+              "PENPOT_FILE_MISMATCH",
+              "PENPOT_FILE_REBOUND",
+              "PENPOT_VERSION_UNTESTED",
+              "PENPOT_SOURCE_UNAVAILABLE",
+              "PENPOT_SYNC_PARTIAL",
+              "PENPOT_HUMAN_SHAPES_INSIDE",
+              "PENPOT_DUPLICATE_PAGE",
+              "PENPOT_FONT_FALLBACK",
+              "PENPOT_PROPOSAL_FALLBACK",
+              "PENPOT_REFERENCES_TRUNCATED"
             ],
             "type": "string"
           },

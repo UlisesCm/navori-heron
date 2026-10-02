@@ -3,6 +3,9 @@ import { describe, expect, test } from "bun:test";
 import { makeFinding } from "../../src/app/result.ts";
 import { COMMANDS } from "../../src/cli/commands/index.ts";
 import {
+  type PenpotSyncState,
+  PENPOT_SYNC_STATE_DOCUMENT,
+  PENPOT_SYNC_SCOPES,
   BRAND_INPUTS_DOCUMENT,
   CLI_COMMANDS,
   DOCTOR_CHECK_IDS,
@@ -504,7 +507,8 @@ describe("research documents", () => {
     // Every command has its CommandSpec (the group is the first word of "references add").
     const registered = new Set<string>(COMMANDS.map((spec) => spec.name));
     // TODO(P3 CLI task): drop "direction" once `direction` registers its CommandSpec (envelope data lands in T4).
-    const PENDING_SPECS = new Set(["direction"]);
+    // TODO(P12 T19): drop "penpot" once the `penpot` group registers its CommandSpec.
+    const PENDING_SPECS = new Set(["direction", "penpot"]);
     for (const command of CLI_COMMANDS) {
       const group = command.split(" ")[0]!;
       if (!PENDING_SPECS.has(group)) expect(registered.has(group)).toBe(true);
@@ -1131,9 +1135,89 @@ describe("agent documents", () => {
     }
     expect(CLI_COMMANDS).toContain("direction select");
     expect(DOCTOR_CHECK_IDS).toContain("probe.codex-cli");
-    expect(FINDING_CODES.at(-1)).toBe("SECRET_REDACTED");
+    expect(FINDING_CODES.indexOf("SECRET_REDACTED")).toBeLessThan(
+      FINDING_CODES.indexOf("PENPOT_NOT_CONFIGURED"),
+    );
     expect(FINDING_CODES.indexOf("AGENT_UNAVAILABLE")).toBe(
       FINDING_CODES.indexOf("LOWER_TIER_ITEMS_SKIPPED") + 1,
     );
+  });
+});
+
+describe("penpot documents", () => {
+  const sha = "a".repeat(64);
+  const syncState: PenpotSyncState = {
+    kind: "PenpotSyncState",
+    schemaVersion: 1,
+    scope: "review",
+    file: { id: "file-1", name: "Heron review" },
+    penpotVersion: "2.17.2",
+    entries: [
+      {
+        heronId: "heron:proposal:DIR-A",
+        kind: "proposal-page",
+        pageId: "page-1",
+        pageName: "Heron · DIR-A",
+        template: { id: "review-page", version: 1, sha256: sha },
+        sourceSha256: sha,
+        contentSha256: sha,
+        mode: "reference-only",
+      },
+    ],
+  };
+
+  // Covers: R15
+  test("round-trips the Penpot sync syncState and rejects an unknown schemaVersion", () => {
+    const parsed = parseVersionedDocument(
+      syncState,
+      PENPOT_SYNC_STATE_DOCUMENT,
+      "review-sync.json",
+    );
+    expect(parsed).toEqual(syncState);
+    expect(PENPOT_SYNC_SCOPES).toEqual(["review", "system"]);
+    expect(() =>
+      parseVersionedDocument(
+        { ...syncState, schemaVersion: 2 },
+        PENPOT_SYNC_STATE_DOCUMENT,
+        "review-sync.json",
+      ),
+    ).toThrow(UnsupportedSchemaVersionError);
+    expect(
+      PENPOT_SYNC_STATE_DOCUMENT.schema.safeParse({
+        ...syncState,
+        entries: [{ ...syncState.entries[0], heronId: "proposal" }],
+      }).success,
+    ).toBe(false);
+  });
+
+  // Covers: R4, R5, R8
+  test("registers the penpot commands, checks and 22 finding codes", () => {
+    for (const c of ["link", "doctor", "inspect", "sync"]) {
+      expect(CLI_COMMANDS).toContain(`penpot ${c}` as never);
+    }
+    expect(DOCTOR_CHECK_IDS.filter((id) => id.startsWith("penpot."))).toHaveLength(7);
+    const added = FINDING_CODES.slice(FINDING_CODES.indexOf("SECRET_REDACTED") + 1);
+    expect(added).toHaveLength(22);
+    expect(added.every((c) => c.startsWith("PENPOT_"))).toBe(true);
+    const data = {
+      file: { id: "f", name: "n" },
+      penpotVersion: "2.17.2",
+      previousFileId: null,
+      written: [".heron/project.json"],
+      stateRevision: 2,
+    };
+    const result = CLI_ENVELOPE_DOCUMENT.schema.safeParse({
+      kind: "CliEnvelope",
+      schemaVersion: 1,
+      command: "penpot link",
+      ok: true,
+      code: 0,
+      data,
+      findings: [],
+      runId: "run-20261001T120000Z-3f9a1c2b",
+      durationMs: 1,
+      next: [],
+    });
+    expect(result.success).toBe(true);
   });
 });

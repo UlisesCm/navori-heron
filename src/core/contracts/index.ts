@@ -29,6 +29,7 @@ import {
   type ResearchProvenance,
   type ResearchReferences,
 } from "./research.ts";
+import { PENPOT_SYNC_STATE_DOCUMENT, type PenpotSyncState } from "./penpot.ts";
 import type { DocumentSpec } from "./version.ts";
 
 export * from "./common.ts";
@@ -45,6 +46,7 @@ export * from "./intake-data.ts";
 export * from "./agents.ts";
 export * from "./directions.ts";
 export * from "./agents-data.ts";
+export * from "./penpot.ts";
 
 /** Registry consumed by scripts/gen-schemas.ts, in this order. */
 export const CONTRACT_DOCUMENTS: readonly [
@@ -63,6 +65,7 @@ export const CONTRACT_DOCUMENTS: readonly [
   DocumentSpec<ResearchBrief>,
   DocumentSpec<ResearchAnalysis>,
   DocumentSpec<VisualDirections>,
+  DocumentSpec<PenpotSyncState>,
 ] = [
   HERON_PROJECT_DOCUMENT,
   HERON_STATE_DOCUMENT,
@@ -79,4 +82,5 @@ export const CONTRACT_DOCUMENTS: readonly [
   RESEARCH_BRIEF_DOCUMENT,
   RESEARCH_ANALYSIS_DOCUMENT,
   VISUAL_DIRECTIONS_DOCUMENT,
+  PENPOT_SYNC_STATE_DOCUMENT,
 ];

@@ -51,7 +51,7 @@ Lotes de 1–3 tareas, **en serie** (cada tarea declara de qué depende y con qu
 
 ## Lote 2 — Contratos y tablas de estado
 
-- [ ] **T4** (R4, R5, R6, R8, R11, R13, R15) — Contrato `PenpotSyncState`, datos de CLI de `penpot`, 22 códigos de finding, 7 ids de checks y 4 órdenes; schemas regenerados.
+- [x] **T4** (R4, R5, R6, R8, R11, R13, R15) — Contrato `PenpotSyncState`, datos de CLI de `penpot`, 22 códigos de finding, 7 ids de checks y 4 órdenes; schemas regenerados.
   - **Archivos:** `src/core/contracts/penpot.ts`, `src/core/contracts/common.ts`, `src/core/contracts/cli-envelope.ts`, `src/core/contracts/version.ts`, `src/core/contracts/index.ts`, `schemas/`, `tests/unit/contracts.test.ts`
   - **Interfaces:** PenpotSyncState; PenpotSyncStateSchema; PENPOT_SYNC_STATE_DOCUMENT; PENPOT_SYNC_SCOPES; PenpotSyncEntry; PenpotFileRef; PenpotLinkData; PenpotInspectData; PenpotSyncData; PenpotPageStatus; PenpotSyncAction; FINDING_CODES; CLI_COMMANDS; DOCTOR_CHECK_IDS
   - **Patrón:** src/core/contracts/directions.ts
@@ -62,7 +62,7 @@ Lotes de 1–3 tareas, **en serie** (cada tarea declara de qué depende y con qu
   - **Comparte archivos con:** ninguna tarea posterior.
   - **Fuera de alcance:** colector de hechos (T16); uso en CLI (T19).
 
-- [ ] **T5** (R15) — `penpot/review-sync.json` en `PHASE_ARTIFACTS` y `ARTIFACT_DEPENDENCIES`.
+- [x] **T5** (R15) — `penpot/review-sync.json` en `PHASE_ARTIFACTS` y `ARTIFACT_DEPENDENCIES`.
   - **Archivos:** `src/core/state/stale.ts`, `tests/unit/stale.test.ts`
   - **Interfaces:** PHASE_ARTIFACTS; ARTIFACT_DEPENDENCIES
   - **Patrón:** src/core/state/stale.ts
