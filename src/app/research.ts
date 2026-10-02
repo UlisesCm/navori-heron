@@ -4,7 +4,12 @@ import { canTransition } from "../core/state/transitions.ts";
 import { RESEARCH_FILES } from "../research/layout.ts";
 import { researchMode } from "../research/provenance.ts";
 import type { AppContext } from "./context.ts";
-import { readResearch, researchCounts, stageResearchOutputs } from "./research-store.ts";
+import {
+  agentDocuments,
+  readResearch,
+  researchCounts,
+  stageResearchOutputs,
+} from "./research-store.ts";
 import { failure, makeFinding, storeErrorResult, type UseCaseResult } from "./result.ts";
 import { loadWorkspace } from "./workspace.ts";
 import { withWriteRun, type WriteBodyResult } from "./write-run.ts";
@@ -59,6 +64,7 @@ export async function runResearchRender(
           currentMode: ws.mode,
           locale,
           minimum: ctx.research.minReferences,
+          agent: agentDocuments(research),
         });
         const production = !canTransition(
           previous,

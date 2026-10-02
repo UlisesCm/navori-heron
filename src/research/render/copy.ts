@@ -30,7 +30,41 @@ export type CopyKey =
   | "removedSection"
   | "none"
   | "imageAlt"
-  | "source";
+  | "source"
+  | "briefSection"
+  | "briefFacet"
+  | "briefJob"
+  | "briefQuestion"
+  | "briefRationale"
+  | "originProvided"
+  | "originInferred"
+  | "analysisSection"
+  | "inferredNotice"
+  | "facets"
+  | "suggestedDoNotCopy"
+  | "answersQueries"
+  | "directionsSection"
+  | "directionsNotice"
+  | "summary"
+  | "selection"
+  | "takes"
+  | "risks"
+  | "whenItFits"
+  | "whenItDoesnt"
+  | "palette"
+  | "contrast"
+  | "passes"
+  | "fails"
+  | "personality"
+  | "density"
+  | "surfaceTreatment"
+  | "typographyStrategy"
+  | "colorStrategy"
+  | "imageryStrategy"
+  | "navigationCharacter"
+  | "componentWeight"
+  | "motionCharacter"
+  | "directionReferences";
 /** Templates with {name} placeholders filled by formatCopy. */
 export type ResearchCopy = Readonly<Record<CopyKey, string>>;
 
@@ -66,6 +100,41 @@ const en: ResearchCopy = {
   none: "—",
   imageAlt: "Reference image with its highlighted crops",
   source: "Source",
+  briefSection: "Research brief",
+  briefFacet: "Facet",
+  briefJob: "Job",
+  briefQuestion: "Question",
+  briefRationale: "Rationale",
+  originProvided: "provided",
+  originInferred: "inferred",
+  analysisSection: "Inferred notes",
+  inferredNotice:
+    "Inferred by an agent; not human-provided data and never merged into the fields above.",
+  facets: "Facets",
+  suggestedDoNotCopy: "Suggested: what not to copy",
+  answersQueries: "Answers queries",
+  directionsSection: "Visual directions",
+  directionsNotice: "Inferred, reference-only proposals; marked SYNTHETIC.",
+  summary: "Summary",
+  selection: "Selection",
+  takes: "Takes",
+  risks: "Risks",
+  whenItFits: "When it fits",
+  whenItDoesnt: "When it does not fit",
+  palette: "Palette",
+  contrast: "Contrast",
+  passes: "passes",
+  fails: "fails",
+  personality: "Personality",
+  density: "Density",
+  surfaceTreatment: "Surface treatment",
+  typographyStrategy: "Typography strategy",
+  colorStrategy: "Color strategy",
+  imageryStrategy: "Imagery strategy",
+  navigationCharacter: "Navigation character",
+  componentWeight: "Component weight",
+  motionCharacter: "Motion character",
+  directionReferences: "References",
 };
 
 const es: ResearchCopy = {
@@ -100,6 +169,41 @@ const es: ResearchCopy = {
   none: "—",
   imageAlt: "Imagen de referencia con sus recortes resaltados",
   source: "Fuente",
+  briefSection: "Brief de investigación",
+  briefFacet: "Faceta",
+  briefJob: "Tarea",
+  briefQuestion: "Pregunta",
+  briefRationale: "Justificación",
+  originProvided: "provista",
+  originInferred: "inferida",
+  analysisSection: "Notas inferidas",
+  inferredNotice:
+    "Inferido por un agente; no son datos aportados por una persona y nunca se mezclan con los campos anteriores.",
+  facets: "Facetas",
+  suggestedDoNotCopy: "Sugerido: qué no copiar",
+  answersQueries: "Responde consultas",
+  directionsSection: "Direcciones visuales",
+  directionsNotice: "Propuestas inferidas, solo de referencia; marcadas SYNTHETIC.",
+  summary: "Resumen",
+  selection: "Selección",
+  takes: "Qué se toma",
+  risks: "Riesgos",
+  whenItFits: "Cuándo encaja",
+  whenItDoesnt: "Cuándo no encaja",
+  palette: "Paleta",
+  contrast: "Contraste",
+  passes: "cumple",
+  fails: "no cumple",
+  personality: "Personalidad",
+  density: "Densidad",
+  surfaceTreatment: "Tratamiento de superficie",
+  typographyStrategy: "Estrategia tipográfica",
+  colorStrategy: "Estrategia de color",
+  imageryStrategy: "Estrategia de imágenes",
+  navigationCharacter: "Carácter de navegación",
+  componentWeight: "Peso de componentes",
+  motionCharacter: "Carácter de movimiento",
+  directionReferences: "Referencias",
 };
 
 export const RESEARCH_COPY: Readonly<Record<SupportedLocale, ResearchCopy>> = { en, es };

@@ -5,8 +5,13 @@ import {
   ProvenanceSchema,
   ResearchProvenanceSchema,
   ResearchReferencesSchema,
+  type AgentRunRef,
   type BrandInput,
+  type DirectionId,
+  type ResearchAnalysis,
+  type ResearchBrief,
   type ResearchReference,
+  type VisualDirectionOutput,
 } from "../../../src/core/contracts/index.ts";
 import { sha256Hex } from "../../../src/core/store/hash.ts";
 import { formatCopy, RESEARCH_COPY, resolveCopy } from "../../../src/research/render/copy.ts";
@@ -16,13 +21,27 @@ import {
   MOODBOARD_STYLE_HASH,
   renderMoodboardHtml,
 } from "../../../src/research/render/moodboard.ts";
+import { buildVisualDirections } from "../../../src/research/directions.ts";
 import { renderResearchOutputs } from "../../../src/research/render/outputs.ts";
+import { checkContrast } from "../../../src/tokens/contrast.ts";
 import { sampleReference } from "../../helpers/research.ts";
 
 const SHA = "a".repeat(64);
 const ORIGINAL = "b".repeat(64);
 const AT = "2026-09-30T12:00:00.000Z";
 const ATTACK = '<script>alert("x")</script>';
+
+const NO_AGENT = { brief: null, analysis: null, directions: null };
+const run: AgentRunRef = {
+  runId: "run-1",
+  path: "runs/run-1.json",
+  provider: "fake",
+  template: { id: "design-director/direction-propose", version: 1, sha256: SHA },
+  cacheKey: SHA,
+};
+const EVIL = "![x](https://evil.test/p.png) [a](javascript:alert(1)) <b>x</b> www.evil.test";
+
+const evil = (key: string): string => `${key} ${EVIL}`;
 
 const image = (path = `research/assets/${SHA}.webp`) => ({
   path,
@@ -145,6 +164,7 @@ const render = (overrides: Partial<Parameters<typeof renderResearchOutputs>[0]> 
     currentMode: "full",
     locale: "es",
     minimum: 5,
+    agent: NO_AGENT,
     ...overrides,
   });
 
@@ -214,6 +234,7 @@ describe("moodboard", () => {
       currentMode: "full",
       locale: "en",
       minimum: 5,
+      agent: NO_AGENT,
     });
     expect(out.moodboard).not.toContain("passwd");
     expect(out.moodboard).not.toContain("<svg");
@@ -226,6 +247,7 @@ describe("moodboard", () => {
       currentMode: "reference-only",
       locale: null,
       minimum: 5,
+      agent: NO_AGENT,
     });
     expect(empty.moodboard).toContain('<ol class="cards">\n</ol>');
     expect(empty.moodboard).not.toContain('class="brand"');
@@ -305,6 +327,7 @@ describe("escaping", () => {
       currentMode: "full",
       locale: "en",
       minimum: 5,
+      agent: NO_AGENT,
     });
     // html: the raw markup never appears; its escaped form does for every field
     expect(out.moodboard).not.toContain("<script>alert");
@@ -338,9 +361,155 @@ describe("escaping", () => {
       currentMode: "full",
       locale: "en",
       minimum: 5,
+      agent: NO_AGENT,
     });
     expect(out.markdown).not.toContain("`research/assets/we");
     expect(out.markdown).toContain("research/assets/we\\`ird.webp");
+  });
+});
+
+function hostileDirection(id: DirectionId): VisualDirectionOutput {
+  return {
+    id,
+    name: evil("name"),
+    summary: evil("summary"),
+    attributes: {
+      personality: evil("personality"),
+      density: "d",
+      surfaceTreatment: "s",
+      typographyStrategy: "t",
+      colorStrategy: "c",
+      imageryStrategy: "i",
+      navigationCharacter: "n",
+      componentWeight: "w",
+      motionCharacter: "m",
+      references: [
+        { reference: "REF-1", takes: [evil("take")], doNotCopy: [evil("avoid")] },
+        { reference: "REF-2", takes: ["t"], doNotCopy: ["d"] },
+      ],
+      risks: [evil("risk")],
+      whenItFits: ["f"],
+      whenItDoesnt: ["d"],
+    },
+    proposal: {
+      palette: {
+        colors: [
+          { id: "c1", name: evil("paper"), hex: "#ffffff", role: "background" },
+          { id: "c2", name: "Ink", hex: "#111111", role: "text" },
+          { id: "c3", name: "Blue", hex: "#1a4fd6", role: "primary" },
+          { id: "c4", name: "Mist", hex: "#f2f2f2", role: "surface" },
+        ],
+        pairs: [
+          { foreground: "c2", background: "c1", usage: "body-text" },
+          { foreground: "c3", background: "c1", usage: "ui-component" },
+        ],
+      },
+      typeScale: {
+        families: [{ role: "text", family: "Inter", fallback: ["sans-serif"] }],
+        steps: [{ id: "t1", name: "Body", sizePx: 16, lineHeight: 1.5, weight: 400, usage: "b" }],
+      },
+      componentSheet: [],
+      composition: { title: "t", description: "d", nodes: [] },
+    },
+  };
+}
+
+const agentDocs = (): Parameters<typeof renderResearchOutputs>[0]["agent"] => {
+  const brief: ResearchBrief = {
+    kind: "ResearchBrief",
+    schemaVersion: 1,
+    mode: "reference-only",
+    briefedAt: AT,
+    run,
+    queries: [
+      {
+        id: "Q-aaaaaaaa",
+        facet: "visual-style",
+        job: `job ${EVIL}`,
+        query: `query ${EVIL}`,
+        question: `question ${EVIL}`,
+        rationale: null,
+        origin: "inferred",
+      },
+    ],
+  };
+  const analysis: ResearchAnalysis = {
+    kind: "ResearchAnalysis",
+    schemaVersion: 1,
+    mode: "reference-only",
+    analyses: [
+      {
+        reference: "REF-1",
+        observations: [{ aspect: `aspect ${EVIL}`, note: `note ${EVIL}` }],
+        facets: ["visual-style"],
+        suggestedDoNotCopy: [`avoid ${EVIL}`],
+        answersQueries: ["Q-aaaaaaaa", "Q-bbbbbbbb"],
+        referenceSha256: SHA,
+        inputKey: SHA,
+        analyzedAt: AT,
+        run,
+        origin: "inferred",
+      },
+    ],
+  };
+  const directions = {
+    ...buildVisualDirections(
+      {
+        directions: [
+          hostileDirection("DIR-A"),
+          hostileDirection("DIR-B"),
+          hostileDirection("DIR-C"),
+        ],
+      },
+      {
+        checkContrast,
+        proposedAt: AT,
+        run,
+        basis: { references: [], brief: null, analysis: null },
+      },
+    ),
+  };
+  directions.selection = {
+    direction: "DIR-A",
+    status: "preferred",
+    decidedBy: EVIL,
+    decidedAt: AT,
+    note: EVIL,
+    stateRevision: 3,
+  };
+  return { brief, analysis, directions };
+};
+
+describe("agent sections", () => {
+  // Covers: R16
+  test("escapes agent text in the research views", () => {
+    const out = render({ locale: "en", agent: agentDocs() });
+    const md = out.markdown;
+    expect(md).toContain("## Research brief");
+    expect(md).toContain("## Inferred notes");
+    expect(md).toContain("## Visual directions");
+    // hostile markup is inert: no raw html, no live image or link syntax, no autolinks
+    expect(md).not.toMatch(/(?<!\\)</);
+    expect(md).not.toContain("![x]");
+    expect(md).not.toContain("](https://");
+    expect(md).not.toContain("https://");
+    expect(md).not.toContain("www.");
+    expect(md).toContain("\\!\\[x\\](https\\://evil.test/p.png) \\[a\\](javascript:alert(1))");
+    expect(md).toContain("\\<b\\>x\\</b\\> www\\.evil.test");
+    // stale answersQueries ids are filtered against the current brief
+    expect(md).toContain("Answers queries: Q-aaaaaaaa\n");
+    expect(md).not.toContain("Q-bbbbbbbb");
+    // the moodboard does not change with agent documents (DR24)
+    expect(out.moodboard).toBe(render({ locale: "en" }).moodboard);
+    // determinism
+    expect(render({ locale: "en", agent: agentDocs() }).markdown).toBe(md);
+  });
+
+  test("leaves the P2 bytes untouched without agent documents", () => {
+    const md = render().markdown;
+    expect(md).not.toContain("## Research brief");
+    expect(md).not.toContain("Inferred notes");
+    expect(md).not.toContain("Visual directions");
   });
 });
 

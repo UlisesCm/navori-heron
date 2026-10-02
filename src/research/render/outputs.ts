@@ -12,7 +12,11 @@ import { byIdNumber, missingProvenance, researchMode } from "../provenance.ts";
 import { resolveCopy, type SupportedLocale } from "./copy.ts";
 import { renderMoodboardHtml } from "./moodboard.ts";
 import { buildProvenance } from "./provenance.ts";
-import { renderReferencesMarkdown, type ResearchModel } from "./references-md.ts";
+import {
+  renderReferencesMarkdown,
+  type AgentDocuments,
+  type ResearchModel,
+} from "./references-md.ts";
 
 export type ResearchOutputs = {
   references: ResearchReferences;
@@ -33,6 +37,7 @@ export function renderResearchOutputs(input: {
   currentMode: HeronMode;
   locale: string | null;
   minimum: number;
+  agent: AgentDocuments;
 }): ResearchOutputs {
   const references = byIdNumber(input.references);
   const mode = researchMode(references, input.currentMode);
@@ -57,7 +62,13 @@ export function renderResearchOutputs(input: {
     sha256Hex(new TextEncoder().encode(referencesText)),
   );
   const { locale, copy, fallback } = resolveCopy(input.locale);
-  const model: ResearchModel = { mode, references, brand: byIdNumber(input.brand), counts };
+  const model: ResearchModel = {
+    mode,
+    references,
+    brand: byIdNumber(input.brand),
+    counts,
+    agent: input.agent,
+  };
   return {
     references: document,
     referencesText,

@@ -167,7 +167,7 @@ Lotes de 1–3 tareas, **en serie** (cada tarea declara de qué depende y con qu
 
 ## Lote 8 — Vistas y research con agentes
 
-- [ ] **T14** (R7, R16) — Vistas: `REFERENCES.md` con brief, notas inferidas y direcciones (escapadas); todos los escritores de research pasan los documentos de agente.
+- [x] **T14** (R7, R16) — Vistas: `REFERENCES.md` con brief, notas inferidas y direcciones (escapadas); todos los escritores de research pasan los documentos de agente.
   - **Archivos:** `src/app/research-store.ts`, `src/app/references.ts`, `src/app/brand.ts`, `src/app/research.ts`, `src/research/render/references-md.ts`, `src/research/render/copy.ts`, `src/research/render/outputs.ts`, `tests/unit/research/render.test.ts`, `tests/e2e/research-render.test.ts`, `tests/e2e/p2-compat.test.ts`
   - **Interfaces:** renderResearchOutputs; stageResearchOutputs; readResearch; ResearchSnapshot; renderReferencesMarkdown
   - **Patrón:** src/research/render/references-md.ts
