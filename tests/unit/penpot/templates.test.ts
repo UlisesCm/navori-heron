@@ -1,6 +1,6 @@
 // Covers: R9, R10, R13, R17, R19, R20
 import { describe, expect, test } from "bun:test";
-import { z } from "zod";
+import { WrittenPageSchema, type WrittenPage } from "../../../src/penpot/results.ts";
 import type { BoardLayout, PenpotNode, ReviewPage } from "../../../src/penpot/compiler/nodes.ts";
 import { renderScript, reviewScriptData } from "../../../src/penpot/compiler/script.ts";
 import { penpotTemplate } from "../../../src/penpot/compiler/templates.ts";
@@ -13,16 +13,6 @@ import {
   type FakeShape,
 } from "../../helpers/fake-penpot.ts";
 
-// Template results get their production schemas in T9; these tests validate their boundary now.
-const writtenSchema = z.object({
-  heron: z.literal("review-page@v1"),
-  pageId: z.string(),
-  outcome: z.enum(["written", "conflict", "human-shapes"]),
-  created: z.boolean(),
-  shapes: z.number(),
-  fontFallbacks: z.array(z.string()),
-  humanShapes: z.array(z.string()),
-});
 const hash = sha256Hex(new Uint8Array());
 const textNode = (
   key = "title",
@@ -86,8 +76,8 @@ async function write(
   fake: FakePenpot,
   page: ReviewPage,
   target: string | null = null,
-): Promise<z.infer<typeof writtenSchema>> {
-  return writtenSchema.parse(await runPenpotScript(fake, code(page, target)));
+): Promise<WrittenPage> {
+  return WrittenPageSchema.parse(await runPenpotScript(fake, code(page, target)));
 }
 function pageOf(fake: FakePenpot, id: string): FakePage {
   const page = fake.penpot.currentFile?.pages.find((candidate) => candidate.id === id);

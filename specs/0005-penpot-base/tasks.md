@@ -110,7 +110,7 @@ Lotes de 1–3 tareas, **en serie** (cada tarea declara de qué depende y con qu
   - **Comparte archivos con:** T9 (`ids.ts`, `copy.ts`).
   - **Fuera de alcance:** 2 pantallas representativas por dirección en `full` (P5).
 
-- [ ] **T9** (R11, R15, R16) — Página References (solo texto) y plan por huella con estados y registro confirmado; resultados de las plantillas.
+- [x] **T9** (R11, R15, R16) — Página References (solo texto) y plan por huella con estados y registro confirmado; resultados de las plantillas.
   - **Archivos:** `src/penpot/compiler/references-page.ts`, `src/penpot/compiler/plan.ts`, `src/penpot/compiler/ids.ts`, `src/penpot/compiler/copy.ts`, `src/penpot/results.ts`, `tests/unit/penpot/plan.test.ts`, `tests/unit/penpot/references-page.test.ts`
   - **Interfaces:** buildReferencesPage; REFERENCES_LIMITS; reviewScriptData; renderScript; planReviewSync; pageStatuses; reviewRecord; PlannedWrite; ReviewPlan; InspectedFile; InspectedPage; WrittenPage; InspectedFileSchema; WrittenPageSchema
   - **Patrón:** src/research/analysis.ts
