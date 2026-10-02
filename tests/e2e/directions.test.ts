@@ -1,5 +1,5 @@
 import { describe, expect, test } from "bun:test";
-import { readFileSync } from "node:fs";
+import { readFileSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import { RESPONDERS } from "../../src/agents/adapters/fake/responders.ts";
 import type { AppContext } from "../../src/app/context.ts";
@@ -17,6 +17,7 @@ import { countingFake, scriptedProvider, withAgentSettings } from "../helpers/ag
 import { fixedContext, runCliCaptured } from "../helpers/cli.ts";
 import { e2eSetup } from "../helpers/e2e.ts";
 import { hashTree } from "../helpers/fixtures.ts";
+import { hasControlChars, hostileText } from "../helpers/hostile-controls.ts";
 import { referenceArgs } from "../helpers/research.ts";
 
 const { initialized } = e2eSetup();
@@ -281,5 +282,54 @@ describe("heron direction propose and select", () => {
     );
     expect(select.stdout).not.toContain("\u001b");
     expect(select.stdout).toContain("\\x1b");
+  });
+
+  // Covers: R13, R20
+  test("REFERENCES.md and the text views emit no control characters", async () => {
+    const { root } = await setup();
+    const base = fakeOutput();
+    base.directions[0]!.name = hostileText();
+    base.directions[0]!.summary = hostileText();
+    const { provider } = scriptedProvider([{ output: base }]);
+    const ctx = withProvider(provider);
+    const run = await runCliCaptured(["direction", "propose", root], ctx);
+    expect(run.code).toBe(ExitCode.Ok);
+    expect(hasControlChars(run.stdout)).toBe(false);
+    expect(hasControlChars(read(root, "research/REFERENCES.md"))).toBe(false);
+    const select = await runCliCaptured(["direction", "select", "DIR-A", root], ctx);
+    expect(select.code).toBe(ExitCode.Ok);
+    expect(hasControlChars(select.stdout)).toBe(false);
+  });
+
+  // Covers: R19
+  test("propose after select reuses the run and keeps the selection; edited agent content re-asks", async () => {
+    const { root, ctx, requests } = await setup();
+    expect((await runCliCaptured(["direction", "propose", root, "--json"], ctx)).code).toBe(
+      ExitCode.Ok,
+    );
+    expect(requests).toHaveLength(1);
+    expect((await runCliCaptured(["direction", "select", "DIR-B", root], ctx)).code).toBe(
+      ExitCode.Ok,
+    );
+    const again = await runCliCaptured(["direction", "propose", root, "--json"], ctx);
+    expect(again.code).toBe(ExitCode.Ok);
+    expect(requests).toHaveLength(1);
+    expect(data<DirectionProposeData>(again.stdout).run.reused).toBe(true);
+    const kept = JSON.parse(read(root, "research/visual-directions.json")) as {
+      selection: { direction: string };
+    };
+    expect(kept.selection.direction).toBe("DIR-B");
+
+    // Editing agent-produced content by hand invalidates the reuse.
+    const path = join(root, ".heron", "research", "visual-directions.json");
+    const doc = JSON.parse(readFileSync(path, "utf8")) as {
+      directions: { name: string }[];
+    };
+    doc.directions[0]!.name = "Edited by hand";
+    writeFileSync(path, JSON.stringify(doc));
+    const reasked = await runCliCaptured(["direction", "propose", root, "--json"], ctx);
+    expect(reasked.code).toBe(ExitCode.Ok);
+    expect(requests).toHaveLength(2);
+    expect(data<DirectionProposeData>(reasked.stdout).run.reused).toBe(false);
   });
 });

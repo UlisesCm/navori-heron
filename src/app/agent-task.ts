@@ -57,6 +57,8 @@ export type AgentStepInput<T> = {
   overBudgetRemedy: string;
   /** The run behind the current document (DR39), or null when there is none. */
   previous: { run: AgentRunRef; documentPath: RelativeArtifactPath } | null;
+  /** Top-level fields of the document that hold user state (e.g. `selection`); excluded from the DR39 edit check. */
+  userFields?: readonly string[];
   force: boolean;
 };
 
@@ -107,6 +109,15 @@ export function finalizeAgentRun(
   };
 }
 
+/** The document bytes with its user-state fields reset to null, serialized as the store writes them (DR39). */
+function withoutUserFields(bytes: Uint8Array, fields: readonly string[]): Uint8Array {
+  const value: unknown = JSON.parse(new TextDecoder().decode(bytes));
+  if (typeof value !== "object" || value === null || Array.isArray(value)) return bytes;
+  const neutral: Record<string, unknown> = { ...value };
+  for (const field of fields) if (field in neutral) neutral[field] = null;
+  return new TextEncoder().encode(canonicalJson(neutral));
+}
+
 /** DR39: the stored run still describes the current document (same key, run file present, document untouched). */
 function canReuse<T>(input: AgentStepInput<T>, key: Sha256Hex): AgentRunRef | null {
   const { previous, workspace } = input;
@@ -116,7 +127,9 @@ function canReuse<T>(input: AgentStepInput<T>, key: Sha256Hex): AgentRunRef | nu
     const document = workspace.store.readBytes(previous.documentPath);
     if (run === null || document === null) return null;
     const recorded = run.outputs.find((output) => output.path === previous.documentPath);
-    return recorded?.sha256 === sha256Hex(document) ? previous.run : null;
+    const current =
+      input.userFields === undefined ? document : withoutUserFields(document, input.userFields);
+    return recorded?.sha256 === sha256Hex(current) ? previous.run : null;
   } catch {
     return null;
   }

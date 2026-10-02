@@ -160,6 +160,7 @@ export async function runDirectionPropose(
           research.directions === null
             ? null
             : { run: research.directions.run, documentPath: RESEARCH_FILES.directions },
+        userFields: ["selection"],
         force: input.force,
       },
       runId,
