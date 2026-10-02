@@ -1,6 +1,7 @@
 // Covers: R13
 import { afterAll, describe, expect, test } from "bun:test";
-import { rmSync } from "node:fs";
+import { mkdirSync, rmSync, writeFileSync } from "node:fs";
+import { join } from "node:path";
 import { ExitCode } from "../../src/core/contracts/index.ts";
 import { copyFixture } from "../helpers/fixtures.ts";
 
@@ -15,7 +16,7 @@ afterAll(() => {
 });
 
 /** Runs `bun bin/heron.ts <command> <root>` as a real process; returns wall time in ms and exit code. */
-async function timedRun(command: "init" | "status", root: string) {
+async function timedRun(command: "init" | "status" | "intake", root: string) {
   const start = performance.now();
   const proc = Bun.spawn(["bun", HERON_BIN, command, root], {
     stdout: "ignore",
@@ -63,6 +64,34 @@ describe("heron latency", () => {
       }
       assertP95("init", initTimes);
       assertP95("status", statusTimes);
+    },
+    TEST_TIMEOUT_MS,
+  );
+
+  // Covers: R14
+  test(
+    "status p95 under 2000 ms with a product context and 50 context files",
+    async () => {
+      const root = copyFixture("membership-product");
+      copies.push(root);
+      const contextDir = join(root, "specs", "_master", "01-mvp", "context", "md");
+      mkdirSync(contextDir, { recursive: true });
+      for (let i = 0; i < 50; i++) {
+        const name = `notes-${String(i).padStart(2, "0")}.md`;
+        writeFileSync(
+          join(contextDir, name),
+          `# Notes ${i}\n\n## Context\n\n${"Some prose. ".repeat(200)}\n`,
+        );
+      }
+      expect((await timedRun("init", root)).code).toBe(ExitCode.Ok);
+      expect((await timedRun("intake", root)).code).toBe(ExitCode.Ok);
+      const statusTimes: number[] = [];
+      for (let i = 0; i < RUNS; i++) {
+        const run = await timedRun("status", root);
+        expect(run.code).toBe(ExitCode.Ok);
+        statusTimes.push(run.ms);
+      }
+      assertP95("status with a product context", statusTimes);
     },
     TEST_TIMEOUT_MS,
   );

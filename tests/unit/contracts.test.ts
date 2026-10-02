@@ -503,9 +503,8 @@ describe("research documents", () => {
     expect(new Set(DOCTOR_CHECK_IDS).size).toBe(DOCTOR_CHECK_IDS.length);
     // Every command has its CommandSpec (the group is the first word of "references add").
     const registered = new Set<string>(COMMANDS.map((spec) => spec.name));
-    // TODO(T12): drop PENDING_SPECS once `intake` and `conflicts` register their CommandSpec (envelope data lands in T2).
     // TODO(P3 CLI task): drop "direction" once `direction` registers its CommandSpec (envelope data lands in T4).
-    const PENDING_SPECS = new Set(["intake", "conflicts", "direction"]);
+    const PENDING_SPECS = new Set(["direction"]);
     for (const command of CLI_COMMANDS) {
       const group = command.split(" ")[0]!;
       if (!PENDING_SPECS.has(group)) expect(registered.has(group)).toBe(true);

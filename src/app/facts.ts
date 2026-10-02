@@ -1,5 +1,6 @@
 import { join } from "node:path";
 import {
+  INTAKE_CONFLICTS_DOCUMENT,
   RESEARCH_REFERENCES_DOCUMENT,
   type BoundArtifact,
   type GateName,
@@ -19,6 +20,10 @@ import type { FileStore } from "../core/store/file-store.ts";
 import type { ReadonlyFs } from "../core/store/fs-port.ts";
 import type { ResearchSettings } from "../research/ports.ts";
 import { missingProvenance } from "../research/provenance.ts";
+import { unacknowledgedCount } from "../intake/conflicts.ts";
+import type { AppContext } from "./context.ts";
+import { CONFLICTS_FILE, PRODUCT_CONTEXT_FILE, computeIntake } from "./intake.ts";
+import { selectionOf, type Workspace } from "./workspace.ts";
 const GLOB_SUFFIX = "/**";
 
 /** Files under `dir` (relative to .heron/), recursively; symlinks are never followed. */
@@ -114,4 +119,40 @@ export function collectDirectionFacts(
     if (sha !== null) current.set(artifact.path, sha);
   }
   return { researchApprovalValid: isApprovalValid(research, current).valid };
+}
+
+/** True when `path` holds exactly `text` (the bytes a regeneration would write). */
+function storedEquals(store: FileStore, path: string, text: string): boolean {
+  const onDisk = store.readBytes(path);
+  return onDisk !== null && Buffer.compare(onDisk, new TextEncoder().encode(text)) === 0;
+}
+
+/** productContextValid = both intake documents exist and computeIntake reproduces them byte for byte;
+ * unacknowledgedConflicts = unacknowledgedCount(stored). Always present (DR17). May throw document errors. */
+export function collectIntakeFacts(
+  ctx: AppContext,
+  workspace: Workspace,
+  store: FileStore,
+): Pick<TransitionFacts, "productContextValid" | "unacknowledgedConflicts"> {
+  const stored = store.readDocument(CONFLICTS_FILE, INTAKE_CONFLICTS_DOCUMENT);
+  const unacknowledgedConflicts = unacknowledgedCount(stored);
+  if (stored === null || store.readBytes(PRODUCT_CONTEXT_FILE) === null) {
+    return { productContextValid: false, unacknowledgedConflicts };
+  }
+  const computed = computeIntake(
+    ctx,
+    {
+      path: workspace.root,
+      root: workspace.root,
+      detection: workspace.detection,
+      mode: workspace.mode,
+      selection: selectionOf(workspace.project),
+    },
+    stored,
+  );
+  const productContextValid =
+    computed.ok &&
+    storedEquals(store, PRODUCT_CONTEXT_FILE, computed.value.texts.context) &&
+    storedEquals(store, CONFLICTS_FILE, computed.value.texts.conflicts);
+  return { productContextValid, unacknowledgedConflicts };
 }

@@ -215,4 +215,55 @@ describe("heron status", () => {
       "warning",
     ]);
   }, 30_000);
+
+  // Covers: R14
+  test("reports open conflicts and a stale product context", async () => {
+    const root = await initialized("conflict");
+    const untracked = await runCliCaptured(["status", root]);
+    expect(untracked.stdout).toContain("Open conflicts: not tracked yet");
+    expect(untracked.stdout).not.toContain("PRODUCT_CONTEXT_STALE");
+    expect(untracked.stdout).toContain("heron intake, heron conflicts list|ack");
+
+    await runCliCaptured(["intake", root]);
+    const open = await runCliCaptured(["status", root]);
+    expect(open.stdout).toContain("Open conflicts: 1");
+    expect(open.stdout).toContain(`Run: heron conflicts ack CONFLICT-001 ${root} --note <text>`);
+    expect(open.stdout).not.toContain("PRODUCT_CONTEXT_STALE");
+
+    await runCliCaptured(["conflicts", "ack", "CONFLICT-001", "--note", "ok", "--yes", root]);
+    expect((await runCliCaptured(["status", root])).stdout).toContain("Open conflicts: 0");
+
+    const master = join(root, "specs", "_master", "01-mvp", "MASTER.md");
+    writeFileSync(
+      master,
+      readFileSync(master, "utf8").replace("Members can browse benefits.", "Members browse perks."),
+    );
+    const before = hashTree(root, { exclude: [] });
+    const stale = await runCliCaptured(["status", root]);
+    expect(stale.code).toBe(ExitCode.Ok);
+    expect(stale.stdout).toContain(
+      `PRODUCT_CONTEXT_STALE: The product context is out of date: its sources, the mode or the Heron extractor changed since the last heron intake. Run: heron intake ${root}`,
+    );
+    expect(hashTree(root, { exclude: [] })).toEqual(before);
+    await runCliCaptured(["intake", root]);
+    expect((await runCliCaptured(["status", root])).stdout).not.toContain("PRODUCT_CONTEXT_STALE");
+  });
+
+  // Covers: R14
+  test("does not report stale when an unused or non-contributing source changes", async () => {
+    const root = await initialized("membership-product");
+    await runCliCaptured(["intake", root]);
+    expect((await runCliCaptured(["gate", "intake", "approve", "--yes", root])).code).toBe(
+      ExitCode.Ok,
+    );
+    for (const name of ["CODEBASE.md", "DIGEST.md"]) {
+      const path = join(root, "specs", "_master", "01-mvp", "context", name);
+      writeFileSync(path, `${readFileSync(path, "utf8")}\nA note with no role for any element.\n`);
+    }
+    const run = await runCliCaptured(["status", root]);
+    expect(run.code).toBe(ExitCode.Ok);
+    expect(run.stdout).not.toContain("PRODUCT_CONTEXT_STALE");
+    expect(run.stdout).not.toContain("GATE_APPROVAL_INVALIDATED");
+    expect(run.stdout).toContain("- intake: approved");
+  });
 });

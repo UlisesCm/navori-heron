@@ -37,13 +37,13 @@ const REJECT = ["gate", "intake", "reject", "--reason", "needs more context"];
 describe("heron gate", () => {
   // Covers: R8, R9
   test("gate approval requires confirmation, identity and full mode", async () => {
-    // P1.A7. Full mode + intake: the precondition fails closed because nothing produces the product context yet.
+    // P1.A7. Full mode + intake without an `heron intake` run: the product context is missing (DR17).
     const full = await initialized("membership-product");
     const before = hashTree(full, { exclude: [] });
     const unmet = await runCliCaptured(["gate", "intake", "approve", "--yes", full]);
     expect(unmet.code).toBe(ExitCode.Blocked);
     expect(unmet.stderr).toContain(
-      'Precondition "intake-context-valid" is not met for "approve-gate:intake" from phase "initialized": productContextValid is not available.',
+      'Precondition "intake-context-valid" is not met for "approve-gate:intake" from phase "initialized": the product context is missing or out of date.',
     );
 
     // Full mode + direction (no Penpot facts in P1): precondition fails, nothing written.
@@ -102,6 +102,31 @@ describe("heron gate", () => {
     expect(noReason.code).toBe(ExitCode.Usage);
     expect(noReason.stderr).toBe("heron gate intake reject requires --reason <text>.\n");
     expect(hashTree(root, { exclude: [] })).toEqual(snapshot);
+  });
+
+  // Covers: R7, R12
+  test("approves intake with valid context, recording approvedBy, artifact hashes, and committing only state.json", async () => {
+    const root = await initialized("membership-product");
+    expect((await runCliCaptured(["intake", root])).code).toBe(ExitCode.Ok);
+    const before = hashTree(root, { exclude: [] });
+    const run = await runCliCaptured(["gate", "intake", "approve", "--yes", root]);
+    expect(run.code).toBe(ExitCode.Ok);
+    expect(run.stdout).toContain('Gate "intake" approved by tester.');
+    expect(run.stdout).toContain("Bound artifacts: 3");
+    const after = hashTree(root, { exclude: [] });
+    expect([...after.keys()].filter((path) => after.get(path) !== before.get(path))).toEqual([
+      ".heron/state.json",
+    ]);
+    const state = readState(root);
+    const decision = state.gates.at(-1);
+    expect(decision).toMatchObject({ gate: "intake", decision: "approved", decidedBy: "tester" });
+    expect(decision?.artifacts).toEqual(
+      ["intake/conflicts.json", "intake/mode.json", "intake/product-context.json"].map((path) => ({
+        path,
+        sha256: before.get(`.heron/${path}`) ?? "",
+      })),
+    );
+    expect(state.phase).toBe("intake-ready");
   });
 
   // Covers: R9, R10

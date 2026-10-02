@@ -118,7 +118,7 @@ Lotes de 1–3 tareas. Cada test lleva `// Covers: R<n>` en la primera línea y 
 
 ## Lote 5 — Casos de uso y CLI
 
-- [ ] **T11** (R8, R10) — `heron intake [path] [--dry-run] [--refresh] [--json]`: cálculo compartido, escritura atómica en cualquier fase, idempotencia y `freshen`; verificación de realismo sobre este repo.
+- [x] **T11** (R8, R10) — `heron intake [path] [--dry-run] [--refresh] [--json]`: cálculo compartido, escritura atómica en cualquier fase, idempotencia y `freshen`; verificación de realismo sobre este repo.
   - **Archivos:** `src/app/intake.ts`, `src/app/workspace.ts`, `src/cli/commands/intake.ts`, `src/cli/commands/index.ts`, `src/cli/command.ts`, `src/cli/render-intake.ts`, `tests/e2e/intake.test.ts`, `tests/contracts/ux-contract.test.ts`
   - **Interfaces:** runIntake; computeIntake; PRODUCT_CONTEXT_FILE; CONFLICTS_FILE; selectionOf; intakeCommand; IntakeParsed; renderIntakeText
   - **Patrón:** src/app/research.ts
@@ -128,7 +128,7 @@ Lotes de 1–3 tareas. Cada test lleva `// Covers: R<n>` en la primera línea y 
   - **Nota:** el comando de P4.A7 es el enmendado por D30 (DR29). `USAGE_TEXT` ya no se compara literal (T0).
   - **Fuera de alcance:** `conflicts list|ack`, hechos del gate y `status` (T12).
 
-- [ ] **T12** (R6, R7, R12, R14) — `heron conflicts list|ack`, hechos de intake en el gate, re-aprobación en producción de punta a punta y conflictos y frescura en `status`.
+- [x] **T12** (R6, R7, R12, R14) — `heron conflicts list|ack`, hechos de intake en el gate, re-aprobación en producción de punta a punta y conflictos y frescura en `status`.
   - **Archivos:** `src/app/conflicts.ts`, `src/app/facts.ts`, `src/app/gate.ts`, `src/app/status.ts`, `src/cli/commands/conflicts.ts`, `src/cli/commands/index.ts`, `src/cli/command.ts`, `src/cli/render-intake.ts`, `tests/e2e/conflicts.test.ts`, `tests/e2e/gate.test.ts`, `tests/e2e/status.test.ts`, `tests/e2e/intake.test.ts`, `tests/perf/init.perf.test.ts`
   - **Interfaces:** runConflictsList; runConflictsAck; collectIntakeFacts; conflictsCommand; ConflictsParsed; renderConflictsListText; renderConflictsAckText
   - **Patrón:** src/app/gate.ts
@@ -139,7 +139,7 @@ Lotes de 1–3 tareas. Cada test lleva `// Covers: R<n>` en la primera línea y 
   - **Nota:** eliminar la allowlist `PENDING_SPECS` del test de registros (`tests/unit/contracts.test.ts`, agregada en T2 con `TODO(T11)`) una vez que `intake` y `conflicts` tengan su `CommandSpec`: exime por nombre de grupo y podría ocultar una spec faltante.
   - **Fuera de alcance:** `init --adapter` (T13).
 
-- [ ] **T13** (R9, R18) — `heron init --adapter auto|markdown|manual --context <archivo>...` y compatibilidad con un workspace de P2.
+- [x] **T13** (R9, R18) — `heron init --adapter auto|markdown|manual --context <archivo>...` y compatibilidad con un workspace de P2.
   - **Archivos:** `src/app/init.ts`, `src/cli/commands/init.ts`, `src/cli/command.ts`, `src/cli/render.ts`, `tests/e2e/init.test.ts`, `tests/e2e/p2-compat.test.ts`, `tests/unit/cli-args.test.ts`
   - **Interfaces:** runInit; InitParsed; renderInitText
   - **Patrón:** src/app/init.ts

@@ -16,7 +16,9 @@ export type CommandName =
   | "gate"
   | "references"
   | "brand"
-  | "research";
+  | "research"
+  | "intake"
+  | "conflicts";
 export type InitParsed = {
   command: "init";
   path: string;
@@ -25,6 +27,10 @@ export type InitParsed = {
   json: boolean;
   /** Present only when --locale is given (P1 parse results keep their exact shape). */
   locale?: string;
+  /** Present only when --adapter is given. */
+  adapter?: "auto" | "markdown" | "manual";
+  /** Present only when --context is given (repeatable). */
+  context?: string[];
 };
 export type StatusParsed = { command: "status"; path: string; json: boolean };
 export type DoctorParsed = { command: "doctor"; path: string; json: boolean };
@@ -76,6 +82,20 @@ export type BrandParsed = {
 };
 /** `heron research render`: the only research action P2 needs. */
 export type ResearchParsed = { command: "research"; action: "render"; path: string; json: boolean };
+/** `heron intake`: `--refresh` is parsed and ignored (DR31). */
+export type IntakeParsed = { command: "intake"; path: string; dryRun: boolean; json: boolean };
+/** `heron conflicts <action>`: one variant per action, discriminated by `action`. */
+export type ConflictsParsed =
+  | { command: "conflicts"; action: "list"; path: string; all: boolean; json: boolean }
+  | {
+      command: "conflicts";
+      action: "ack";
+      path: string;
+      id: string;
+      note: string | null;
+      yes: boolean;
+      json: boolean;
+    };
 export type ParsedCommand =
   | InitParsed
   | StatusParsed
@@ -84,6 +104,8 @@ export type ParsedCommand =
   | ReferencesParsed
   | BrandParsed
   | ResearchParsed
+  | IntakeParsed
+  | ConflictsParsed
   | { command: "help" }
   | { command: "version" };
 

@@ -1,9 +1,12 @@
 // Covers: R1, R5, R10, R12
+import { createHash } from "node:crypto";
 import { afterAll, describe, expect, test } from "bun:test";
 import { mkdirSync, mkdtempSync, readFileSync, rmSync, symlinkSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { canonicalJson } from "../../src/core/contracts/index.ts";
+import { runCliCaptured } from "../helpers/cli.ts";
+import { copyFixture } from "../helpers/fixtures.ts";
 import { nodeFs, type ReadonlyFs } from "../../src/core/store/fs-port.ts";
 import { DEFAULT_INPUT_LIMITS } from "../../src/intake/ports.ts";
 import { probeFile } from "../../src/intake/probe.ts";
@@ -228,7 +231,8 @@ describe("uxCandidates", () => {
   const keysOf = (result: ReturnType<typeof map>, section: string): string[] =>
     result.candidates.filter((c) => c.section === section).map((c) => c.key);
 
-  test("preserves unknown ux.json fields and stable ids", () => {
+  // Covers: R10
+  test("preserves unknown ux.json fields and stable ids", async () => {
     expect(ACTIVE_UX_READER).toBe(PROVISIONAL_UX_READER);
     expect(ACTIVE_UX_READER.id).toBe("provisional-1");
 
@@ -314,6 +318,18 @@ describe("uxCandidates", () => {
       { key: "b", value: 2 },
     ]);
     expect(KNOWN_UX_FIELDS.root).toContain("uxRequirements");
+
+    // heron intake leaves ux.json untouched (same sha256)
+    const root = copyFixture("membership-product");
+    try {
+      expect((await runCliCaptured(["init", root])).code).toBe(0);
+      const path = join(root, "specs", "_master", "01-mvp", "ux.json");
+      const before = createHash("sha256").update(readFileSync(path)).digest("hex");
+      expect((await runCliCaptured(["intake", root])).code).toBe(0);
+      expect(createHash("sha256").update(readFileSync(path)).digest("hex")).toBe(before);
+    } finally {
+      rmSync(root, { recursive: true, force: true });
+    }
   });
 
   test("reports unexpected types, repeated ids and undeclared references without failing", () => {

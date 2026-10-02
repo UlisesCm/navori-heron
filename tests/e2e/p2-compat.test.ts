@@ -57,4 +57,47 @@ describe("P2 workspaces", () => {
     expect(readDoc(root, "intake/mode.json", MODE_DECISION_DOCUMENT).kind).toBe("ModeDecision");
     expect((await runCliCaptured(["references", "list", root])).stdout).toContain("REF-5");
   });
+
+  // Covers: R18
+  test("runs intake and approves the intake gate over a P2 workspace without invalidating research", async () => {
+    const root = copyP2Workspace("membership-product");
+    copies.push(root);
+    expect((await runCliCaptured(["gate", "research", "approve", "--yes", root])).code).toBe(
+      ExitCode.Ok,
+    );
+    const before = readDoc(root, "state.json", HERON_STATE_DOCUMENT);
+    const researchBefore = before.artifacts.filter((a) => a.path.startsWith("research/"));
+    expect(before.gates.at(-1)).toMatchObject({ gate: "research", decision: "approved" });
+    const researchFiles = researchBefore.map((a) => [
+      a.path,
+      readFileSync(join(root, ".heron", a.path), "utf8"),
+    ]);
+
+    const intake = await runCliCaptured(["intake", root]);
+    expect(intake.code).toBe(ExitCode.Ok);
+    const approve = await runCliCaptured(["gate", "intake", "approve", "--yes", root]);
+    expect(approve.code).toBe(ExitCode.Ok);
+
+    const after = readDoc(root, "state.json", HERON_STATE_DOCUMENT);
+    expect(after.artifacts.filter((a) => a.path.startsWith("research/"))).toEqual(researchBefore);
+    expect(
+      researchFiles.map(([path]) => [path, readFileSync(join(root, ".heron", path ?? ""), "utf8")]),
+    ).toEqual(researchFiles);
+    expect(after.stale).toEqual([]);
+    expect(after.gates.filter((g) => g.gate === "research")).toEqual(
+      before.gates.filter((g) => g.gate === "research"),
+    );
+    const gates = after.gates.map((g) => `${g.gate}:${g.decision}`);
+    expect(gates).toEqual(expect.arrayContaining(["research:approved", "intake:approved"]));
+    const status = JSON.parse(
+      (await runCliCaptured(["status", root, "--json"])).stdout,
+    ) as CliEnvelope;
+    expect(status.findings.map((f) => f.code)).not.toContain("DOCUMENT_INVALID");
+    expect(status.data).toMatchObject({
+      gates: expect.arrayContaining([
+        { gate: "research", status: "approved" },
+        { gate: "intake", status: "approved" },
+      ]),
+    });
+  });
 });

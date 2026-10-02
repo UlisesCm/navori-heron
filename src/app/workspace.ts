@@ -21,6 +21,7 @@ import {
   type FileStore,
 } from "../core/store/file-store.ts";
 import { detectProject } from "../intake/detect.ts";
+import type { AdapterSelection } from "../intake/ports.ts";
 import type { AppContext } from "./context.ts";
 import {
   notInitialized,
@@ -67,6 +68,14 @@ function requireDocument<T>(
   return value;
 }
 
+/** The explicit markdown/manual selection `init` persisted (DR28), else null. */
+export function selectionOf(project: HeronProject): AdapterSelection | null {
+  const { adapter, inputs } = project.source;
+  return (adapter === "markdown" || adapter === "manual") && inputs !== undefined
+    ? { adapter, inputs }
+    : null;
+}
+
 /**
  * Read-only snapshot of an initialized workspace, no lock: resolveDirectory (PATH_NOT_FOUND, exit 2) ->
  * openFileStore(create: false) -> state.json (absent: NOT_INITIALIZED, exit 3) -> project.json and mode.json
@@ -84,6 +93,7 @@ export function loadWorkspace(ctx: AppContext, path: string): WorkspaceLoad {
   const found = detectProject({
     root,
     stage: project.source.stage?.dir ?? null,
+    selection: selectionOf(project),
     fs: ctx.fs,
     limits: ctx.limits,
   });

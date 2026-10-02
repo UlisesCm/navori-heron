@@ -19,9 +19,12 @@ import {
   HERON_GITIGNORE,
   MODE_FILE,
   PROJECT_FILE,
+  openFileStore,
 } from "../core/store/file-store.ts";
 import { sha256Hex } from "../core/store/hash.ts";
 import { detectProject } from "../intake/detect.ts";
+import { validateSelection } from "../intake/inputs.ts";
+import type { AdapterSelection } from "../intake/ports.ts";
 import type { AppContext } from "./context.ts";
 import {
   failure,
@@ -29,8 +32,10 @@ import {
   pathNotFound,
   resolveDirectory,
   stageErrorResult,
+  storeErrorResult,
   type UseCaseResult,
 } from "./result.ts";
+import { selectionOf } from "./workspace.ts";
 import { withWriteRun, type WriteBodyResult, type WriteRun } from "./write-run.ts";
 
 export type InitInput = {
@@ -38,6 +43,10 @@ export type InitInput = {
   stage: string | null;
   dryRun: boolean;
   locale: string | null;
+  /** `--adapter`: null keeps the persisted selection; "auto" clears it (DR28). */
+  adapter?: "auto" | "markdown" | "manual" | null;
+  /** `--context` files, repo-relative; only valid with an explicit markdown/manual adapter. */
+  context?: readonly string[];
 };
 
 /** Canonical BCP 47 tag (Intl.getCanonicalLocales), or null when the value is not a valid tag. */
@@ -49,7 +58,7 @@ function canonicalLocale(value: string): string | null {
   }
 }
 
-function buildProject(decision: ModeDecision): HeronProject {
+function buildProject(decision: ModeDecision, selection: AdapterSelection | null): HeronProject {
   const { detection } = decision;
   return {
     kind: "HeronProject",
@@ -61,6 +70,7 @@ function buildProject(decision: ModeDecision): HeronProject {
         detection.stage === null
           ? null
           : { dir: detection.stage.dir, selection: detection.stage.selection },
+      ...(selection === null ? {} : { inputs: selection.inputs }),
     },
     penpot: { enabled: false, url: null, fileId: null, version: null },
   };
@@ -83,6 +93,56 @@ function collectFindings(decision: ModeDecision): Finding[] {
   return findings;
 }
 
+type Chosen =
+  | { ok: true; selection: AdapterSelection | null }
+  | { ok: false; result: UseCaseResult<InitData> };
+
+const usage = (message: string): Chosen => ({
+  ok: false,
+  result: failure(ExitCode.Usage, makeFinding("CONTEXT_INPUT_INVALID", "error", message)),
+});
+
+/**
+ * The selection `init` runs with (DR28). Explicit `--adapter markdown|manual` needs >= 1 `--context` and
+ * passes `validateSelection` before anything is written; the new selection REPLACES a persisted one.
+ * `--adapter auto` clears it. Without `--adapter`, the persisted selection is kept as is.
+ * `--context` without an explicit markdown/manual adapter is a usage error.
+ */
+function chooseSelection(ctx: AppContext, root: string, input: InitInput): Chosen {
+  const adapter = input.adapter ?? null;
+  const files = input.context ?? [];
+  if (adapter === "markdown" || adapter === "manual") {
+    if (files.length === 0) {
+      return usage(`--adapter ${adapter} requires at least one --context <file>.`);
+    }
+    const checked = validateSelection(ctx.fs, root, { adapter, inputs: [...files] }, ctx.limits);
+    if (checked.ok) return { ok: true, selection: checked.selection };
+    return {
+      ok: false,
+      result: failure(
+        ExitCode.Usage,
+        { ...makeFinding(checked.code, "error", checked.message), issues: checked.issues },
+        checked.message,
+      ),
+    };
+  }
+  if (files.length > 0) {
+    return usage("--context requires --adapter markdown or --adapter manual.");
+  }
+  if (adapter === "auto") return { ok: true, selection: null };
+  try {
+    const project = openFileStore(ctx.fs, root, { create: false }).readDocument(
+      PROJECT_FILE,
+      HERON_PROJECT_DOCUMENT,
+    );
+    return { ok: true, selection: project === null ? null : selectionOf(project) };
+  } catch (error) {
+    const mapped = storeErrorResult<InitData>(error);
+    if (mapped === null) throw error;
+    return { ok: false, result: mapped };
+  }
+}
+
 /** detect -> decide -> (without dryRun) withWriteRun: lock -> recover staging -> transaction -> release. */
 export async function runInit(ctx: AppContext, input: InitInput): Promise<UseCaseResult<InitData>> {
   let locale: string | null = null;
@@ -102,9 +162,14 @@ export async function runInit(ctx: AppContext, input: InitInput): Promise<UseCas
   const root = resolveDirectory(ctx.fs, input.path);
   if (root === null) return pathNotFound(input.path);
 
+  const chosen = chooseSelection(ctx, root, input);
+  if (!chosen.ok) return chosen.result;
+  const { selection } = chosen;
+
   const detection = detectProject({
     root,
     stage: input.stage,
+    selection,
     fs: ctx.fs,
     limits: ctx.limits,
   });
@@ -128,7 +193,7 @@ export async function runInit(ctx: AppContext, input: InitInput): Promise<UseCas
       requireState: false,
       expectedRevision: null,
     },
-    (run) => writeInit(run, decision, findings, next, locale),
+    (run) => writeInit(run, decision, findings, next, locale, selection),
   );
 }
 
@@ -138,10 +203,11 @@ function writeInit(
   findings: Finding[],
   next: string[],
   locale: string | null,
+  selection: AdapterSelection | null,
 ): WriteBodyResult<InitData> {
   // DR17: everything in project.json except `source` survives; --locale replaces product.locale.
   const existing = store.readDocument(PROJECT_FILE, HERON_PROJECT_DOCUMENT);
-  const fresh = buildProject(decision);
+  const fresh = buildProject(decision, selection);
   const product = locale === null ? existing?.product : { locale };
   const project: HeronProject = {
     ...(existing ?? fresh),
