@@ -100,8 +100,40 @@ Los respaldos contienen el diseño de clientes: guárdalos fuera del repo y con 
 
 ## Versiones
 
-- 2026-10-01: **2.17.2 fijada (D7); sonda de 2.18.x pendiente (T13)**. 2.18.0 tiene abierto el bug #12003 (el plugin integrado self-hosted conecta `/mcp/ws` sin `userToken`); 2.18.1 no lo menciona.
+- 2026-10-01: **2.17.2 fijada (D7)**. Se programó la sonda aislada de 2.18.x por el bug del plugin integrado self-hosted [#12003](https://github.com/penpot/penpot/issues/12003).
+- 2026-10-02: **2.18.1 probada en instancia aislada (T13): PASS, 0 comprobaciones fallidas; se conserva 2.17.2 fijada.** El plugin integrado conectó en Chrome incógnito mediante `http://localhost:9002`; el fallo #12003 **no se reprodujo en este entorno local**. El issue sigue abierto y las [notas de 2.18.1](https://github.com/penpot/penpot/releases/tag/2.18.1) no anuncian su corrección: esta prueba HTTP loopback no demuestra una solución general para el despliegue HTTPS con reverse proxy del reporte. No se actualizaron los servicios ni los volúmenes de la instancia 2.17.2. `PENPOT_TESTED_VERSIONS` conserva `["2.17.2"]` según la política de T13: cambia solo si se sube la versión fijada.
 - Docker 29.4.0 / Compose 5.1.2 (2026-10-01).
+
+### Evidencia T13 — 2.18.1 aislada
+
+Compose oficial del tag `2.18.1`, proyecto `heron-t13-218`, puerto `127.0.0.1:9002`, red y volúmenes nuevos, secretos nuevos en 0600 fuera del repo. El override temporal adaptó `penpot-admin-console` (imagen fijada y contraseña de DB privada) y los flags del exporter (2.18.1 hereda flags inseguros del compose oficial). Las guardas R1 y las comprobaciones adicionales de aislamiento pasaron antes de iniciar los contenedores. No se editó `infra/penpot/` ni se reutilizaron datos de la instancia actual.
+
+Cuenta y archivo desechables; el usuario hizo login, habilitó MCP, generó y guardó la key fuera del repo y conectó el plugin. Archivo: `81393c30-ef74-81fb-8008-bac02a1b685a`. Comando, con la key ya guardada de forma privada:
+
+```sh
+HERON_LIVE_PENPOT=1 PENPOT_URL=http://localhost:9002 \
+  bun run test:live:penpot -- --file-id 81393c30-ef74-81fb-8008-bac02a1b685a
+```
+
+```text
+PASS handshake and execute_code offered
+PASS bound disposable file (before any mutation)
+PASS penpot.version format -- 2.18.1
+PASS JSON result and string log envelope
+PASS Tool execution failed classified
+PASS wrong key rejected or no plugin
+PASS fonts.findByName and exact selection
+PASS substring family observation
+PASS 32 KiB escaped script and RPC body -- script=32768 B; RPC<=65611 B
+PASS production review template guard
+PASS production review template proposal
+PASS second sync plans zero writes
+PASS inactive page and descendant marks
+PASS human inside owned board blocks rewrite and survives
+penpot.live: PASS; 0 failed checks
+```
+
+**P12.A7 aprobado por el usuario el 2026-10-02**, tras leer el resultado y confirmar la conservación de 2.17.2. La sonda no implica un upgrade.
 
 ## Criterio de salida del Lote 1 (manual)
 

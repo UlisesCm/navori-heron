@@ -243,9 +243,12 @@ describe("penpot docs", () => {
     }
     // the evidence rule for infra/penpot/ and the dated versions section (R18)
     expect(doc).toContain("todo PR que toque `infra/penpot/` adjunta");
+    expect(doc).toMatch(/^- \d{4}-\d{2}-\d{2}: \*\*2\.17\.2 fijada \(D7\)\*\*/m);
     expect(doc).toMatch(
-      /^- \d{4}-\d{2}-\d{2}: \*\*2\.17\.2 fijada \(D7\); sonda de 2\.18\.x pendiente \(T13\)\*\*/m,
+      /^- \d{4}-\d{2}-\d{2}: \*\*2\.18\.1 probada en instancia aislada \(T13\): PASS, 0 comprobaciones fallidas; se conserva 2\.17\.2 fijada\.\*\*/m,
     );
+    expect(doc).toContain("no se reprodujo en este entorno local");
+    expect(doc).toContain('PENPOT_TESTED_VERSIONS` conserva `["2.17.2"]`');
     // the manual spike of the Lote 1 exit criterion
     for (const id of ["S1", "S2", "S3", "S4", "S5", "S6", "S7", "S8"]) {
       expect(doc).toMatch(new RegExp(`^\\| ${id} +\\|`, "m"));

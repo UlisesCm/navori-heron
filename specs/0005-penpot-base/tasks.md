@@ -158,7 +158,7 @@ Lotes de 1–3 tareas, **en serie** (cada tarea declara de qué depende y con qu
 
 ## Lote 6 — Sonda de versión y lanzador
 
-- [ ] **T13** (R18) — Sonda de 2.18.x contra #12003 y aceptación manual de P12.A7.
+- [x] **T13** (R18) — Sonda de 2.18.x contra #12003 y aceptación manual de P12.A7.
   - **Archivos:** `docs/penpot.md`, `src/penpot/compatibility.ts`, `tests/repo/docs.test.ts`
   - **Interfaces:** PENPOT_TESTED_VERSIONS; isTestedVersion
   - **Patrón:** docs/research.md

@@ -1660,7 +1660,11 @@
         {
           "id": "A7",
           "description": "Sonda de versión",
-          "evidence": null,
+          "evidence": {
+            "kind": "approval",
+            "approvedBy": "user",
+            "date": "2026-10-02"
+          },
           "method": "manual",
           "manual": {
             "check": "`docs/penpot.md` registra con fecha el resultado de probar 2.18.x contra el bug #12003 y la versión que queda fijada",
