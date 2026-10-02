@@ -30,7 +30,7 @@ Invariante dual: sin `UX.md` + `ux.json` válidos Heron trabaja en `reference-on
 | P9    | Self-host (Docker) y hardening                                      | P6, P8      | pendiente                          |
 | P10   | Refero como fuente opcional de research                             | P3          | pendiente                          |
 | P11   | Validación `full` con un producto real                              | P7          | pendiente                          |
-| P12   | Penpot base y propuestas visuales                                   | P3          | pendiente                          |
+| P12   | Penpot base y propuestas visuales                                   | P3          | implementada (pendiente P12.A8)    |
 
 Las 3 propuestas de dirección visual se revisan y comparan **solo en Penpot**, una página por dirección (D23-D25); en `full` Penpot es obligatorio para pasar el gate `direction` (D26). Por eso P12 se insertó entre P3 y P5 sin renumerar: el orden lo dan las dependencias.
 
@@ -38,15 +38,16 @@ Las 3 propuestas de dirección visual se revisan y comparan **solo en Penpot**, 
 
 Regla: `bin → cli|web → app (run* → UseCaseResult) → dominio puro y puertos→adapters; contratos Zod versionados en core/contracts; solo core/store toca el filesystem; fronteras en tests/repo/boundaries.test.ts`.
 
-| Módulo                                                                        | Estado                |
-| ----------------------------------------------------------------------------- | --------------------- |
-| `bin/`, `src/cli/`, `src/app/`                                                | existe (P1)           |
-| `src/core/{contracts,state,store}`                                            | existe (P1)           |
-| `src/intake/` (navori-master, filesystem, markdown, manual)                   | existe (P1, P4)       |
-| `src/research/`, `src/security/`                                              | existe (P2)           |
-| `src/agents/`                                                                 | existe (P3)           |
-| `src/penpot/`, `src/tokens/`, `src/design/`, `src/validation/`, `src/export/` | planeado (P5-P7, P12) |
-| `src/web/`                                                                    | planeado (P8)         |
+| Módulo                                                         | Estado           |
+| -------------------------------------------------------------- | ---------------- |
+| `bin/`, `src/cli/`, `src/app/`                                 | existe (P1)      |
+| `src/core/{contracts,state,store}`                             | existe (P1)      |
+| `src/intake/` (navori-master, filesystem, markdown, manual)    | existe (P1, P4)  |
+| `src/research/`, `src/security/`                               | existe (P2)      |
+| `src/agents/`                                                  | existe (P3)      |
+| `src/penpot/`                                                  | existe (P12)     |
+| `src/tokens/`, `src/design/`, `src/validation/`, `src/export/` | planeado (P5-P7) |
+| `src/web/`                                                     | planeado (P8)    |
 
 ```mermaid
 flowchart LR
@@ -97,6 +98,10 @@ heron research render [path] [--json]
 heron intake [path] [--dry-run] [--refresh] [--json]
 heron conflicts list [path] [--all] [--json]
 heron conflicts ack <CONFLICT-NNN> [path] --note <text> [--yes] [--json]
+heron penpot link [path] [--file-id <uuid>] [--json]
+heron penpot doctor [path] [--json]
+heron penpot inspect [path] [--json]
+heron penpot sync [path] [--proposals] [--references] [--dry-run] [--json]
 ```
 
 - `init`: detecta el contexto, decide el modo y escribe `.heron/`. Con varias etapas y ninguna activa usa la última `cerrada` y lo avisa; `--stage` fuerza una.
@@ -110,6 +115,14 @@ heron conflicts ack <CONFLICT-NNN> [path] --note <text> [--yes] [--json]
 - `references`, `brand` y `research render`: research sin IA con provenance completa, defensas SSRF, de rutas y de imágenes, y un moodboard HTML estático. Flujo, formato de lote y recorrido manual en [docs/research.md](docs/research.md); política de seguridad en [docs/security.md](docs/security.md). Con 5 o más referencias con provenance completa, `gate research approve` pasa a `research-ready`.
 
 - `research brief|analyze` y `direction propose|select` (P3): brief, notas inferidas y tres direcciones visuales con Claude Code o Codex CLI, con tu suscripción y sin API key. Sin tope duro de costo; cache por entrada (`--force` la salta) y aviso blando con `agents.warnTokensPerDay`. Requisitos, banderas, economía de tokens y términos en [docs/agent-providers.md](docs/agent-providers.md); decisión en el [ADR 0005](docs/adr/0005-ai-provider-boundary.md). Si editas `agents` en `.heron/project.json` a mano, ejecuta `heron init` para volver a ligarlo antes de los comandos de escritura.
+
+### Penpot (P12)
+
+Penpot autoalojado 2.17.2 es el lienzo de revisión; no es la fuente de verdad. Configura **solo en el shell** `PENPOT_URL` y una de `PENPOT_MCP_KEY` o `PENPOT_MCP_KEY_FILE` (archivo 0600 fuera del repo). Heron no lee `.env` ni el destino guardado en `project.json`; link persiste solo el archivo vinculado. Mantén Chrome/Edge con el archivo abierto y **Main menu → MCP Server → Connect**.
+
+`link` vincula; `doctor` diagnostica; `inspect` lee páginas sin mutarlas; `sync --proposals` escribe tres propuestas y `--references` tarjetas de texto. `--dry-run` no escribe ni genera logs. Sin cambios, repetir sync escribe cero páginas. En `reference-only` se conserva la banda de modo y no se generan artefactos productivos. Una forma humana dentro de un tablero propio bloquea la reescritura: muévela fuera antes de repetir. Un sync parcial puede devolver exit 5 con datos; exit 6 requiere reconciliar tras una escritura local concurrente. No edites durante sync ni repitas un timeout mientras el script remoto siga corriendo.
+
+Setup, backups, secretos, versiones, fallos y comparación en tres ventanas: [docs/penpot.md](docs/penpot.md). Frontera: [ADR 0007](docs/adr/0007-penpot-boundary.md). A7 conserva 2.17.2 tras la sonda aislada 2.18.1; **P12.A8 sobre `monorepo-fullstack` permanece pendiente de evidencia y aprobación visual**, no lo sustituye el suite automatizado.
 
 ### `reference-only` (`fixtures/no-ux`, sin `UX.md` ni `ux.json`)
 

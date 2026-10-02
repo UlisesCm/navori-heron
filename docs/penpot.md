@@ -1,6 +1,6 @@
 # Penpot (P12)
 
-Heron dibuja y lee las propuestas visuales en un Penpot **autoalojado** a través del servidor MCP oficial de Penpot. Esta guía cubre la infraestructura de `infra/penpot/`, las cuentas, la conexión MCP y la configuración de Heron. Las órdenes `heron penpot` se documentan cuando existan (T20). Decisiones y justificación: `specs/0005-penpot-base/design.md` (DR1–DR4, DR33–DR43, DR47).
+Heron dibuja y lee las propuestas visuales en un Penpot **autoalojado** a través del servidor MCP oficial de Penpot. Esta guía cubre la infraestructura de `infra/penpot/`, las cuentas, la conexión MCP y las órdenes de Heron. Decisiones y justificación: [ADR 0007](adr/0007-penpot-boundary.md) y `specs/0005-penpot-base/design.md`.
 
 ## Requisitos
 
@@ -61,7 +61,65 @@ export PENPOT_MCP_KEY_FILE=~/.config/heron/penpot-mcp-key        # archivo 0600 
 # o bien PENPOT_MCP_KEY=<key>; definir ambas es un error de uso
 ```
 
-Heron **no lee `.env`** (DR43). Desde el PR #16 ya integrado (T14, el lanzador), `bun run heron` y el ejecutable `heron` corren con `--no-env-file --config=/dev/null`, para que un repo no pueda fijar `PENPOT_URL` ni ejecutar un `preload`. `bun bin/heron.ts` a mano en un directorio no confiable no la tiene nunca. La orden `heron penpot link` (caso de uso en T16, CLI en T19) guardará en `project.json` solo el `fileId`, nunca la URL (DR33); todavía no está disponible.
+Heron **no lee `.env`** (DR43). Desde el PR #16 ya integrado (T14, el lanzador), `bun run heron` y el ejecutable `heron` corren con `--no-env-file --config=/dev/null`, para que un repo no pueda fijar `PENPOT_URL` ni ejecutar un `preload`. `bun bin/heron.ts` a mano en un directorio no confiable no tiene esa protección. `heron penpot link` guarda `enabled: true` y el `fileId` en `project.json`, nunca la URL ni la versión (`url: null`, `version: null`).
+
+`PENPOT_URL` es la URL base, sin credenciales, query, fragmento ni `/mcp/stream`. HTTPS admite destinos locales explícitos; HTTP solo loopback (`localhost`, IPv4/IPv6). Heron no sigue redirecciones. La key debe ser el valor, no la URL completa de Integrations. El archivo se lee como UTF-8 estricto, regular, de hasta 8 KiB, y se recortan los espacios de sus extremos; vacío, ilegible o controles son errores.
+
+## Órdenes de Heron
+
+Con `.heron/` inicializado y el archivo correcto abierto con el plugin conectado:
+
+```text
+heron penpot link [path] [--file-id <uuid>] [--json]
+heron penpot doctor [path] [--json]
+heron penpot inspect [path] [--json]
+heron penpot sync [path] [--proposals] [--references] [--dry-run] [--json]
+```
+
+El path por default es `.`. Sin `bun link`, usa `bun run heron penpot ...` desde el repo de Heron. No hay `--url`, `unlink` ni sync de sistema completo sin banderas en P12 (P6).
+
+- **link:** inspecciona y vincula el archivo conectado; `--file-id` exige que coincida con ese UUID antes de escribir. Volver a vincular el mismo archivo no escribe; cambiarlo avisa. No crea un archivo Penpot ni dibuja páginas.
+- **doctor:** siete checks ordenados: `penpot.config`, `penpot.url`, `penpot.key`, `penpot.mcp`, `penpot.plugin`, `penpot.file`, `penpot.version`. Un fallo deja los siguientes como `Skipped`; permisos abiertos y versión no probada son WARNING. `heron doctor` agrega esos checks solo en un workspace vinculado y los ejecuta en paralelo con los de agentes. Ninguno escribe ni gasta tokens de IA sin `--deep` del doctor general.
+- **inspect:** muestra archivo, versión y páginas `missing`, `outdated`, `up-to-date`, `duplicate` o `unknown`, sin abrir páginas, escribir ni tomar lock. Si hay otro archivo conectado, avisa y muestra `bound: no`; no lo adopta.
+- **sync --proposals:** exige direcciones válidas y no obsoletas; crea una página por dirección con geometría común, paleta/contraste, escala, componentes y composición `SYNTHETIC`. No crea pantallas productivas. `reference-only` conserva su banda y marca `REFERENCE ONLY`.
+- **sync --references:** exige referencias activas; crea una página de tarjetas de texto con provenance y notas, sin imágenes. El prefijo máximo que cabe se informa si se trunca (hasta 48 tarjetas, 5 ítems por lista, 200 puntos de código por texto).
+- **--dry-run:** inspecciona y devuelve `would-create`, `would-update` y `unchanged`; no escribe en Penpot, `.heron/` ni logs. Se pueden combinar `--proposals --references`.
+
+Ejemplo de recorrido, sin aprobar automáticamente ningún gate:
+
+```sh
+heron penpot link ../producto --file-id <uuid>
+heron penpot doctor ../producto
+heron penpot sync ../producto --proposals --references --dry-run
+heron penpot sync ../producto --proposals --references
+heron penpot inspect ../producto
+heron penpot sync ../producto --proposals --references  # sin cambios: 0 escrituras
+```
+
+### Idempotencia y recuperación
+
+El plan elige la primera página con cada marca `heron` y avisa duplicados; no los borra. Solo sustituye formas propias. Una forma humana dentro de un tablero de Heron bloquea la reescritura: muévela fuera del tablero antes de repetir. Las formas humanas externas se conservan; una edición dentro de una forma marcada no se detecta aún (drift, P6).
+
+Sync verifica el archivo vinculado antes de escribir, detiene el plan al primer fallo y vuelve a inspeccionar. El registro `.heron/penpot/review-sync.json` incluye solo páginas confirmadas; no escribe el estado productivo `penpot/sync-state.json`. Las banderas gobiernan escrituras, no borran del registro otras páginas actuales confirmadas. Sin cambios, la segunda corrida hace una lectura, cero escrituras remotas y deja `.heron/` intacto.
+
+La red corre fuera del lock: una modificación local concurrente produce exit 6 y no revierte Penpot. Repetir reconcilia las páginas ya escritas. Un timeout tampoco cancela necesariamente el script remoto: espera a que termine y Penpot esté libre antes de repetir. No edites el archivo mientras corre sync; este cambia la página activa y no restaura la anterior.
+
+Todo script se mide completo en UTF-8 con presupuesto de **32 KiB**, elegido por Heron tras el spike, no límite oficial de Penpot. Las propuestas que exceden el presupuesto fallan antes de conectar; References recorta su prefijo. El JSON de transporte es compacto y determinista sin alterar las huellas locales.
+
+### Códigos de salida y fallos
+
+| Código | Situación                                                                                               |
+| ------ | ------------------------------------------------------------------------------------------------------- |
+| 0      | Éxito; avisos por duplicados, permisos o versión no probada no bloquean                                 |
+| 2      | Uso/configuración inválida, ambas variables de key, UUID inválido o sync sin banderas                   |
+| 3      | Workspace o precondiciones bloqueados, otro archivo antes de escribir, formas humanas en tablero propio |
+| 4      | Doctor: falla de workspace o archivo vinculado; propuesta que excede el presupuesto del script          |
+| 5      | Configuración ausente, transporte/key/plugin/MCP/script fallidos; sync puede traer datos parciales      |
+| 6      | Lock o revisión local concurrente; repetir tras terminar el escritor                                    |
+
+`--json` produce un único `CliEnvelope` en stdout, también en fallos. Un sync parcial conserva `data.pages` y `data.writes` y emite `PENPOT_SYNC_PARTIAL`; revisa `ok` y `code`, no solo la presencia de datos. Los fallos de escrituras normales pueden agregar un evento redactado `penpot.error`, una vez por invocación, en el workspace objetivo.
+
+Si aparece `PENPOT_PLUGIN_NOT_CONNECTED`, abre el archivo y usa **Main menu → MCP Server → Connect** (en español, Menú principal → Servidor MCP → Conectar). El handshake puede pasar con key equivocada o plugin desconectado: no demuestra que se pueda inspeccionar. Si se rechaza la key, revisa o rota el valor fuera del repo; no compartas la URL de Integrations ni logs crudos.
 
 ## Secretos
 
@@ -134,6 +192,21 @@ penpot.live: PASS; 0 failed checks
 ```
 
 **P12.A7 aprobado por el usuario el 2026-10-02**, tras leer el resultado y confirmar la conservación de 2.17.2. La sonda no implica un upgrade.
+
+## Recorrido P12.A8 sobre monorepo-fullstack (pendiente)
+
+Prerequisito: **P3.A12 aprobado**, con brief, análisis y tres direcciones generadas mediante Claude Code y Codex reales sobre `monorepo-fullstack`. Un fixture SYNTHETIC o un proveedor `fake` no satisface esa aceptación. No se declara A8 aprobada por haber pasado T12 o T13.
+
+1. En Penpot 2.17.2 abre un archivo dedicado **Heron — monorepo-fullstack** en Chrome, activa MCP y conecta el plugin. Configura URL y key en el shell; no uses el archivo desechable de las sondas como evidencia del producto.
+2. Desde Heron corre `heron penpot link ../monorepo-fullstack --file-id <uuid>`; verifica `enabled: true`, el archivo correcto y `url: null` en `project.json`.
+3. `heron doctor ../monorepo-fullstack`: los siete checks Penpot deben pasar.
+4. `heron penpot sync ../monorepo-fullstack --proposals`: tres páginas. Repite: `0 page(s) written, 3 unchanged`.
+5. `heron penpot sync ../monorepo-fullstack --references` y `heron penpot inspect ../monorepo-fullstack`.
+6. **Comparación lado a lado (DR38):** abre el mismo archivo en tres ventanas del navegador, una por página de propuesta, colócalas lado a lado y usa el mismo zoom. La comparación se hace después de escribir; solo una ventana necesita el MCP. Revisa alineación de secciones, los 13 atributos, paleta/contraste, escala tipográfica, componentes y composición `SYNTHETIC`, con la banda `REFERENCE ONLY`.
+7. Compara el estado Git de `.heron/` antes y después: los cambios del recorrido deben limitarse a `project.json`, `penpot/review-sync.json` y `state.json`; sin `design/**`, `validation/**` ni export. No comitees trabajo previo ajeno como parte de esta evidencia.
+8. El usuario revisa y responde **Aprobado**. Solo entonces se agrega la fecha y "2.17.2 verificada con Heron sobre monorepo-fullstack (P12.A8)" en Versiones y se registra `navori master part P12 --accept A8 … --approved-by user`.
+
+Estado al 2026-10-02: **pendiente**, no sustituido por A7 ni pruebas automatizadas.
 
 ## Criterio de salida del Lote 1 (manual)
 

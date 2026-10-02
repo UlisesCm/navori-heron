@@ -75,6 +75,8 @@ export interface Logger { event(name: LogEventName, fields: LogFields): void }  
 
 Adapters sin estado: los servicios llegan **en el request** (precedente `DetectRequest.fs`); las conexiones son `connect*(config, services): Promise<Session>` con `close()` en `finally`. Dirección del logger: `security` no toca fs y `core/store` no importa `security`; `app/context.ts` compone `createLogger([openAppendLog(…)], createRedactor(…), …)`. Anti-patrones: `new Date()`/`Date.now()` en dominio (solo lock vencido y duraciones); `crypto.randomUUID()` fuera de `IdGenerator`; `Logger.event` con `unknown`.
 
+Penpot [E, P12]: `PenpotGateway` abre `PenpotCodeRunner`; `PenpotSession` valida inspección/aplicación. Solo `src/penpot/registry.ts` importa `mcpGateway` y expone `defaultPenpotGateway`. `AppContext.penpot` recibe gateway/timeouts; `fixedContext` usa `refusingGateway` que lanza ante conexiones reales. `withPenpotSession` garantiza cierre y redacción; si permite log exige `heronDir` explícito del workspace, nunca usa cwd como destino.
+
 ## 7. Documento Zod versionado + `gen:schemas`
 
 Canónico [E]: `src/core/contracts/version.ts` `DocumentSpec`, `parseVersionedDocument`; `index.ts` `CONTRACT_DOCUMENTS`; `HeronState` + `HeronStateSchema` + `HERON_STATE_DOCUMENT`; `scripts/gen-schemas.ts` `generateSchemas`; `tests/repo/schemas.test.ts`.
@@ -102,16 +104,15 @@ export type CommandSpec = { name: string; usage: string;
 
 Anti-patrones: validar negocio en el handler; leer disco; un código distinto de `result.code`; copy que no esté en inglés. HTTP [P8]: 0→200, 1→500 genérico, 2→400, 3→409, 4→422, 5→503, 6→409.
 
-## 9. Compilador determinista (Penpot) [P12/P6]
+## 9. Compilador determinista (Penpot) [E, P12]
 
-Contratos → `PenpotPlan` (operaciones ordenadas, ids `heron:<kind>:<id>`) → script = plantilla `@vN` + **un** literal `JSON.stringify(data)` → `PenpotSession.apply`.
+Contratos e inspección → `ReviewPage` y `planReviewSync` → `renderScript(template, data)` → `PenpotSession.apply`. El renderer genérico dibuja `board`, `rect` y `text`; layout y fuentes se deciden en TS puro. `PENPOT_TEMPLATES` registra texto, versión y sha256. El script es `const HERON = JSON.parse(<literal seguro>);` seguido de la plantilla exacta: doble serialización JSON, transporte compacto canónico sin cambiar huellas persistidas. El presupuesto completo UTF-8 es 32 KiB; References reserva UUID de 36 caracteres y recorta por bytes reales.
 
-```ts
-export function compilePlan(input: CompileInput, synced: PenpotSyncState | null): PenpotPlan; // puro
-export function renderScript(op: PenpotOp, template: TemplateRef): string;                    // puro
-```
+La plantilla borra `content` al empezar y lo escribe al final tras verificar el conjunto de identidades. Solo reemplaza formas con marca `heron`; una forma humana dentro de un tablero propio bloquea antes de mutar. Las externas sobreviven. Duplicados se avisan y no se borran. Las plantillas `@v1` están congeladas tras T12; una corrección posterior requiere nueva versión.
 
-Anti-patrones: concatenar datos en el código; un script escrito por el LLM (RN-35); fechas o aleatoriedad en el plan; que el compilador consulte Penpot (el drift llega como dato).
+Sync detiene el plan al primer fallo, reinspecciona y registra solo páginas confirmadas; una revisión local concurrente produce exit 6 sin rollback remoto. Flags seleccionan escrituras, no borran otras páginas confirmadas del registro. Segunda corrida sin cambios: una lectura, cero escrituras y cero commit local.
+
+Anti-patrones: interpolar datos como código; scripts escritos por IA; fechas/aleatoriedad o red en el compilador; asumir que timeout cancela el script; registrar páginas solo por el ack sin reinspección. Referencia: `docs/adr/0007-penpot-boundary.md`.
 
 ## 10. Plantillas versionadas [P3/P12]
 

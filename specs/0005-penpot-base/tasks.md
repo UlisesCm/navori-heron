@@ -241,7 +241,7 @@ Lotes de 1–3 tareas, **en serie** (cada tarea declara de qué depende y con qu
 
 ## Lote 9 — Documentación y aceptación
 
-- [ ] **T20** (R3, R19) — ADR 0007, `docs/penpot.md` completa con las órdenes `heron penpot`, secciones de arquitectura, seguridad y README, y skill actualizada.
+- [x] **T20** (R3, R19) — ADR 0007, `docs/penpot.md` completa con las órdenes `heron penpot`, secciones de arquitectura, seguridad y README, y skill actualizada.
   - **Archivos:** `docs/adr/0007-penpot-boundary.md`, `docs/penpot.md`, `docs/architecture.md`, `docs/security.md`, `README.md`, `.claude/skills/heron-architecture/references/layout.md`, `.claude/skills/heron-architecture/references/patterns.md`, `.claude/skills/heron-architecture/references/recipes.md`, `tests/repo/docs.test.ts`
   - **Interfaces:** mcpGateway; defaultPenpotGateway; renderScript; PENPOT_TEMPLATES; PENPOT_TESTED_VERSIONS
   - **Patrón:** docs/adr/0003-research-source-boundary.md

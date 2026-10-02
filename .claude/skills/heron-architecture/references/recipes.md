@@ -69,3 +69,11 @@ Una fuente es un adapter del puerto `ProductContextAdapter` (`src/intake/ports.t
 ## Configuración y secretos [P3]
 
 `src/app/config.ts`: defaults en código < `.heron/project.json` (`HeronProject`, campos opcionales sin bump) < variables `HERON_*`. Los secretos solo llegan por env o `<NAME>_FILE`; si ambos están definidos → exit 2 (nunca elegir en silencio). Configuración inválida → exit 2; dependencia ausente → 3 o 5. Solo `context.ts`/`config.ts` leen `process.env`. No hay `heron.config.json` en V1 (supuesto).
+
+## Servicio externo y páginas de revisión (P12)
+
+1. Destinos y secretos de servicios externos llegan por `AppContext.env`, **nunca del workspace**. Para Penpot usa `resolvePenpotUrl`/`resolvePenpotKey` en `app/penpot-config.ts`; no reintroduzcas `project.penpot.url`, `.env`, `--url` ni redirects. Launcher: `heron` o `bun run heron`, no Bun sin los flags de aislamiento.
+2. Inyecta gateway por `AppContext.penpot`; composición vía `defaultPenpotGateway` del registro, nunca importando el adapter MCP en app. Usa `withPenpotSession` con cierre y redactor; log solo en escrituras normales y con `heronDir` explícito. Tests default con `refusingGateway` o `fakePenpotContext`.
+3. Layout nuevo en `compiler/` puro, datos tipados como nodos. `renderScript` mide la plantilla completa más literal seguro. No edites las plantillas congeladas: agrega `@v2`, registro/sha256 y tests de compatibilidad y guarda humana.
+4. Inspecciona fuera del lock sobre revisión R; antes de escribir comprueba archivo vinculado. Tras intentos remotos reinspecciona; commit local con `expectedRevision = R`, `recordCommand`, `withArtifacts` y `freshen`. Nunca supongas rollback remoto ni que el timeout canceló el script.
+5. Prueba key canario sin eco en éxito/fallo/logs, archivo incorrecto, humano dentro/fuera, parcial y repetición sin cambios. Sondas vivas solo opt-in sobre archivo desechable autorizado. A8 exige direcciones reales y aprobación en tres ventanas, no una expectativa automatizada.
