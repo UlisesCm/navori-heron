@@ -150,7 +150,7 @@ Lotes de 1–3 tareas. Cada test lleva `// Covers: R<n>` en la primera línea y 
 
 ## Lote 6 — JSON Schemas, documentación y skill
 
-- [ ] **T14** (R11) — Validación de lo emitido con ajv 2020 estricto sobre todos los fixtures, regla SYNTHETIC y umbral de cobertura de `src/intake/`.
+- [x] **T14** (R11) — Validación de lo emitido con ajv 2020 estricto sobre todos los fixtures, regla SYNTHETIC y umbral de cobertura de `src/intake/`.
   - **Archivos:** `tests/contracts/json-schema.test.ts`, `package.json`, `bun.lock`, `scripts/check-coverage.ts`, `tests/repo/coverage-rules.test.ts`
   - **Interfaces:** CONTRACT_DOCUMENTS; COVERAGE_RULES
   - **Patrón:** tests/repo/schemas.test.ts
@@ -159,7 +159,7 @@ Lotes de 1–3 tareas. Cada test lleva `// Covers: R<n>` en la primera línea y 
   - **Done:** comando `bun install --frozen-lockfile && bun test tests/contracts/json-schema.test.ts tests/repo/coverage-rules.test.ts`, esperado exit 0 (incluye compilar en modo estricto los 3 schemas nuevos); casos de test "emitted JSON Schemas validate every fixture and fixtures are marked SYNTHETIC"; cubre P4.A6.
   - **Fuera de alcance:** validar `dist/` (P5).
 
-- [ ] **T15** (R10, R17) — ADR 0006, `docs/contracts.md`, `docs/integrations/navori-harness.md`, arquitectura (enmienda de DP9), README y skill `heron-architecture`; quality gate completo.
+- [x] **T15** (R10, R17) — ADR 0006, `docs/contracts.md`, `docs/integrations/navori-harness.md`, arquitectura (enmienda de DP9), README y skill `heron-architecture`; quality gate completo.
   - **Archivos:** `docs/adr/0006-canonical-data-model.md`, `docs/contracts.md`, `docs/integrations/navori-harness.md`, `docs/architecture.md`, `README.md`, `tests/repo/docs.test.ts`, `.claude/skills/heron-architecture/references/layout.md`, `.claude/skills/heron-architecture/references/recipes.md`
   - **Interfaces:** ProductContext; ACTIVE_UX_READER
   - **Patrón:** docs/adr/0003-research-source-boundary.md

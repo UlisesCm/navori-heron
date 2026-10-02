@@ -23,6 +23,7 @@ const healthy: LcovFile[] = [
   file("src/research/e.ts", 10, 10),
   file("src/tokens/f.ts", 10, 10),
   file("src/agents/g.ts", 10, 10),
+  file("src/intake/h.ts", 10, 10),
 ];
 
 describe("evaluateCoverage", () => {
@@ -33,17 +34,27 @@ describe("evaluateCoverage", () => {
     const low = [file("src/core/contracts/a.ts", 8, 10), ...healthy.slice(1)];
     const lowReport = evaluateCoverage(low, sources, COVERAGE_RULES);
     expect(lowReport.ok).toBe(false);
-    expect(lowReport.rules.map((r) => r.ok)).toEqual([false, true, true, true, true, true, true]);
+    expect(lowReport.rules.map((r) => r.ok)).toEqual([
+      false,
+      true,
+      true,
+      true,
+      true,
+      true,
+      true,
+      true,
+    ]);
 
     // exactly 90 percent passes; function ratio alone can fail
     const edge = [file("src/core/contracts/a.ts", 9, 10), ...healthy.slice(1)];
     expect(evaluateCoverage(edge, sources, COVERAGE_RULES).ok).toBe(true);
-    // the new P2 prefixes are held to the same 90 percent
+    // the P2 and P4 prefixes are held to the same 90 percent
     for (const [index, prefix] of [
       [3, "src/security/"],
       [4, "src/research/"],
       [5, "src/tokens/"],
       [6, "src/agents/"],
+      [7, "src/intake/"],
     ] as const) {
       const lowNew = healthy.map((f) => (f.path.startsWith(prefix) ? file(f.path, 8, 10) : f));
       const report = evaluateCoverage(lowNew, sources, COVERAGE_RULES);

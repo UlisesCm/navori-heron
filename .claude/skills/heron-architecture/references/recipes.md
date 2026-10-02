@@ -36,6 +36,21 @@ Patrones citados: [patterns.md](patterns.md). Ubicaciones: [layout.md](layout.md
 4. Dominio o seguridad: prefijo en `COVERAGE_RULES` (≥ 0.9, RNF-8).
 5. ADR si MASTER lo pide o entra una dependencia; fila en `docs/architecture.md` en el mismo PR.
 
+## Fuente nueva de ProductContext
+
+Una fuente es un adapter del puerto `ProductContextAdapter` (`src/intake/ports.ts`); el modelo y la regla están en [ADR 0006](../../../../docs/adr/0006-canonical-data-model.md).
+
+1. `src/intake/adapters/<id>/index.ts` exporta `<camelId>Adapter` con `detect` y `load`; el id debe estar en `ADAPTER_IDS` (`core/contracts/heron-project.ts`). Un adapter por detección va en `DEFAULT_ADAPTERS`; uno que solo corre si `init --adapter` lo elige, en `OPT_IN_ADAPTERS` (`src/intake/detect.ts`).
+2. `load` devuelve un `ContextDraft` de candidatos con `sourceRef` (ancla `§<encabezado>` o JSON Pointer, nunca número de línea); usa `candidateSink` (`candidates.ts`) y los lectores de `markdown.ts`/`sources.ts`/`inputs.ts`. El merge, la precedencia y los conflictos son comunes: el adapter no los decide.
+3. Una fuente nueva con nombre propio entra en `SOURCE_KINDS` (su posición es su rango en `SOURCE_PRECEDENCE`, `precedence.ts`), en las reglas de extracción de `docs/integrations/navori-harness.md` y en el esquema persistido (valor nuevo en un enum persistido = bump, ver "Documento versionado").
+4. Efectos solo vía el `ReadonlyFs` y los límites del request; nunca lanza ante entrada hostil: devuelve findings o `{ ok: false }`.
+5. Tests: `tests/unit/intake/<id>.test.ts`; `tests/contracts/product-context.test.ts` si cambia el mapa archivo → campo; regenerar y re-aprobar es la política de upgrade (la frescura es regenerar y comparar bytes).
+6. Si cambia el lector de `ux.json`, no se toca a los consumidores: se crea un `UxReader` y se apunta `ACTIVE_UX_READER` a él (pasos en `docs/integrations/navori-harness.md`).
+
+## Orden de CLI de intake
+
+`heron intake` y `heron conflicts list|ack` siguen la receta "Orden de CLI": `run*` en `app/intake.ts` y `app/conflicts.ts`, `CommandSpec` en `cli/commands/{intake,conflicts}.ts`, texto en `cli/render-intake.ts`. Escriben con `withWriteRun` + `freshen` y regeneran con `computeIntake` (solo lectura, compartido con `status` y el gate).
+
 ## Fixture
 
 1. `fixtures/<name>/` con `SYNTHETIC`, `.md` marcados y `navori.config.json` cuyo `name` es el directorio.
