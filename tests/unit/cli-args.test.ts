@@ -303,4 +303,62 @@ describe("parseCliArgs", () => {
       expect(parseCliArgs(argv) instanceof UsageError).toBe(true);
     }
   });
+
+  // Covers: R9, R10, R19
+  test("parses research brief and analyze with repeatable flags and derives their usage footer", () => {
+    expect(
+      parseCliArgs([
+        "research",
+        "brief",
+        "repo",
+        "--query",
+        "flow:onboarding",
+        "--query",
+        "ui-element:card",
+        "--reset-queries",
+        "--force",
+      ]),
+    ).toEqual({
+      command: "research",
+      action: "brief",
+      path: "repo",
+      queries: ["flow:onboarding", "ui-element:card"],
+      resetQueries: true,
+      force: true,
+      json: false,
+    });
+    // Flags that were not passed do not exist in the result.
+    expect(parseCliArgs(["research", "brief", "--json"])).toEqual({
+      command: "research",
+      action: "brief",
+      path: ".",
+      queries: [],
+      json: true,
+    });
+    expect(parseCliArgs(["research", "analyze", "--ref", "REF-1", "--ref", "REF-2"])).toEqual({
+      command: "research",
+      action: "analyze",
+      path: ".",
+      refs: ["REF-1", "REF-2"],
+      json: false,
+    });
+    for (const argv of [
+      ["research", "brief", "a", "b"],
+      ["research", "brief", "--ref", "REF-1"],
+      ["research", "analyze", "--query", "flow:x"],
+      ["research", "analyze", "--reset-queries"],
+    ]) {
+      expect({ argv, usage: parseCliArgs(argv) instanceof UsageError }).toEqual({
+        argv,
+        usage: true,
+      });
+    }
+    const unknown = parseCliArgs(["research", "bogus"]);
+    expect(unknown instanceof UsageError && unknown.message).toBe(
+      'Unknown research command "bogus". Expected: brief, analyze, render.',
+    );
+    expect(USAGE_TEXT).toContain("  research brief [path] [--query <facet>:<text>]...");
+    expect(USAGE_TEXT).toContain("Research facets: product-category, flow,");
+    expect(USAGE_TEXT).toContain("Agent roles: creator, reviewer");
+  });
 });

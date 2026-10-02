@@ -1,6 +1,10 @@
 import { chmodSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
-import { createFakeProvider, type FakeStep } from "../../src/agents/adapters/fake/index.ts";
+import {
+  createFakeProvider,
+  fakeProvider,
+  type FakeStep,
+} from "../../src/agents/adapters/fake/index.ts";
 import type {
   AgentProvider,
   AgentRequest,
@@ -128,5 +132,20 @@ export function briefStep(
     previous: null,
     force: false,
     ...overrides,
+  };
+}
+
+/** The deterministic `fake` provider with a call counter: `requests` grows once per provider invocation. */
+export function countingFake(): { provider: AgentProvider; requests: AgentRequest[] } {
+  const requests: AgentRequest[] = [];
+  return {
+    requests,
+    provider: {
+      ...fakeProvider,
+      invoke: (request, services) => {
+        requests.push(request);
+        return fakeProvider.invoke(request, services);
+      },
+    },
   };
 }

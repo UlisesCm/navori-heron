@@ -22,7 +22,7 @@ function envelopeCommand(
     case "brand":
       return "brand add";
     case "research":
-      return "research render";
+      return `research ${parsed.action}`;
     case "conflicts":
       return `conflicts ${parsed.action}`;
     default:

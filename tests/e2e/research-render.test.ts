@@ -133,7 +133,9 @@ describe("heron research render", () => {
     const root = await initialized("no-ux");
     const unknown = await runCliCaptured(["research", "show", root]);
     expect(unknown.code).toBe(ExitCode.Usage);
-    expect(unknown.stderr).toContain('Unknown research command "show". Expected: render.');
+    expect(unknown.stderr).toContain(
+      'Unknown research command "show". Expected: brief, analyze, render.',
+    );
     const extra = await runCliCaptured(["research", "render", root, "extra"]);
     expect(extra.code).toBe(ExitCode.Usage);
   });

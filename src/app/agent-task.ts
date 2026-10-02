@@ -77,6 +77,20 @@ export type AgentStepResult<T> =
 const MAX_DETAIL_CHARS = 500;
 const dialectOf = (provider: AgentProvider): SchemaDialect =>
   provider.id === "codex-cli" ? "openai-strict" : "claude";
+/** The output-schema identity of a task for a provider (shared by the run record, the cache key and analysis freshness). */
+export function outputSchemaRef(
+  provider: AgentProvider,
+  spec: AgentTaskSpec<unknown>,
+): AgentRun["outputSchema"] {
+  const dialect = dialectOf(provider);
+  return {
+    task: spec.id,
+    dialect,
+    sha256: sha256Hex(
+      new TextEncoder().encode(canonicalJson(toProviderSchema(spec.output, dialect))),
+    ),
+  };
+}
 const byPath = (a: { path: string }, b: { path: string }): number =>
   a.path < b.path ? -1 : a.path > b.path ? 1 : 0;
 
@@ -322,14 +336,8 @@ export async function executeAgentStep<T>(
   }
 
   const model = settings.models[providerId] ?? null;
-  const dialect = dialectOf(provider);
-  const schema = {
-    task: spec.id,
-    dialect,
-    sha256: sha256Hex(
-      new TextEncoder().encode(canonicalJson(toProviderSchema(spec.output, dialect))),
-    ),
-  };
+  const schema = outputSchemaRef(provider, spec);
+  const { dialect } = schema;
   const cacheKey = agentCacheKey({
     task: spec.id,
     template: spec.template.ref,

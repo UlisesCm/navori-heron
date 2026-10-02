@@ -178,7 +178,7 @@ Lotes de 1–3 tareas, **en serie** (cada tarea declara de qué depende y con qu
   - **Comparte archivos con:** T15 (`src/app/research.ts`).
   - **Fuera de alcance:** moodboard (DR24).
 
-- [ ] **T15** (R6, R9, R10, R16, R19) — `heron research brief|analyze` de punta a punta con cache y `--force`, pie de `USAGE_TEXT` y prueba de secretos sobre un run del `fake`.
+- [x] **T15** (R6, R9, R10, R16, R19) — `heron research brief|analyze` de punta a punta con cache y `--force`, pie de `USAGE_TEXT` y prueba de secretos sobre un run del `fake`.
   - **Archivos:** `src/app/research.ts`, `src/cli/command.ts`, `src/cli/commands/research.ts`, `src/cli/main.ts`, `src/cli/args.ts`, `src/cli/render-agents.ts`, `tests/e2e/research-agents.test.ts`, `tests/unit/agents/run-record.test.ts`, `tests/unit/cli-args.test.ts`
   - **Interfaces:** runResearchBrief; runResearchAnalyze; ResearchBriefInput; ResearchAnalyzeInput; ResearchParsed; renderResearchBriefText; renderResearchAnalyzeText; USAGE_TEXT
   - **Patrón:** src/app/references.ts

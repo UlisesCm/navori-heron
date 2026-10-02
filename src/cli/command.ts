@@ -80,8 +80,26 @@ export type BrandParsed = {
   input: BrandInputDraft;
   json: boolean;
 };
-/** `heron research render`: the only research action P2 needs. */
-export type ResearchParsed = { command: "research"; action: "render"; path: string; json: boolean };
+/** `heron research <action>`: render (P2), brief and analyze (P3). `resetQueries` and `force` exist only when the flag was given. */
+export type ResearchParsed =
+  | { command: "research"; action: "render"; path: string; json: boolean }
+  | {
+      command: "research";
+      action: "brief";
+      path: string;
+      queries: string[];
+      resetQueries?: true;
+      force?: true;
+      json: boolean;
+    }
+  | {
+      command: "research";
+      action: "analyze";
+      path: string;
+      refs: string[];
+      force?: true;
+      json: boolean;
+    };
 /** `heron intake`: `--refresh` is parsed and ignored (DR31). */
 export type IntakeParsed = { command: "intake"; path: string; dryRun: boolean; json: boolean };
 /** `heron conflicts <action>`: one variant per action, discriminated by `action`. */

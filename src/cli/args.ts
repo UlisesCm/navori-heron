@@ -1,5 +1,11 @@
 import { availableReferenceSources } from "../app/references.ts";
-import { BRAND_KINDS, BRAND_ORIGINS, GATE_NAMES } from "../core/contracts/index.ts";
+import {
+  AGENT_ROLES,
+  BRAND_KINDS,
+  BRAND_ORIGINS,
+  GATE_NAMES,
+  RESEARCH_FACETS,
+} from "../core/contracts/index.ts";
 import { UsageError, type CommandName, type CommandSpec, type ParsedCommand } from "./command.ts";
 import { COMMANDS } from "./commands/index.ts";
 
@@ -43,6 +49,8 @@ Gates: ${GATE_NAMES.join(", ")}
 Reference sources: ${availableReferenceSources().join(", ")}
 Brand kinds: ${BRAND_KINDS.join(", ")}
 Brand origins: ${BRAND_ORIGINS.join(", ")}
+Research facets: ${RESEARCH_FACETS.join(", ")}
+Agent roles: ${AGENT_ROLES.join(", ")} (configured in .heron/project.json "agents"; see docs/agent-providers.md)
 
 Options:
   -h, --help     Show this help
