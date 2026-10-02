@@ -134,7 +134,7 @@ Lotes de 1–3 tareas, **en serie** (cada tarea declara de qué depende y con qu
   - **Comparte archivos con:** T9 (`results.ts` por import); T11 (`ports.ts`, `config.ts` por import); T13 (`compatibility.ts`).
   - **Fuera de alcance:** transporte MCP (T11); lectura del entorno (T15).
 
-- [ ] **T11** (R4, R6, R7, R17, R19) — Adapter `mcp` sobre el SDK con `mcpFetch`, clasificación de fallas y redacción (también de errores de transporte); registro `defaultPenpotGateway`; servidor MCP falso.
+- [x] **T11** (R4, R6, R7, R17, R19) — Adapter `mcp` sobre el SDK con `mcpFetch`, clasificación de fallas y redacción (también de errores de transporte); registro `defaultPenpotGateway`; servidor MCP falso.
   - **Archivos:** `src/penpot/adapters/mcp/index.ts`, `src/penpot/registry.ts`, `src/security/fetch/system.ts`, `package.json`, `bun.lock`, `tests/helpers/fake-mcp.ts`, `tests/unit/penpot/mcp-adapter.test.ts`
   - **Interfaces:** mcpGateway; defaultPenpotGateway; mcpFetch; McpFetch; startFakeMcp; FakeMcpOptions; FakeMcpServer
   - **Patrón:** src/research/adapters/url/index.ts
