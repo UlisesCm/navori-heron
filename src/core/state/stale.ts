@@ -22,7 +22,7 @@ export const PHASE_ARTIFACTS: Readonly<Record<HeronPhase, readonly string[]>> = 
     "brand/**",
   ],
   "research-ready": [],
-  "directions-ready": ["research/visual-directions.json"],
+  "directions-ready": ["research/visual-directions.json", "penpot/review-sync.json"],
   "direction-selected": [],
   "foundations-ready": ["design/foundations/**", "design/tokens/**", "design/DESIGN.md"],
   "representative-screens-ready": ["design/screens/**"],
@@ -53,6 +53,7 @@ export const ARTIFACT_DEPENDENCIES: Readonly<Record<string, readonly string[]>> 
   "design/design-system.json": SYSTEM_DEPS,
   "design/components/**": SYSTEM_DEPS,
   "design/patterns/**": SYSTEM_DEPS,
+  "penpot/review-sync.json": ["research/visual-directions.json", "research/references.json"],
   "penpot/sync-state.json": ["design/**"],
   "validation/**": ["design/**", "penpot/sync-state.json"],
 };
