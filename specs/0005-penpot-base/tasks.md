@@ -123,7 +123,7 @@ Lotes de 1–3 tareas, **en serie** (cada tarea declara de qué depende y con qu
 
 ## Lote 5 — Puerto, sesión, adapter MCP y sonda viva
 
-- [ ] **T10** (R4, R8, R13, R17) — Puerto `PenpotGateway`/`PenpotCodeRunner`/`PenpotSession`, validación pura de `PENPOT_URL` y endpoint, versiones probadas y sesión `inspect`/`apply` con el parseo de resultados.
+- [x] **T10** (R4, R8, R13, R17) — Puerto `PenpotGateway`/`PenpotCodeRunner`/`PenpotSession`, validación pura de `PENPOT_URL` y endpoint, versiones probadas y sesión `inspect`/`apply` con el parseo de resultados.
   - **Archivos:** `src/penpot/ports.ts`, `src/penpot/config.ts`, `src/penpot/compatibility.ts`, `src/penpot/session.ts`, `tests/unit/penpot/config.test.ts`, `tests/unit/penpot/session.test.ts`
   - **Interfaces:** PenpotGateway; PenpotCodeRunner; PenpotConnectRequest; PenpotConnectOutcome; PenpotExecution; PenpotFailure; PenpotFailureKind; PenpotSession; SessionResult; parsePenpotUrl; mcpEndpoint; PENPOT_TESTED_VERSIONS; isTestedVersion; parseExecuteText; openPenpotSession
   - **Patrón:** src/agents/ports.ts
