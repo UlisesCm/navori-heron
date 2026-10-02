@@ -97,7 +97,11 @@ const TemplateRefSchema: z.ZodType<TemplateRef> = z.looseObject({
   sha256: Sha256HexSchema,
 });
 
-/** Token counts are null when the provider does not report them (DR45). */
+/**
+ * Token counts are null when the provider does not report them (DR45).
+ * `inputTokens` is the TOTAL input processed by the invocation (fresh + cache write + cache read);
+ * `cachedInputTokens` is the subset read from cache. Adapters normalize provider semantics to this.
+ */
 export type AgentUsage = {
   inputTokens: number | null;
   outputTokens: number | null;

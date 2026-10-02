@@ -112,6 +112,44 @@ describe("claude-code argv", () => {
     expect(spec?.args).toContain("--json-schema");
   });
 
+  test("normalizes claude usage: inputTokens totals fresh, cache write and cache read", async () => {
+    // Covers: R21, R1, R4
+    const real = newBin();
+    writeFakeAgentBin(
+      real,
+      "claude",
+      `cat >/dev/null\n${envelope({
+        structured_output: { key: "k", tokens: "t" },
+        total_cost_usd: 0.0058,
+        usage: {
+          input_tokens: 2,
+          cache_creation_input_tokens: 40,
+          cache_read_input_tokens: 706,
+          output_tokens: 82,
+          cache_creation: { ephemeral_5m_input_tokens: 40 },
+          iterations: [],
+          service_tier: "standard",
+          speed: "standard",
+        },
+      })}`,
+    );
+    expect(await claudeCodeProvider.invoke(request(), services(real))).toMatchObject({
+      status: "succeeded",
+      usage: { inputTokens: 748, outputTokens: 82, cachedInputTokens: 706, costUsd: 0.0058 },
+    });
+
+    const none = newBin();
+    writeFakeAgentBin(
+      none,
+      "claude",
+      `cat >/dev/null\n${envelope({ structured_output: { key: "k", tokens: "t" }, usage: { output_tokens: 1 } })}`,
+    );
+    expect(await claudeCodeProvider.invoke(request(), services(none))).toMatchObject({
+      status: "succeeded",
+      usage: { inputTokens: null, outputTokens: 1, cachedInputTokens: null },
+    });
+  }, 30_000);
+
   test("maps CLI failures, error results and missing binaries to agent statuses", async () => {
     // Covers: R1, R4
     // real processes against fake binaries: shell start-up on a loaded CI box can be slow, hence the explicit timeout
@@ -153,7 +191,7 @@ describe("claude-code argv", () => {
       status: "succeeded",
       output: { key: "unset", tokens: "unset" },
       reportedModels: ["claude-a", "claude-b"],
-      usage: { inputTokens: 10, outputTokens: 5, cachedInputTokens: 3, costUsd: 0.25 },
+      usage: { inputTokens: 13, outputTokens: 5, cachedInputTokens: 3, costUsd: 0.25 },
     });
 
     const planB = newBin();

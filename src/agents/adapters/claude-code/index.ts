@@ -83,11 +83,20 @@ const PROBE_SPEC = {
 const probe = (services: ProviderServices, level: ProbeLevel): Promise<ProviderProbe> =>
   probeCli(PROBE_SPEC, services, level);
 
+/**
+ * Anthropic's `input_tokens` excludes cache writes and reads, so the contract's total
+ * (`AgentUsage.inputTokens`) sums the three; null only when none is reported (DR45).
+ */
 function usageOf(envelope: Record<string, unknown>): AgentUsage {
   const usage = record(envelope["usage"]);
   const cost = envelope["total_cost_usd"];
+  const parts = [
+    count(usage?.["input_tokens"]),
+    count(usage?.["cache_creation_input_tokens"]),
+    count(usage?.["cache_read_input_tokens"]),
+  ].filter((n): n is number => n !== null);
   return {
-    inputTokens: count(usage?.["input_tokens"]),
+    inputTokens: parts.length === 0 ? null : parts.reduce((a, b) => a + b, 0),
     outputTokens: count(usage?.["output_tokens"]),
     cachedInputTokens: count(usage?.["cache_read_input_tokens"]),
     costUsd: typeof cost === "number" && Number.isFinite(cost) && cost >= 0 ? cost : null,

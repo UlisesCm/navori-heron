@@ -130,7 +130,7 @@ Lotes de 1–3 tareas, **en serie** (cada tarea declara de qué depende y con qu
   - **Comparte archivos con:** T11 (`argv.test.ts`), T13 (`tests/helpers/agents.ts`), T2, T6, T8 (`boundaries.test.ts`).
   - **Fuera de alcance:** imágenes (DR37).
 
-- [x] **T11** (R1, R8, R18) — Adapter `codex-cli` con monitor por lista blanca y plantilla por stdin; sonda viva opt-in como criterio de salida del lote. _Código y pruebas listos; el criterio de salida manual (`HERON_LIVE_AGENTS=1 bun run test:live`) queda pendiente de la corrida en vivo del usuario._
+- [x] **T11** (R1, R8, R18) — Adapter `codex-cli` con monitor por lista blanca y plantilla por stdin; sonda viva opt-in como criterio de salida del lote. _Código y pruebas listos; el criterio de salida manual (`HERON_LIVE_AGENTS=1 bun run test:live`) pasó el 2026-10-01 (claude 2.1.287, codex 0.159.3) con todas las comprobaciones en PASS, tras el arreglo de dialecto 1098c62._
   - **Archivos:** `src/agents/adapters/codex-cli/index.ts`, `tests/unit/agents/codex-events.test.ts`, `tests/unit/agents/argv.test.ts`, `tests/live/agents.live.ts`, `package.json`
   - **Interfaces:** codexCliProvider; CODEX_FIXED_ARGS; CODEX_DISABLED_FEATURES; CODEX_ALLOWED_EVENT_TYPES; CODEX_ALLOWED_ITEM_TYPES; codexArgv; codexPrompt; codexLineVerdict
   - **Patrón:** src/research/adapters/url/index.ts
