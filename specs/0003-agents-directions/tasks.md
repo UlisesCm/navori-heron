@@ -10,7 +10,7 @@ Lotes de 1–3 tareas, **en serie** (cada tarea declara de qué depende y con qu
 
 ## Lote 1 — Términos de uso
 
-- [ ] **T1** (R17) — `docs/agent-providers.md` §Términos con fuentes, fechas y la conclusión de DR35 (P3.A11), y su test.
+- [x] **T1** (R17) — `docs/agent-providers.md` §Términos con fuentes, fechas y la conclusión de DR35 (P3.A11), y su test.
   - **Archivos:** `docs/agent-providers.md`, `tests/repo/docs.test.ts`
   - **Interfaces:** DR35; AGENT_API_KEY_VARS; AGENT_ROUTE_VARS
   - **Patrón:** docs/research.md
@@ -23,7 +23,7 @@ Lotes de 1–3 tareas, **en serie** (cada tarea declara de qué depende y con qu
 
 ## Lote 2 — Zonas de escritura y primitivas de seguridad
 
-- [ ] **T2** (R1, R15, R17, R21) — `TempDirPort`, sink append-only de logs con poda y lectura, `FsPort` con `"a"` y ADR 0002.
+- [x] **T2** (R1, R15, R17, R21) — `TempDirPort`, sink append-only de logs con poda y lectura, `FsPort` con `"a"` y ADR 0002.
   - **Archivos:** `src/core/store/temp-dir.ts`, `src/core/store/append-log.ts`, `src/core/store/fs-port.ts`, `tests/helpers/faulty-fs.ts`, `tests/unit/store/temp-dir.test.ts`, `tests/unit/store/append-log.test.ts`, `tests/repo/boundaries.test.ts`, `docs/adr/0002-store-write-zones.md`
   - **Interfaces:** TempDirPort; TempWorkspace; nodeTempDirs; openAppendLog; pruneLogs; readLogEvents; LogSink
   - **Patrón:** src/core/store/fs-port.ts
@@ -34,7 +34,7 @@ Lotes de 1–3 tareas, **en serie** (cada tarea declara de qué depende y con qu
   - **Comparte archivos con:** T6, T8, T10 (`tests/repo/boundaries.test.ts`).
   - **Fuera de alcance:** logger y redacción (T3); `ExportWriter` (P5).
 
-- [ ] **T3** (R2, R6, R15) — Entorno del hijo por lista blanca (DR35), redactor por valor cargado y logger JSONL.
+- [x] **T3** (R2, R6, R15) — Entorno del hijo por lista blanca (DR35), redactor por valor cargado y logger JSONL.
   - **Archivos:** `src/security/env.ts`, `src/security/redact.ts`, `src/security/logger.ts`, `tests/unit/security/env.test.ts`, `tests/unit/security/logger.test.ts`, `tests/unit/security/redact.test.ts`
   - **Interfaces:** buildAgentEnv; AGENT_ENV_ALLOWLIST; AGENT_API_KEY_VARS; AGENT_ROUTE_VARS; createValueRedactor; Redactor; createLogger; Logger; nullLogger; LOG_EVENT_NAMES
   - **Patrón:** src/security/redact.ts
@@ -215,7 +215,7 @@ Lotes de 1–3 tareas, **en serie** (cada tarea declara de qué depende y con qu
 
 ## Lote 10 — Documentación y recorrido real
 
-- [ ] **T18** (R17, R18, R20) — ADR 0005, resto de `docs/agent-providers.md` (incluida la economía de tokens), docs de arquitectura/seguridad/research, README y quality gate.
+- [x] **T18** (R17, R18, R20) — ADR 0005, resto de `docs/agent-providers.md` (incluida la economía de tokens), docs de arquitectura/seguridad/research, README y quality gate.
   - **Archivos:** `docs/adr/0005-ai-provider-boundary.md`, `docs/agent-providers.md`, `docs/architecture.md`, `docs/security.md`, `docs/research.md`, `README.md`, `tests/repo/docs.test.ts`
   - **Interfaces:** CLAUDE_FIXED_ARGS; CODEX_FIXED_ARGS; CODEX_ALLOWED_ITEM_TYPES; AGENT_ENV_ALLOWLIST; PACK_LIMITS
   - **Patrón:** docs/adr/0003-research-source-boundary.md

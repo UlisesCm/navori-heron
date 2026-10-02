@@ -77,6 +77,23 @@ Toda referencia lleva `source`, `origin`, `reason`, `studies[]`, `doNotCopy[]` e
 
 `brand add` exige un `--kind` de los 11 (`logo`, `brand-color`, `secondary-color`, `font`, `brand-guidelines`, `screenshot`, `url`, `existing-product`, `competitor`, `liked-reference`, `disliked-reference`) y un `--origin` válido: `provided`, `derived`, `inferred` o `reference-derived`. Sin origen o con uno inválido: exit 2 (`BRAND_INPUT_INVALID`), sin escribir. `reference-derived` exige `--reference <REF-n>` (una referencia activa) y ese flag solo se admite con ese origen. `--file` guarda un logo saneado en `brand/assets/`. `brand add` no invalida la aprobación del gate research.
 
+## Con agentes (P3)
+
+Sobre las mismas referencias, P3 agrega tres pasos con IA (Claude Code o Codex CLI con tu suscripción; requisitos, banderas y costos en [docs/agent-providers.md](agent-providers.md)). El research de P2 sigue sin IA y no depende de ellos.
+
+```text
+heron research brief [path] [--query <facet>:<text>]... [--reset-queries] [--force] [--json]
+heron research analyze [path] [--ref <REF-n>]... [--force] [--json]
+heron direction propose [path] [--force] [--json]
+heron direction select <DIR-x> [path] [--note <text>] [--json]
+```
+
+- `research brief` escribe `research/brief.json` con consultas por faceta; las `provided` (`--query`) se acumulan y las `inferred` se reemplazan en cada corrida.
+- `research analyze` escribe `research/analysis.json` con notas `inferred` por referencia y no modifica `references.json`. Procesa hasta 30 referencias por corrida (`PACK_LIMITS`) y lista el resto como pendiente.
+- `direction propose` escribe `visual-directions.json` con 3 direcciones, y exige `research-ready` aprobado. `direction select` guarda la preferencia (`preferred`); en `reference-only` no hay selección de producción.
+- Si las entradas no cambiaron, el comando responde `AGENT_RUN_REUSED` sin invocar al agente; `--force` lo obliga. `REFERENCES.md` muestra las secciones de brief, análisis y direcciones solo si existen esos documentos.
+- El texto del agente se trata como no confiable (ver [docs/security.md](security.md#agentes-p3)).
+
 ## Salidas y layout
 
 ```text

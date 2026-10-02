@@ -15,22 +15,22 @@ Invariante dual: sin `UX.md` + `ux.json` válidos Heron trabaja en `reference-on
 
 ## 2. Estado actual y roadmap
 
-**P1** está hecha y **P2** (research) está implementada; su recorrido manual sobre un producto real (P2.A9) lo ejecuta el usuario con [docs/research.md](docs/research.md). **P4** (modelo canónico) está implementada; la lectura de [docs/contracts.md](docs/contracts.md) y [docs/integrations/navori-harness.md](docs/integrations/navori-harness.md) (P4.A9) la hace el usuario. Fuente: `specs/_master/01-heron/parts.json` y `STATUS.md`.
+**P1** está hecha, **P2** (research) y **P3** (agentes y direcciones) están implementadas; su recorrido manual sobre un producto real (P2.A9) lo ejecuta el usuario con [docs/research.md](docs/research.md). **P4** (modelo canónico) está implementada; la lectura de [docs/contracts.md](docs/contracts.md) y [docs/integrations/navori-harness.md](docs/integrations/navori-harness.md) (P4.A9) la hace el usuario. Fuente: `specs/_master/01-heron/parts.json` y `STATUS.md`.
 
-| Parte | Objetivo                                                            | Depende de  | Estado                           |
-| ----- | ------------------------------------------------------------------- | ----------- | -------------------------------- |
-| P1    | Núcleo, `heron init` y detección de modo                            | -           | hecho                            |
-| P2    | Research `reference-only` determinista y seguro                     | P1          | hecho (pendiente recorrido real) |
-| P3    | Agentes (Claude Code / Codex CLI) y 3 direcciones visuales          | P2          | pendiente                        |
-| P4    | Contrato UX y `ProductContext` con precedencia y `CONFLICT`         | P1          | implementado (pendiente P4.A9)   |
-| P5    | Slice vertical `full`: un flow y 2-3 pantallas hasta export neutral | P3, P4, P12 | pendiente                        |
-| P6    | Penpot: sistema completo (tokens, componentes, pantallas)           | P5, P12     | pendiente                        |
-| P7    | Producto completo, revisiones y creator → reviewer                  | P5, P6      | pendiente                        |
-| P8    | Web UI control plane                                                | P5          | pendiente                        |
-| P9    | Self-host (Docker) y hardening                                      | P6, P8      | pendiente                        |
-| P10   | Refero como fuente opcional de research                             | P3          | pendiente                        |
-| P11   | Validación `full` con un producto real                              | P7          | pendiente                        |
-| P12   | Penpot base y propuestas visuales                                   | P3          | pendiente                        |
+| Parte | Objetivo                                                            | Depende de  | Estado                             |
+| ----- | ------------------------------------------------------------------- | ----------- | ---------------------------------- |
+| P1    | Núcleo, `heron init` y detección de modo                            | -           | hecho                              |
+| P2    | Research `reference-only` determinista y seguro                     | P1          | hecho (pendiente recorrido real)   |
+| P3    | Agentes (Claude Code / Codex CLI) y 3 direcciones visuales          | P2          | implementada (pendiente recorrido) |
+| P4    | Contrato UX y `ProductContext` con precedencia y `CONFLICT`         | P1          | implementado (pendiente P4.A9)     |
+| P5    | Slice vertical `full`: un flow y 2-3 pantallas hasta export neutral | P3, P4, P12 | pendiente                          |
+| P6    | Penpot: sistema completo (tokens, componentes, pantallas)           | P5, P12     | pendiente                          |
+| P7    | Producto completo, revisiones y creator → reviewer                  | P5, P6      | pendiente                          |
+| P8    | Web UI control plane                                                | P5          | pendiente                          |
+| P9    | Self-host (Docker) y hardening                                      | P6, P8      | pendiente                          |
+| P10   | Refero como fuente opcional de research                             | P3          | pendiente                          |
+| P11   | Validación `full` con un producto real                              | P7          | pendiente                          |
+| P12   | Penpot base y propuestas visuales                                   | P3          | pendiente                          |
 
 Las 3 propuestas de dirección visual se revisan y comparan **solo en Penpot**, una página por dirección (D23-D25); en `full` Penpot es obligatorio para pasar el gate `direction` (D26). Por eso P12 se insertó entre P3 y P5 sin renumerar: el orden lo dan las dependencias.
 
@@ -44,7 +44,7 @@ Regla: `bin → cli|web → app (run* → UseCaseResult) → dominio puro y puer
 | `src/core/{contracts,state,store}`                                            | existe (P1)           |
 | `src/intake/` (navori-master, filesystem, markdown, manual)                   | existe (P1, P4)       |
 | `src/research/`, `src/security/`                                              | existe (P2)           |
-| `src/agents/`                                                                 | planeado (P3)         |
+| `src/agents/`                                                                 | existe (P3)           |
 | `src/penpot/`, `src/tokens/`, `src/design/`, `src/validation/`, `src/export/` | planeado (P5-P7, P12) |
 | `src/web/`                                                                    | planeado (P8)         |
 
@@ -104,10 +104,12 @@ heron conflicts ack <CONFLICT-NNN> [path] --note <text> [--yes] [--json]
 - `init --locale` fija el idioma de las salidas de research (tag BCP 47; se conserva entre ejecuciones).
 - `intake`: construye el `ProductContext` desde las fuentes del producto y registra los conflictos entre ellas en `.heron/intake/` (escribe solo si cambian los bytes; `--dry-run` no escribe y funciona sin `.heron/`; `--refresh` se acepta y no cambia nada). `conflicts list|ack`: lista los conflictos y reconoce uno con una nota; un conflicto abierto sin reconocer bloquea `gate intake approve`. Modelo en [docs/contracts.md](docs/contracts.md) y lectura del harness en [docs/integrations/navori-harness.md](docs/integrations/navori-harness.md).
 - `status`: modo, etapa, fase, gates, artefactos obsoletos y las órdenes permitidas (incluye las de research y el aviso `ASSETS_LARGE`), el aviso `PRODUCT_CONTEXT_STALE` y los conflictos abiertos. Solo lectura.
-- `doctor`: revisa Bun, la ruta, `.heron/`, el lock, el `.gitignore` y la detección. Solo lectura.
+- `doctor`: revisa Bun, la ruta, `.heron/`, el lock, el `.gitignore`, la detección y, desde P3, los agentes asignados (WARNING si faltan). `doctor --deep` además ejecuta una llamada mínima a cada agente: es el único camino de `doctor` que gasta tokens. Solo lectura.
 - `gate`: registra una decisión humana ligada a hashes. Gates: `intake`, `research`, `direction`, `foundations`, `representative-screens`, `visual-review`. Rechazar exige `--reason`; sin TTY hay que pasar `--yes`. Con P2, `research approve` funciona con 5 o más referencias con provenance; los demás gates siguen sin aprobar hasta que una parte posterior produzca sus artefactos (exit 3); `reject` funciona siempre.
 
 - `references`, `brand` y `research render`: research sin IA con provenance completa, defensas SSRF, de rutas y de imágenes, y un moodboard HTML estático. Flujo, formato de lote y recorrido manual en [docs/research.md](docs/research.md); política de seguridad en [docs/security.md](docs/security.md). Con 5 o más referencias con provenance completa, `gate research approve` pasa a `research-ready`.
+
+- `research brief|analyze` y `direction propose|select` (P3): brief, notas inferidas y tres direcciones visuales con Claude Code o Codex CLI, con tu suscripción y sin API key. Sin tope duro de costo; cache por entrada (`--force` la salta) y aviso blando con `agents.warnTokensPerDay`. Requisitos, banderas, economía de tokens y términos en [docs/agent-providers.md](docs/agent-providers.md); decisión en el [ADR 0005](docs/adr/0005-ai-provider-boundary.md). Si editas `agents` en `.heron/project.json` a mano, ejecuta `heron init` para volver a ligarlo antes de los comandos de escritura.
 
 ### `reference-only` (`fixtures/no-ux`, sin `UX.md` ni `ux.json`)
 

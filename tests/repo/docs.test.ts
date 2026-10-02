@@ -140,3 +140,61 @@ describe("canonical data model docs", () => {
     expect(recipes).toContain("## Fuente nueva de ProductContext");
   });
 });
+
+describe("agent provider boundary docs", () => {
+  // Covers: R17, R18, R20
+  test("documents the agent provider boundary, the exact flags and the subscription terms", async () => {
+    const adr = await read("docs/adr/0005-ai-provider-boundary.md");
+    expect(adr).toContain("# ADR 0005");
+    for (const term of [
+      "AgentProvider",
+      "bunProcessRunner",
+      "AGENT_ENV_ALLOWLIST",
+      "CODEX_ALLOWED_ITEM_TYPES",
+    ]) {
+      expect(adr).toContain(term);
+    }
+
+    const doc = await read("docs/agent-providers.md");
+    // the literal flags come from the adapters, so the doc cannot drift from what is launched
+    const { CLAUDE_FIXED_ARGS } = await import("../../src/agents/adapters/claude-code/index.ts");
+    const { CODEX_FIXED_ARGS } = await import("../../src/agents/adapters/codex-cli/index.ts");
+    for (const flag of [...CLAUDE_FIXED_ARGS, ...CODEX_FIXED_ARGS].filter((arg) =>
+      arg.startsWith("--"),
+    )) {
+      expect(doc).toContain(flag);
+    }
+    const { PACK_LIMITS } = await import("../../src/agents/context-pack.ts");
+    expect(doc).toContain("PACK_LIMITS");
+    expect(doc).toContain(String(PACK_LIMITS.maxReferences));
+    for (const term of [
+      "--force",
+      "agents.warnTokensPerDay",
+      "doctor --deep",
+      "cachedInputTokens",
+      "draft-7",
+      "2.1.287",
+      "0.159.3",
+      "heron init",
+      "## Términos",
+    ]) {
+      expect(doc).toContain(term);
+    }
+
+    const security = await read("docs/security.md");
+    expect(security).toMatch(/^## Agentes \(P3\)$/m);
+    for (const term of [
+      "AGENT_ENV_ALLOWLIST",
+      "CODEX_ALLOWED_ITEM_TYPES",
+      "AGENT_POLICY_VIOLATION",
+      "bunfig",
+    ]) {
+      expect(security).toContain(term);
+    }
+
+    expect(await read("docs/architecture.md")).toContain("0005-ai-provider-boundary.md");
+    const readme = await read("README.md");
+    expect(readme).toContain("docs/agent-providers.md");
+    expect(await read("docs/research.md")).toContain("research analyze");
+  });
+});
