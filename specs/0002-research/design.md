@@ -1529,7 +1529,7 @@ Cada test lleva `// Covers: R<n>` en la primera línea; e2e en proceso con `fixe
 | `tests/unit/research/render.test.ts#pins the moodboard stylesheet hash in the CSP` | CSS editado sin actualizar el hash (CSP rompería estilos) | R13 |
 | `tests/unit/research/render.test.ts#escapes markdown and html in every user field` | Campo nuevo sin escape | R13 |
 | `tests/unit/security/ssrf.test.ts#classifies every special-purpose IPv4 and IPv6 block` | Tabla IANA incompleta; IPv6 fuera de `2000::/3` como público | R9 |
-| `tests/unit/security/untrusted.test.ts#matches each instruction rule and stays linear on adversarial input` | Regla sin caso positivo/negativo; ReDoS (1 MiB adversario < 200 ms) | R12 |
+| `tests/unit/security/untrusted.test.ts#matches each instruction rule and bounds findings` y `#scan grows linearly on adversarial input (64 KiB to 1 MiB growth ratio)` | Regla sin caso positivo/negativo; ReDoS (el escaneo crece linealmente: razón de tiempos 64 KiB → 1 MiB < 64 (16x), sin cota absoluta en ms) | R12 |
 | `tests/unit/security/redact.test.ts#strips credentials and sensitive query values` | Fuga de secretos en provenance | R9 |
 | `tests/unit/security/html.test.ts#escapes every html-significant character` | Escape incompleto | R13 |
 | `tests/unit/security/magic.test.ts#detects image types, webp chunks and exif gps` | Magic bytes mal leídos; chunk de metadata no detectado; GPS no detectado en EXIF II/MM | R11 |

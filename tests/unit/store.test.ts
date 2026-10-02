@@ -13,6 +13,7 @@ import {
 } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
+import { storeErrorResult } from "../../src/app/result.ts";
 import { runGate } from "../../src/app/gate.ts";
 import { runInit } from "../../src/app/init.ts";
 import {
@@ -195,7 +196,8 @@ describe("store", () => {
       expect(readState(root)?.mode).toBe("reference-only");
     }
 
-    // Second writer: a real `bun bin/heron.ts init` exits 6 within 1 s while the lock is held.
+    // Second writer: a real `bun bin/heron.ts init` exits 6 (no hang) while the lock is held.
+    // The exact 1 s bound (RNF-4) is asserted with a fake clock in "gives up on a held lock without waiting".
     const root = tmp();
     const dir = heronDirIn(root);
     const { handle } = acquireLock(nodeFs, dir, ownerOf({ pid: process.pid }), lockOptions());
@@ -208,7 +210,7 @@ describe("store", () => {
       },
     );
     const code = await child.exited;
-    expect(performance.now() - started).toBeLessThan(1000);
+    expect(performance.now() - started).toBeLessThan(10_000); // generous hang detector; load-proof
     expect(code).toBe(ExitCode.LockBusy);
     handle.release();
     expect(existsSync(join(dir, ".lock"))).toBe(false);
@@ -267,6 +269,37 @@ describe("store", () => {
     expect(readLockOwner(nodeFs, dir)?.runId).toBe(RUN_B);
     expect(existsSync(join(dir, ".lock.reclaim"))).toBe(false);
     result.handle.release();
+  });
+
+  // Covers: R10
+  test("gives up on a held lock without waiting: LockBusy within the 1 s bound on a fake clock (RNF-4)", () => {
+    const dir = heronDirIn(tmp());
+    const { handle } = acquireLock(nodeFs, dir, ownerOf({ pid: process.pid }), lockOptions());
+    let clock = 1_000_000;
+    let reads = 0;
+    const options = lockOptions({
+      now: () => {
+        reads += 1;
+        return clock;
+      },
+    });
+    // Same-host live holder: busy at t=0 and still busy once 1 s of fake time has elapsed.
+    expect(() => acquireLock(nodeFs, dir, ownerOf({ runId: RUN_B }), options)).toThrow(
+      LockBusyError,
+    );
+    clock += 1_000;
+    let thrown: unknown = null;
+    try {
+      acquireLock(nodeFs, dir, ownerOf({ runId: RUN_B }), options);
+    } catch (error) {
+      thrown = error;
+    }
+    expect(thrown).toBeInstanceOf(LockBusyError);
+    const result = storeErrorResult(thrown);
+    expect(result !== null && !result.ok ? result.code : null).toBe(ExitCode.LockBusy);
+    // Never waits/polls: the clock is read a bounded number of times, it is not a retry loop.
+    expect(reads).toBeLessThan(10);
+    handle.release();
   });
 
   test("treats an unreadable lock as busy until the grace period passes", () => {

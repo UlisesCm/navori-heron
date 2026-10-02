@@ -1676,7 +1676,7 @@ Cada test lleva `// Covers: R<n>` y responde a un riesgo nombrado arriba. Los e2
 - Research, referencias y `brand` (eventos `reference-added`) → P2; agentes, `doctor --deep` y direcciones → P3. La tabla ya contiene sus filas; los comandos no existen en P1.
 - Sink de logs JSONL en `.heron/logs/` y eventos de log → P2 (DP17).
 - `ajv` y validación de documentos contra los JSON Schemas emitidos → P4 (P4.A6).
-- `jscpd` y `semgrep` dentro de `bun run check`: R16 fija el contenido del gate; esos dos siguen como gates del harness (`.claude/scripts/check-jscpd.sh`, `.claude/scripts/check-semgrep.sh`) porque requieren instalaciones externas.
+- `jscpd` y `semgrep` dentro de `bun run check`: R16 fija el contenido del gate; esos dos corren solo en el CI de los PR a `develop` (jobs `jscpd` y `semgrep` de `.github/workflows/ci.yml`, D33) porque requieren instalaciones externas; ya no son hooks del harness.
 - Web UI, Docker, Penpot → P8, P9, P6.
 - Binario `bun build --compile` y paquete npm (D20).
 - Migraciones de `schemaVersion` (N−1): no hay versión anterior a la 1.

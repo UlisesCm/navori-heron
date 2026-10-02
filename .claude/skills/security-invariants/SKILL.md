@@ -72,28 +72,6 @@ This list is a manual substitute, not a replacement — where a scanner plugin i
 3. Cross-check with the **rules specific to your stack** (below): the concrete names of your guards, error codes and env prefixes live there — without that, the review only covers the universal layer.
 <!-- /navori:managed id="security-invariants-base" -->
 
-<!-- navori:managed id="semgrep-review-extension" hash="02cca2d6" version="0.11.0" source="@navori/plugin-semgrep" -->
-## Local security gate (semgrep)
-
-Before closing a relevant change (auth, RBAC, secrets, input validation),
-run semgrep over the diff, scoped to the changed `.ts`/`.tsx` files vs the
-base branch:
-
-```
-git diff --name-only --diff-filter=ACMRT develop -- '*.ts' '*.tsx' | xargs -r semgrep scan --config=p/default --error --metrics=off --baseline-commit develop
-```
-
-`--config=p/default` (not `auto`) keeps the ruleset static and telemetry off
-(`--metrics=off` is incompatible with `auto` on semgrep >=1.x); the
-`--baseline-commit` flag makes the scan fail only on findings this branch
-introduces, not on debt already on `develop`.
-- Custom rules: see `.semgrep.yml` at the repo root if it exists.
-- Silent skip if `semgrep` is not installed (don't block if the dev doesn't have it).
-
-In repos with the Claude Code hooks, the commit/push gate already runs this
-scan for you (`PreToolUse`) — the command above is for running it yourself
-before that point.
-<!-- /navori:managed id="semgrep-review-extension" -->
 
 ## Your stack's security invariants
 

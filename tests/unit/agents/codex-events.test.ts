@@ -158,7 +158,7 @@ ${say({ type: "turn.completed", usage: {} })}`,
 
     const hung = fakeCodex("sleep 30");
     expect(
-      (await codexCliProvider.invoke({ ...request, timeoutMs: 300 }, services(hung))).status,
+      (await codexCliProvider.invoke({ ...request, timeoutMs: 1_000 }, services(hung))).status,
     ).toBe("timeout");
   }, 60_000);
 });

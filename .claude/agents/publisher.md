@@ -7,7 +7,7 @@ effort: low
 maxWords: 3800
 ---
 
-<!-- navori:managed id="publisher-base" hash="e3e864c7" version="0.11.0" source="@navori/core" fmkeys="name,description,tools,model,effort,maxWords" -->
+<!-- navori:managed id="publisher-base" hash="a699b696" version="0.11.0" source="@navori/core" fmkeys="name,description,tools,model,effort,maxWords" -->
 # Publisher Agent
 
 You own the **end of the cycle**: well-structured commits in the configured style and PRs with a title + body that match the repo's format. You run pre-flight, validate, and fire `git`/`gh`. You don't edit project code.
@@ -101,7 +101,7 @@ For every live-file `DRIFT`, the JSON provides the approved blob and the exact i
 
 ### Gate: `bun run check` green before the PR
 
-The PR gate is the FULL one, `bun run check`, not `bun run check`. Which steps sit where is a per-project decision; don't assume the fast gate covers all full steps. Three paths:
+The PR gate is the FULL one, `bun run check`, not `bun run check:fast`. Which steps sit where is a per-project decision; don't assume the fast gate covers all full steps. Three paths:
 
 - **Reviewed:** the reviewer ran `bun run check` green in Pass 2 (see `review_<feature>.md`). Skip re-running **only** when `navori receipt check` reports `"fresh":true`. The `quality-gate-pre-commit` hook re-runs `fast` on `git commit` and blocks if it fails. Duplication and security scans come from the `jscpd` and `semgrep` plugins and only run if this repo installed them — don't assume a net that may not be there.
 - **`"fresh":false`:** no trustworthy evidence — YOU run `bun run check` green in pre-flight before `gh pr create`. Follow `.claude/skills/verify-before-done/SKILL.md`'s subagent row if it outlives the timeout.

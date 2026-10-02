@@ -37,7 +37,7 @@ describe("matchesGlob segment wildcards", () => {
   test("no catastrophic backtracking", () => {
     const start = performance.now();
     expect(matchesGlob("a".repeat(5000), "*a*a*a*a*a*a*a*a*b")).toBe(false);
-    expect(performance.now() - start).toBeLessThan(50);
+    expect(performance.now() - start).toBeLessThan(2_000); // exponential backtracking would take minutes; linear is < 5 ms
   });
 });
 

@@ -128,27 +128,6 @@ Pay extra attention if the diff touches `src/core/store, src/core/state, src/cor
 - `verify-before-done`: the §9 quality gate is run this turn, not assumed from the implementer's report.
 <!-- /navori:managed id="review-diff-base" -->
 
-<!-- navori:managed id="jscpd-review-extension" hash="f46eeff1" version="0.11.0" source="@navori/plugin-jscpd" -->
-## Code duplication (jscpd)
-
-Before approving a change, run `jscpd` over the changed `.ts`/`.tsx` files vs
-the base branch, failing on any clone that is new vs that base:
-
-```
-git diff --name-only --diff-filter=ACMRT develop -- '*.ts' '*.tsx' | xargs -r jscpd --min-tokens 100 --min-lines 10 --mode strict --baseline-from-ref 'develop' --fail-on-new-clones 0
-```
-
-A literal `develop` left unsubstituted here would be a silent no-op
-scan (#273) — the values above come from the repo's own config at render
-time, never typed by hand.
-- Fingerprint sensitivity: editing inside an existing clone (even a single line) changes its fingerprint, so jscpd reports it as new — it counts as a new clone even though the duplication itself predates the change.
-- If it reports a new clone vs the base branch: **do not approve** the change without justification (reviewers must ask for a refactor or extraction).
-- Silent skip if `jscpd` is not in `PATH` (don't block if the dev doesn't have the tool installed).
-
-In repos with the Claude Code hooks, the commit gate already runs this scan
-for you (`PreToolUse` on `git commit`) — the command above is for running it
-yourself before that point.
-<!-- /navori:managed id="jscpd-review-extension" -->
 
 ## Repo-specific rules
 

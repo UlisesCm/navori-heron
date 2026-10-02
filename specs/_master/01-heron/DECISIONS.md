@@ -223,3 +223,10 @@
 - Elegida: Se acepta como alias sin efecto y el texto de uso lo dice; RF-5 queda literal con esa nota (spec 0004, DR31)
 - Descartadas: Quitarlo y enmendar RF-5; darle un significado propio (reescribir aunque nada cambie o renumerar conflictos)
 - Fecha: 2026-10-01
+
+## D33
+
+- Pregunta: ¿Qué corre en cada punto del flujo (pre-commit, PR a `develop`, PR y push a `main`) para evitar ciclos de retrabajo? Reemplaza la política de D21 (`bun run check` en cada PR)
+- Elegida: Pre-commit = `bun run check:fast` (formato, lint, typecheck y solo los tests `tests/**/*.test.ts` incluidos en el commit); PR a `develop` = solo jscpd y semgrep; PR y push a `main` = gate completo (`format:check`, `lint`, `typecheck`, `test:coverage`) más `test:perf` como paso obligatorio propio; `qualityGate.full` sigue siendo `bun run check` para los revisores
+- Descartadas: Mantener `bun run check` completo en pre-commit y en cada PR (D21); jscpd y semgrep como hooks de pre-commit; correr todo el gate en PR a `develop`
+- Fecha: 2026-10-01

@@ -1,6 +1,9 @@
 name: CI
+# PR -> develop: only the dup + security scans (jscpd, semgrep) over the files the PR changes.
+# PR -> main and push to main: the full gate (format, lint, typecheck, coverage, perf).
 on:
   pull_request:
+    branches: [develop, main]
   push:
     branches: [main]
 concurrency:
@@ -9,7 +12,64 @@ concurrency:
 permissions:
   contents: read
 jobs:
+  jscpd:
+    if: github.event_name == 'pull_request' && github.base_ref == 'develop'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
+      - uses: oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6 # v2.2.0
+        with:
+          bun-version-file: package.json
+      - name: jscpd over changed TS files, new clones only
+        env:
+          BASE_REF: ${{ github.base_ref }}
+        run: |
+          base_sha="$(git merge-base "origin/$BASE_REF" HEAD)"
+          mapfile -t files < <(git diff --name-only --diff-filter=AM "$base_sha" HEAD -- '*.ts' '*.tsx')
+          if [ "${#files[@]}" -eq 0 ]; then
+            echo "no changed TS files, nothing to scan"
+            exit 0
+          fi
+          bunx jscpd@5.4.0 \
+            --min-tokens 100 \
+            --min-lines 10 \
+            --mode strict \
+            --baseline-from-ref "$base_sha" \
+            --fail-on-new-clones 0 \
+            --reporters console \
+            -- "${files[@]}"
+  semgrep:
+    if: github.event_name == 'pull_request' && github.base_ref == 'develop'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    container:
+      image: semgrep/semgrep:1.179.0@sha256:93963d9295a366f59e4850127b1550400ee7b388f04fe144e4a1f6325d96e01b
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
+      - name: semgrep over changed TS files, new findings only
+        env:
+          BASE_REF: ${{ github.base_ref }}
+        run: |
+          git config --global --add safe.directory "$GITHUB_WORKSPACE"
+          base_sha="$(git merge-base "origin/$BASE_REF" HEAD)"
+          git diff --name-only --diff-filter=AM "$base_sha" HEAD -- '*.ts' '*.tsx' > "$RUNNER_TEMP/changed.txt"
+          if [ ! -s "$RUNNER_TEMP/changed.txt" ]; then
+            echo "no changed TS files, nothing to scan"
+            exit 0
+          fi
+          xargs semgrep scan \
+            --config=p/default \
+            --error \
+            --metrics=off \
+            --baseline-commit "$base_sha" \
+            < "$RUNNER_TEMP/changed.txt"
   check:
+    if: github.event_name == 'push' || github.base_ref == 'main'
     runs-on: ubuntu-24.04
     timeout-minutes: 15
     steps:
@@ -18,4 +78,9 @@ jobs:
         with:
           bun-version-file: package.json
       - run: bun install --frozen-lockfile
-      - run: bun run check
+      - run: bun run format:check
+      - run: bun run lint
+      - run: bun run typecheck
+      - run: bun run test:coverage
+      # wall-clock p95 suite (RNF-1): its own mandatory step, not part of `check`
+      - run: bun run test:perf

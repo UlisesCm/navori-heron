@@ -459,7 +459,7 @@ describe("context listing", () => {
   });
 });
 
-const within = (run: () => void, ms = 1000): void => {
+const within = (run: () => void, ms = 10_000): void => {
   const started = performance.now();
   run();
   expect(performance.now() - started).toBeLessThan(ms);

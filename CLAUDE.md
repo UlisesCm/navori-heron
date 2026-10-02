@@ -122,7 +122,7 @@ Use `codegraph_explore` for structural discovery when available. Pass the curren
 Use `tgrep search -n [flags] -- PATTERN ROOT`; without `-n` piped output has no line numbers. Prefer `-F` for literals. Scope by directory or `-t TYPE`; broad queries start with `-l`, then selected files and `-C 2`. Positive `-g` forces a scan. Use `--hidden` only for intended hidden paths. A disk index refreshes only under `tgrep serve`; otherwise it silently misses changes since indexing. If `tgrep status` shows `Server: not running`, use `--no-index` or warn. Exit 1 means no matches, 2 means error. Preserve stderr. If unavailable, use native Grep. Do not install, start servers or reindex during ordinary discovery.
 <!-- /navori:managed id="tgrep-search-v2" -->
 
-<!-- navori:managed id="skills-index" hash="5077ce54" version="0.11.0" source="@navori/core" -->
+<!-- navori:managed id="skills-index" hash="cacc9cda" version="0.11.0" source="@navori/core" -->
 ## Skills disponibles
 
 Skills que los agentes pueden aplicar. Toda skill vive en `.claude/skills/<id>/SKILL.md` — el directorio no es opcional: es la única forma que Claude Code descubre, también para las tuyas. El listado nativo del host entrega el "cuándo usar" de cada una.
@@ -146,9 +146,9 @@ Las `project-local` son tuyas — navori las indexa pero nunca toca su contenido
 - `plan-advanced` — navori (workflow)
 - `master-plan` — navori (workflow)
 - `context-intake` — navori (workflow)
-- `heron-architecture` — project-local (`.claude/skills/heron-architecture`)
-- `heron-design-tokens` — project-local (`.claude/skills/heron-design-tokens`)
-- `heron-accessibility` — project-local (`.claude/skills/heron-accessibility`)
+- `heron-architecture` — project-local
+- `heron-design-tokens` — project-local
+- `heron-accessibility` — project-local
 <!-- /navori:managed id="skills-index" -->
 
 <!-- navori:managed id="contexto-proyecto" hash="0c965770" version="0.11.0" source="@navori/core" -->

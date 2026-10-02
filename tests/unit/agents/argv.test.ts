@@ -221,7 +221,7 @@ describe("claude-code argv", () => {
     const hung = newBin();
     writeFakeAgentBin(hung, "claude", "sleep 30");
     expect(
-      (await claudeCodeProvider.invoke(request({ timeoutMs: 300 }), services(hung))).status,
+      (await claudeCodeProvider.invoke(request({ timeoutMs: 1_000 }), services(hung))).status,
     ).toBe("timeout");
 
     const leaky = newBin();
