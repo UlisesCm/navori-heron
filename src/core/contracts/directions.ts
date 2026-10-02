@@ -259,9 +259,22 @@ const TypeStepOutputSchema: z.ZodType<TypeStepOutput> = z.strictObject({
 const ComponentSpecOutputSchema: z.ZodType<ComponentSpecOutput> = z.strictObject({
   kind: z.enum(BASIC_COMPONENT_KINDS),
   variant: text(60),
-  fill: z.string().min(1),
-  text: z.string().min(1),
-  typeStep: z.string().min(1),
+  fill: z
+    .string()
+    .min(1)
+    .describe(
+      "Background color ID from this direction’s palette.colors[].id; not a literal color.",
+    ),
+  text: z
+    .string()
+    .min(1)
+    .describe(
+      "Text color ID from this direction’s palette.colors[].id; not label text or UI copy.",
+    ),
+  typeStep: z
+    .string()
+    .min(1)
+    .describe("Typography step ID from this direction’s typeScale.steps[].id."),
   radiusPx: z.number().min(0).max(32),
   notes: z.string().max(300),
 });

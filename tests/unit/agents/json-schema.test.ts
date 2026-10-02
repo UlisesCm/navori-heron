@@ -33,6 +33,17 @@ function keywordsIn(node: unknown, out: Set<string>): void {
 }
 
 describe("toProviderSchema", () => {
+  test("communicates component color and typography references to both providers", () => {
+    for (const dialect of ["openai-strict", "claude"] as const) {
+      const schema = JSON.stringify(toProviderSchema(DirectionProposalOutputSchema, dialect));
+      expect(schema).toContain(
+        "Text color ID from this direction’s palette.colors[].id; not label text or UI copy.",
+      );
+      expect(schema).toContain("Background color ID from this direction’s palette.colors[].id");
+      expect(schema).toContain("Typography step ID from this direction’s typeScale.steps[].id.");
+    }
+  });
+
   test("communicates stripped constraints through descriptions without widening strict keywords", () => {
     const schema = z.strictObject({
       id: z

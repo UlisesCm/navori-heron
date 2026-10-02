@@ -132,7 +132,13 @@ function checkTypeScale(direction: VisualDirectionOutput, at: string, add: Sink)
   return ids;
 }
 
-function checkComponents(direction: VisualDirectionOutput, at: string, add: Sink): void {
+function checkComponents(
+  direction: VisualDirectionOutput,
+  at: string,
+  add: Sink,
+  colorIds: ReadonlySet<string>,
+  stepIds: ReadonlySet<string>,
+): void {
   const sheet = direction.proposal.componentSheet;
   if (sheet.length < DIRECTION_LIMITS.minComponents) {
     add(
@@ -140,6 +146,21 @@ function checkComponents(direction: VisualDirectionOutput, at: string, add: Sink
       `needs at least ${DIRECTION_LIMITS.minComponents} components`,
     );
   }
+  sheet.forEach((component, i) => {
+    const pointer = `${at}/proposal/componentSheet/${i}`;
+    for (const field of ["fill", "text"] as const) {
+      if (!colorIds.has(component[field]))
+        add(
+          `${pointer}/${field}`,
+          `unknown color ${component[field]}; must reference palette.colors[].id`,
+        );
+    }
+    if (!stepIds.has(component.typeStep))
+      add(
+        `${pointer}/typeStep`,
+        `unknown type step ${component.typeStep}; must reference typeScale.steps[].id`,
+      );
+  });
   const kinds = new Set(sheet.map((component) => component.kind));
   for (const kind of DIRECTION_LIMITS.requiredComponents) {
     if (!kinds.has(kind))
@@ -227,7 +248,7 @@ export function validateDirectionsOutput(
     checkAttributes(direction, at, add, active);
     const colorIds = checkPalette(direction, at, add, context.checkContrast);
     const stepIds = checkTypeScale(direction, at, add);
-    checkComponents(direction, at, add);
+    checkComponents(direction, at, add, colorIds, stepIds);
     checkComposition(direction, at, add, colorIds, stepIds);
   });
   for (const id of DIRECTION_IDS) {

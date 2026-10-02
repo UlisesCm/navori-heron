@@ -3,6 +3,7 @@ import { describe, expect, test } from "bun:test";
 import { AGENT_TASK_IDS, PACK_ITEM_KINDS } from "../../../src/core/contracts/index.ts";
 import { buildContextPack } from "../../../src/agents/context-pack.ts";
 import { PROMPT_TEMPLATES, REPAIR_TEMPLATE, templateFor } from "../../../src/agents/prompts.ts";
+import frozenDirectionV1 from "../../../prompts/design-director/direction-propose@v1.md" with { type: "text" };
 import type { ContextItem } from "../../../src/agents/ports.ts";
 import { AGENT_TASKS } from "../../../src/agents/tasks.ts";
 import { sha256Hex } from "../../../src/core/store/hash.ts";
@@ -56,6 +57,16 @@ describe("prompt templates", () => {
     }
     expect(REPAIR_TEMPLATE.id).toBe("shared/repair");
     expect(() => templateFor("shared/missing")).toThrow("unknown prompt template");
+  });
+
+  test("clarifies token references in v2 without changing published v1", () => {
+    expect(sha256Hex(new TextEncoder().encode(frozenDirectionV1))).toBe(
+      "2eb450ba486e791add090e08622542bcdc7b6aa1042b1c02ac6346b75fffcd88",
+    );
+    const current = templateFor("design-director/direction-propose");
+    expect(current.version).toBe(2);
+    expect(current.text).toContain("text COLOR ID, never a button label");
+    expect(current.text).toContain("typeScale.steps");
   });
 
   test("keeps templates static, delimiting-aware and JSON-only", () => {

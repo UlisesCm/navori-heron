@@ -544,6 +544,7 @@
                                   "additionalProperties": false,
                                   "properties": {
                                     "fill": {
+                                      "description": "Background color ID from this direction’s palette.colors[].id; not a literal color.",
                                       "minLength": 1,
                                       "type": "string"
                                     },
@@ -572,10 +573,12 @@
                                       "type": "number"
                                     },
                                     "text": {
+                                      "description": "Text color ID from this direction’s palette.colors[].id; not label text or UI copy.",
                                       "minLength": 1,
                                       "type": "string"
                                     },
                                     "typeStep": {
+                                      "description": "Typography step ID from this direction’s typeScale.steps[].id.",
                                       "minLength": 1,
                                       "type": "string"
                                     },
