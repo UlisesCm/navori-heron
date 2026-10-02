@@ -198,3 +198,57 @@ describe("agent provider boundary docs", () => {
     expect(await read("docs/research.md")).toContain("research analyze");
   });
 });
+
+describe("penpot docs", () => {
+  // Covers: R3, R21
+  test("documents the Penpot setup, MCP connection, secrets, backups, upgrades and versions", async () => {
+    const doc = await read("docs/penpot.md");
+    for (const heading of [
+      "Requisitos",
+      "Instalación",
+      "Cuentas",
+      "HTTPS y websocket",
+      "MCP",
+      "Configuración de Heron",
+      "Secretos",
+      "Fuentes y egreso a terceros",
+      "Backups",
+      "Upgrade",
+      "Versiones",
+    ]) {
+      expect(doc).toMatch(new RegExp(`^## ${heading}$`, "m"));
+    }
+    for (const term of [
+      "Docker 29.4.0",
+      "Compose 5.1.2",
+      "Chrome",
+      "Edge",
+      "infra/penpot/init-env",
+      "infra/penpot/compose",
+      "create-profile",
+      "PENPOT_PUBLIC_URI",
+      "/mcp/ws",
+      "PENPOT_URL",
+      "PENPOT_MCP_KEY",
+      "PENPOT_MCP_KEY_FILE",
+      "PENPOT_VERSION",
+      "userToken",
+      "Google Fonts",
+      "disable-google-fonts-provider",
+      "docker compose` directo se salta",
+      "HERON_LIVE_COMPOSE=1 bun run test:live:compose",
+      "no lee `.env`",
+    ]) {
+      expect(doc).toContain(term);
+    }
+    // the evidence rule for infra/penpot/ and the dated versions section (R18)
+    expect(doc).toContain("todo PR que toque `infra/penpot/` adjunta");
+    expect(doc).toMatch(
+      /^- \d{4}-\d{2}-\d{2}: \*\*2\.17\.2 fijada \(D7\); sonda de 2\.18\.x pendiente \(T13\)\*\*/m,
+    );
+    // the manual spike of the Lote 1 exit criterion
+    for (const id of ["S1", "S2", "S3", "S4", "S5", "S6", "S7", "S8"]) {
+      expect(doc).toMatch(new RegExp(`^\\| ${id} +\\|`, "m"));
+    }
+  });
+});

@@ -16,7 +16,7 @@ Lotes de 1–3 tareas, **en serie** (cada tarea declara de qué depende y con qu
 
 ## Lote 1 — Infraestructura de Penpot, secretos y guía
 
-- [ ] **T1** (R1, R2) — Compose oficial vendorizado con su sha256, override sin defaults inseguros, `.env.example`, `fetch-compose`, prueba pura del modelo fusionado y comprobación opt-in con Compose real.
+- [x] **T1** (R1, R2) — Compose oficial vendorizado con su sha256, override sin defaults inseguros, `.env.example`, `fetch-compose`, prueba pura del modelo fusionado y comprobación opt-in con Compose real.
   - **Archivos:** `infra/penpot/fetch-compose`, `infra/penpot/docker-compose.yaml`, `infra/penpot/docker-compose.yaml.sha256`, `infra/penpot/compose.override.yaml`, `infra/penpot/.env.example`, `tests/assets/infra/penpot.synthetic.env`, `tests/helpers/compose.ts`, `tests/infra/penpot-compose.test.ts`, `tests/live/penpot-compose.live.ts`, `package.json`
   - **Interfaces:** loadComposeModel; interpolateCompose; assertPenpotComposeInvariants; ComposeModel; PENPOT_VERSION; PENPOT_SECRET_KEY; PENPOT_DB_PASSWORD; PENPOT_PUBLIC_URI; PENPOT_BIND_ADDRESS; PENPOT_EXTRA_FLAGS; PENPOT_TELEMETRY_ENABLED
   - **Patrón:** tests/repo/ci.test.ts
@@ -27,7 +27,7 @@ Lotes de 1–3 tareas, **en serie** (cada tarea declara de qué depende y con qu
   - **Comparte archivos con:** T2 (`tests/infra/penpot-compose.test.ts`); T11, T12, T14 (`package.json`).
   - **Fuera de alcance:** `init-env`, wrapper `compose` y `.gitignore` (T2); proxy TLS concreto; arranque real (criterio de salida del lote); override para 2.18 (T13).
 
-- [ ] **T2** (R21) — Secretos y operación: `init-env` (`.env` una vez, 0600), wrapper `compose` con guardas de permisos y de flags prohibidas, `.gitignore` y sus pruebas.
+- [x] **T2** (R21) — Secretos y operación: `init-env` (`.env` una vez, 0600), wrapper `compose` con guardas de permisos y de flags prohibidas, `.gitignore` y sus pruebas.
   - **Archivos:** `infra/penpot/init-env`, `infra/penpot/compose`, `.gitignore`, `tests/infra/penpot-compose.test.ts`
   - **Interfaces:** PENPOT_ENV_FILE; PENPOT_EXTRA_FLAGS
   - **Patrón:** tests/repo/ci.test.ts
@@ -38,7 +38,7 @@ Lotes de 1–3 tareas, **en serie** (cada tarea declara de qué depende y con qu
   - **Comparte archivos con:** T1 (`tests/infra/penpot-compose.test.ts`).
   - **Fuera de alcance:** secretos de contenedor por `*_FILE`; proxy TLS.
 
-- [ ] **T3** (R3, R21) — `docs/penpot.md` (requisitos, instalación con `init-env` y `compose`, cuentas, HTTPS y websocket, `PENPOT_PUBLIC_URI`, MCP y key, configuración de Heron, secretos, fuentes, backups, upgrade, regla de evidencia de `infra/penpot/`, § Versiones) y su test; criterio de salida del lote con el spike.
+- [x] **T3** (R3, R21) — `docs/penpot.md` (requisitos, instalación con `init-env` y `compose`, cuentas, HTTPS y websocket, `PENPOT_PUBLIC_URI`, MCP y key, configuración de Heron, secretos, fuentes, backups, upgrade, regla de evidencia de `infra/penpot/`, § Versiones) y su test; criterio de salida del lote con el spike.
   - **Archivos:** `docs/penpot.md`, `tests/repo/docs.test.ts`
   - **Interfaces:** PENPOT_URL; PENPOT_MCP_KEY; PENPOT_MCP_KEY_FILE; PENPOT_VERSION
   - **Patrón:** docs/research.md
