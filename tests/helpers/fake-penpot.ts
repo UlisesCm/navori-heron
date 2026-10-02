@@ -21,6 +21,7 @@ type FakeLayout = {
   readonly columns: Track[];
   addRow(type: Track["type"], value?: number): void;
   addColumn(type: Track["type"], value?: number): void;
+  appendChild(shape: FakeShape, row: number, column: number): void;
 };
 type SharedData = {
   getSharedPluginData(namespace: string, key: string): string | null;
@@ -55,6 +56,7 @@ export type FakeShape = SharedData & {
   readonly children: FakeShape[];
   readonly flex: FakeLayout | undefined;
   readonly grid: FakeLayout | undefined;
+  readonly layoutCell: { row: number; column: number } | null;
   resize(width: number, height: number): void;
   appendChild(shape: FakeShape): void;
   remove(): void;
@@ -117,6 +119,7 @@ export function createFakePenpot(): FakePenpot {
   let active: FakePage | null = null;
   const parents = new WeakMap<FakeShape, FakeShape>();
   const childLists = new WeakMap<FakeShape, FakeShape[]>();
+  const cells = new WeakMap<FakeShape, { row: number; column: number }>();
   const mutate = (operation: string): void => {
     counters.mutations += 1;
     controls.afterMutation?.(operation);
@@ -142,7 +145,7 @@ export function createFakePenpot(): FakePenpot {
     };
   };
   // CommonLayout/FlexLayout/GridLayout: wrap enum and track method signatures, not arrays assigned by callers.
-  const layout = (): FakeLayout => {
+  const layout = (owner?: FakeShape): FakeLayout => {
     const rows: Track[] = [];
     const columns: Track[] = [];
     return new Proxy<FakeLayout>(
@@ -166,6 +169,15 @@ export function createFakePenpot(): FakePenpot {
         },
         addColumn(type, value): void {
           add(columns, type, value);
+        },
+        // GridLayout.appendChild uses zero-based arguments; live 2.17.2 cells expose one-based indices.
+        appendChild(child, row, column): void {
+          if (!owner?.grid) throw new TypeError("only grid layouts assign cells");
+          if (![row, column].every((index) => Number.isSafeInteger(index) && index >= 0))
+            throw new TypeError("invalid grid cell index");
+          owner.appendChild(child);
+          cells.set(child, { row: row + 1, column: column + 1 });
+          mutate("grid:appendChild");
         },
       },
       {
@@ -238,6 +250,9 @@ export function createFakePenpot(): FakePenpot {
       get grid(): FakeLayout | undefined {
         return grid;
       },
+      get layoutCell(): { row: number; column: number } | null {
+        return cells.get(proxy) ?? null;
+      },
       resize(w, h): void {
         if (
           ![w, h].every((value) => typeof value === "number" && Number.isFinite(value) && value > 0)
@@ -254,6 +269,7 @@ export function createFakePenpot(): FakePenpot {
         if (oldChildren) oldChildren.splice(oldChildren.indexOf(child), 1);
         childList.push(child);
         parents.set(child, proxy);
+        cells.delete(child);
         mutate("appendChild");
       },
       remove(): void {
@@ -272,7 +288,7 @@ export function createFakePenpot(): FakePenpot {
       },
       addGridLayout(): FakeLayout {
         if (type !== "board") throw new TypeError("only boards have layouts");
-        grid = layout();
+        grid = layout(proxy);
         mutate("grid");
         return grid;
       },

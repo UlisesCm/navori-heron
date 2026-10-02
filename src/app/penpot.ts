@@ -39,7 +39,7 @@ export function desiredReviewPages(workspace: Workspace): ReviewPage[] {
   const context = {
     mode: workspace.mode,
     copy: resolvePenpotCopy(workspace.project.product?.locale ?? null),
-    template: penpotTemplate("review-page", 2),
+    template: penpotTemplate("review-page", 3),
   };
   const pages =
     sources.directions?.directions.map((direction) => buildProposalPage(direction, context)) ?? [];

@@ -25,6 +25,7 @@ describe("Penpot scripts", () => {
       "inspect@v1",
       "review-page@v1",
       "review-page@v2",
+      "review-page@v3",
     ]);
     for (const entry of PENPOT_TEMPLATES) {
       expect(entry.sha256).toBe(sha256Hex(new TextEncoder().encode(entry.text)));

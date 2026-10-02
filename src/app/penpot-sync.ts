@@ -47,7 +47,7 @@ function syncPages(
   const context = {
     mode: ws.mode,
     copy: resolvePenpotCopy(ws.project.product?.locale ?? null),
-    template: penpotTemplate("review-page", 2),
+    template: penpotTemplate("review-page", 3),
   };
   const pages: ReviewPage[] = [];
   if (input.proposals) {
@@ -89,7 +89,7 @@ function syncPages(
   for (const page of pages) {
     // UUID target reservation matches the compiler's byte budget (DR11/DR30).
     const rendered = renderScript(
-      penpotTemplate("review-page", 2),
+      penpotTemplate("review-page", 3),
       reviewScriptData(page, "x".repeat(36)),
     );
     if (!rendered.ok)

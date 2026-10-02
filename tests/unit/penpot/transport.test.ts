@@ -71,7 +71,7 @@ test("keeps frozen v1 bytes and fingerprints while versioning transport", () => 
   expect(next.nodes).toEqual(old.nodes);
   expect(next.sourceSha256).toBe(old.sourceSha256);
   expect(next.contentSha256).not.toBe(old.contentSha256);
-  expect(() => penpotTemplate("review-page", 3)).toThrow("unknown Penpot template");
+  expect(() => penpotTemplate("review-page", 4)).toThrow("unknown Penpot template");
 });
 
 test("rejects unknown transport discriminants before any Penpot mutation", async () => {
@@ -97,26 +97,32 @@ test("round-trips every semantic field including aliases, nulls, layouts and hos
   expect(reviewScriptData(original, "x".repeat(36))).toEqual(payload);
 });
 
-test("executes v2 with the official API subset and preserves human work on retries", async () => {
-  const fake = createFakePenpot();
-  const original = page(2);
-  const first = renderScript(v2, reviewScriptData(original, null));
-  if (!first.ok) throw new Error("small v2 script refused");
-  const result = await runPenpotScript(fake, first.code);
-  expect(result).toMatchObject({ heron: "review-page@v2", outcome: "written", shapes: 5 });
-  const target = fake.penpot.currentFile?.pages[0];
-  if (!target) throw new Error("page missing");
-  expect(target.getSharedPluginData("heron", "template")).toBe("review-page@v2");
-  const human = fake.penpot.createRectangle();
-  const board = target.root.children[0];
-  if (!board) throw new Error("board missing");
-  board.appendChild(human);
-  const retry = renderScript(v2, reviewScriptData(original, target.id));
-  if (!retry.ok) throw new Error("small retry refused");
-  const before = fake.counters.mutations;
-  expect(await runPenpotScript(fake, retry.code)).toMatchObject({ outcome: "human-shapes" });
-  expect(fake.counters.mutations).toBe(before);
-});
+for (const version of [2, 3])
+  test(`executes v${version} with the official API subset and preserves human work on retries`, async () => {
+    const current = penpotTemplate("review-page", version);
+    const fake = createFakePenpot();
+    const original = page(version);
+    const first = renderScript(current, reviewScriptData(original, null));
+    if (!first.ok) throw new Error("small v2 script refused");
+    const result = await runPenpotScript(fake, first.code);
+    expect(result).toMatchObject({
+      heron: `review-page@v${version}`,
+      outcome: "written",
+      shapes: 5,
+    });
+    const target = fake.penpot.currentFile?.pages[0];
+    if (!target) throw new Error("page missing");
+    expect(target.getSharedPluginData("heron", "template")).toBe(`review-page@v${version}`);
+    const human = fake.penpot.createRectangle();
+    const board = target.root.children[0];
+    if (!board) throw new Error("board missing");
+    board.appendChild(human);
+    const retry = renderScript(current, reviewScriptData(original, target.id));
+    if (!retry.ok) throw new Error("small retry refused");
+    const before = fake.counters.mutations;
+    expect(await runPenpotScript(fake, retry.code)).toMatchObject({ outcome: "human-shapes" });
+    expect(fake.counters.mutations).toBe(before);
+  });
 
 test("fits complete repetitive node trees rejected by v1 and still blocks oversized v2", () => {
   const original = page(1);

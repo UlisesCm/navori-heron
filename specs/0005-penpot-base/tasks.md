@@ -257,6 +257,11 @@ Lotes de 1–3 tareas, **en serie** (cada tarea declara de qué depende y con qu
   - **Comparte archivos con:** T3, T13, T21 (`docs/penpot.md`, `tests/repo/docs.test.ts`).
   - **Fuera de alcance:** guía de self-host de Heron (P9).
 
+- [x] **T20.V3** (R9, R10, R17, R19) — Corrección de hijos grid sin celda detectada en la revisión real.
+  - **Contrato:** v1 y v2 intactas; v3 comparte el codec reversible de v2 y usa `GridLayout.appendChild` con índices de base cero, en orden por filas. Fuente sin cambios; contenido versionado; 32 KiB y guarda humana conservados.
+  - **Evidencia:** contrafactual vivo en página SYNTHETIC; regresión falló antes con cinco celdas nulas y pasó después; tests de bytes v2 congelados y guarda humana v2/v3. Sync real de cuatro páginas Codex, verificación de celdas/posiciones y repetición sin escrituras documentadas en `docs/penpot.md`.
+  - **Fuera de alcance:** corregir copy confundido con referencia de color, migrar Claude sin revisión y aprobar P3.A12/P12.A8. La altura inicial de texto era medición diferida, no requiere parche.
+
 - [ ] **T21** (R20) — Aceptación manual de P12.A8 sobre `monorepo-fullstack` y su registro con fecha en `docs/penpot.md`.
   - **Archivos:** `docs/penpot.md`, `tests/repo/docs.test.ts`
   - **Interfaces:** PENPOT_TESTED_VERSIONS

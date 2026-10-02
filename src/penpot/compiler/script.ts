@@ -43,6 +43,6 @@ export function reviewScriptData(page: ReviewPage, targetPageId: string | null):
       template: `${page.template.id}@v${page.template.version}`,
     },
     targetPageId,
-    nodes: page.template.version === 2 ? page.nodes.map(packPenpotNode) : page.nodes,
+    nodes: page.template.version >= 2 ? page.nodes.map(packPenpotNode) : page.nodes,
   };
 }
