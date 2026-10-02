@@ -3,7 +3,8 @@ const file = penpot.currentFile;
 if (!file) throw new Error("no Penpot file is open");
 const spec = HERON.page;
 const prefix = spec.heronId + "/";
-const mark = (shape) => shape.getSharedPluginData("heron", "id");
+// Live 2.17.2 returns null for absent data despite the PluginData string return type.
+const mark = (shape) => shape.getSharedPluginData("heron", "id") || "";
 const owned = (shape) => mark(shape).startsWith(prefix);
 const children = (shape) => shape.children || [];
 const descendants = (root) => {

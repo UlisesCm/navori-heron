@@ -174,6 +174,7 @@ describe("Penpot templates against the official API subset", () => {
       for (let index = 0; index < 12; index += 1) {
         const human = fake.penpot.createRectangle();
         human.name = `Human ${index}`;
+        expect(human.getSharedPluginData("heron", "id")).toBeNull();
         if (foreignMark) human.setSharedPluginData("heron", "id", foreignMark);
         board.appendChild(human);
       }
@@ -308,7 +309,7 @@ describe("Penpot templates against the official API subset", () => {
     const delayed = write(fake, review());
     const page = fake.penpot.currentFile!.pages[0]!;
     expect(page.root.children).toHaveLength(0);
-    expect(page.getSharedPluginData("heron", "content")).toBe("");
+    expect(page.getSharedPluginData("heron", "content")).toBeNull();
     fake.controls.beforeOpen = null;
     expect((await write(fake, review(), page.id)).outcome).toBe("written");
     release!();

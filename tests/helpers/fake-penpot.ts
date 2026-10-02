@@ -23,7 +23,7 @@ type FakeLayout = {
   addColumn(type: Track["type"], value?: number): void;
 };
 type SharedData = {
-  getSharedPluginData(namespace: string, key: string): string;
+  getSharedPluginData(namespace: string, key: string): string | null;
   setSharedPluginData(namespace: string, key: string, value: string): void;
 };
 export type FakeShape = SharedData & {
@@ -121,13 +121,13 @@ export function createFakePenpot(): FakePenpot {
     counters.mutations += 1;
     controls.afterMutation?.(operation);
   };
-  // SharedPluginData: values are strings; missing keys return empty strings (S5).
+  // T12 live 2.17.2: missing shared data returns null despite the published string return type.
   const shared = (): SharedData => {
     const data = new Map<string, Map<string, string>>();
     return {
-      getSharedPluginData(namespace, key): string {
+      getSharedPluginData(namespace, key): string | null {
         counters.reads += 1;
-        return data.get(namespace)?.get(key) ?? "";
+        return data.get(namespace)?.get(key) ?? null;
       },
       setSharedPluginData(namespace, key, value): void {
         if (typeof value !== "string") throw new TypeError("shared plugin data must be a string");

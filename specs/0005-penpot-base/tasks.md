@@ -145,7 +145,7 @@ Lotes de 1–3 tareas, **en serie** (cada tarea declara de qué depende y con qu
   - **Comparte archivos con:** T10 (`ports.ts` por import); T1, T12, T14 (`package.json`).
   - **Fuera de alcance:** caso de uso, entorno y redactor compuesto (T15).
 
-- [ ] **T12** (R18, R20) — Sonda viva opt-in contra un Penpot real con el código de Heron; su merge congela las plantillas `@v1`.
+- [x] **T12** (R18, R20) — Sonda viva opt-in contra un Penpot real con el código de Heron; su merge congela las plantillas `@v1`.
   - **Archivos:** `tests/live/penpot.live.ts`, `package.json`, `tests/repo/live-penpot.test.ts`
   - **Interfaces:** mcpGateway; openPenpotSession; planReviewSync
   - **Patrón:** scripts/check-coverage.ts

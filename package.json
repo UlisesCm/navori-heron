@@ -16,6 +16,7 @@
     "test": "bun test",
     "test:live": "bun tests/live/agents.live.ts",
     "test:live:compose": "bun tests/live/penpot-compose.live.ts",
+    "test:live:penpot": "bun tests/live/penpot.live.ts",
     "test:perf": "bun test --path-ignore-patterns \"node_modules/**\" tests/perf",
     "test:coverage": "bun test --coverage && bun scripts/check-coverage.ts",
     "test:staged": "bun scripts/test-staged.ts",

@@ -325,6 +325,8 @@ La prueba adicional con barras invertidas confirmó que un script de 64 KiB prod
 
 **Resuelto por el usuario (2026-10-02):** DR11/Contracts 4 fijan 32 KiB; DR30 conserva 48 como techo pero recorta por bytes reales; DR25 selecciona nombres completos. Las tareas afectadas y los remedios usan estos contratos actualizados. No se cambia el servidor ni se congela ninguna plantilla con este spike.
 
+**T12 — evidencia adicional con Heron (2026-10-02):** en 2.17.2, `getSharedPluginData` para una clave ausente devuelve `null`, aunque los tipos oficiales declaran `string`. DR14/DR46 requieren normalizar la ausencia a cadena vacía antes de probar el prefijo de propiedad. La sonda reprodujo `script-failed` al encontrar formas sin marca; `review-page@v1` y `FakePenpot` se corrigieron antes del congelamiento. La sonda completa pasó: guarda humana sin cambios, marcas en página no activa y descendientes, segunda sincronización con 0 escrituras y script escapado de 32 768 B (cuerpo RPC conservador de 65 611 B). Esta evidencia complementa S5; no cambia sus resultados ni las huellas canónicas.
+
 ### Supuestos y [SIN VERIFICAR]
 
 Las entradas S1–S7 de esta lista eran supuestos previos al spike; los resultados y cambios pendientes están en la sección anterior. La sonda de 2.18.1 sigue pendiente.

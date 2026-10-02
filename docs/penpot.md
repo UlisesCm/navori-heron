@@ -152,10 +152,44 @@ El spike se ejecutó con un cliente Streamable HTTP desechable en Bun, fuera del
 
 **S7 adicional (cuerpo JSON real):** 65 536 bytes de script con barras invertidas en el comentario generan 131 162 bytes de cuerpo RPC y HTTP 413. Con 32 768 bytes de script, el cuerpo mide 65 626 bytes y devuelve `result: 1` en 81 ms. **64 KiB no es un presupuesto seguro para contenido escapado**; se propone 32 KiB para el script completo y recortar References por tamaño real antes de enviar, sin aumentar el límite del servidor.
 
-**Estado de salida:** el usuario aprobó los ajustes el 2026-10-02: presupuesto de 32 KiB, prefijo References por bytes reales y fuentes exactas. Los contratos/tareas de la spec ya los incorporan; **T6–T7 todavía no empiezan**. Esta evidencia no sustituye T12, la sonda viva con el código de Heron, ni las aceptaciones manuales P12.A7/P12.A8.
+**Estado de salida:** el usuario aprobó los ajustes el 2026-10-02: presupuesto de 32 KiB, prefijo References por bytes reales y fuentes exactas. T6–T11 los implementaron y la sonda T12 siguiente los valida con Heron. Esta evidencia no sustituye las aceptaciones manuales P12.A7/P12.A8.
 
 ### Fundamento oficial de los ajustes
 
 [Express 5](https://expressjs.com/en/5x/api/express/#express.json) documenta 100kb por cuerpo JSON; el [servidor MCP de Penpot 2.17.2](https://github.com/penpot/penpot/blob/2.17.2/mcp/packages/server/src/PenpotMcpServer.ts#L373-L378) no cambia ese default. **32 KiB es el presupuesto de Heron elegido por el usuario con el spike**, no una especificación oficial de Penpot. References conserva el prefijo más largo que quepa al renderizar el script final, hasta el techo de 48 tarjetas; informa cada referencia omitida y no divide la página.
 
 La [Plugin API oficial](https://doc.plugins.penpot.app/interfaces/FontsContext) expone `fonts.all`; la [implementación fijada](https://github.com/penpot/penpot/blob/2.17.2/frontend/src/app/plugins/fonts.cljs#L109-L118) explica por qué `findByName` puede seleccionar otra familia. Heron compara el nombre completo, sin distinguir mayúsculas, y usa fallback si esa familia no existe.
+
+## Sonda viva con Heron — T12 (2026-10-02)
+
+La sonda es opt-in y **muta exclusivamente un archivo desechable**; verifica el `fileId` antes de escribir y no limpia sus fixtures. No la recoge `bun test`. Con Penpot abierto y el plugin MCP conectado en Chrome:
+
+```sh
+HERON_LIVE_PENPOT=1 bun run test:live:penpot -- --file-id <uuid-del-archivo-desechable>
+```
+
+Requiere `PENPOT_URL` y exactamente una de `PENPOT_MCP_KEY` o `PENPOT_MCP_KEY_FILE`, como en Configuración. No imprime la key, la URL de transporte, errores crudos ni logs del plugin. Si Chrome está cerrado, el handshake puede pasar pero `inspect` responde `plugin-not-connected`: abre el archivo y reconecta el plugin antes de repetir.
+
+Resultado contra **2.17.2**, mismo entorno y archivo del spike:
+
+```text
+PASS handshake and execute_code offered
+PASS bound disposable file (before any mutation)
+PASS penpot.version format -- 2.17.2
+PASS JSON result and string log envelope
+PASS Tool execution failed classified
+PASS wrong key rejected or no plugin
+PASS fonts.findByName and exact selection
+PASS substring family observation
+PASS 32 KiB escaped script and RPC body -- script=32768 B; RPC<=65611 B
+PASS production review template guard
+PASS production review template proposal
+PASS second sync plans zero writes
+PASS inactive page and descendant marks
+PASS human inside owned board blocks rewrite and survives
+penpot.live: PASS; 0 failed checks
+```
+
+La prueba de RPC mide una envoltura JSON conservadora con el id entero de máxima anchura segura; no confunde bytes del script con bytes del cuerpo. La propuesta usa el fixture SYNTHETIC completo y la plantilla productiva; la guarda humana compara contenido, nombre e identidades de hijos antes y después del intento bloqueado.
+
+**Diferencia descubierta y corregida antes de congelar `@v1`:** una marca ausente devuelve `null`, no la cadena vacía que sugieren los tipos oficiales. El doble anterior ocultaba un `TypeError` al probar `startsWith`; ahora reproduce `string | null` y la plantilla normaliza la ausencia. Las plantillas `inspect@v1` y `review-page@v1` se congelan al integrar T12; todo cambio posterior requiere nueva versión (DR13/DR44).
