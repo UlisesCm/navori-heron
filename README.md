@@ -15,14 +15,14 @@ Invariante dual: sin `UX.md` + `ux.json` válidos Heron trabaja en `reference-on
 
 ## 2. Estado actual y roadmap
 
-**P1** está hecha y **P2** (research) está implementada; su recorrido manual sobre un producto real (P2.A9) lo ejecuta el usuario con [docs/research.md](docs/research.md). Fuente: `specs/_master/01-heron/parts.json` y `STATUS.md`.
+**P1** está hecha y **P2** (research) está implementada; su recorrido manual sobre un producto real (P2.A9) lo ejecuta el usuario con [docs/research.md](docs/research.md). **P4** (modelo canónico) está implementada; la lectura de [docs/contracts.md](docs/contracts.md) y [docs/integrations/navori-harness.md](docs/integrations/navori-harness.md) (P4.A9) la hace el usuario. Fuente: `specs/_master/01-heron/parts.json` y `STATUS.md`.
 
 | Parte | Objetivo                                                            | Depende de  | Estado                           |
 | ----- | ------------------------------------------------------------------- | ----------- | -------------------------------- |
 | P1    | Núcleo, `heron init` y detección de modo                            | -           | hecho                            |
 | P2    | Research `reference-only` determinista y seguro                     | P1          | hecho (pendiente recorrido real) |
 | P3    | Agentes (Claude Code / Codex CLI) y 3 direcciones visuales          | P2          | pendiente                        |
-| P4    | Contrato UX y `ProductContext` con precedencia y `CONFLICT`         | P1          | pendiente                        |
+| P4    | Contrato UX y `ProductContext` con precedencia y `CONFLICT`         | P1          | implementado (pendiente P4.A9)   |
 | P5    | Slice vertical `full`: un flow y 2-3 pantallas hasta export neutral | P3, P4, P12 | pendiente                        |
 | P6    | Penpot: sistema completo (tokens, componentes, pantallas)           | P5, P12     | pendiente                        |
 | P7    | Producto completo, revisiones y creator → reviewer                  | P5, P6      | pendiente                        |
@@ -42,7 +42,7 @@ Regla: `bin → cli|web → app (run* → UseCaseResult) → dominio puro y puer
 | ----------------------------------------------------------------------------- | --------------------- |
 | `bin/`, `src/cli/`, `src/app/`                                                | existe (P1)           |
 | `src/core/{contracts,state,store}`                                            | existe (P1)           |
-| `src/intake/` (navori-master, filesystem)                                     | existe (P1)           |
+| `src/intake/` (navori-master, filesystem, markdown, manual)                   | existe (P1, P4)       |
 | `src/research/`, `src/security/`                                              | existe (P2)           |
 | `src/agents/`                                                                 | planeado (P3)         |
 | `src/penpot/`, `src/tokens/`, `src/design/`, `src/validation/`, `src/export/` | planeado (P5-P7, P12) |
@@ -65,7 +65,7 @@ flowchart LR
 
 Detalle: [docs/architecture.md](docs/architecture.md), [docs/adr/](docs/adr/) y la skill [`heron-architecture`](.claude/skills/heron-architecture/SKILL.md).
 
-## 4. Uso del CLI (P1 y P2)
+## 4. Uso del CLI (P1, P2 y P4)
 
 Requisitos: Bun 1.4.2 (sin Node) y Git.
 
@@ -80,7 +80,7 @@ heron --version   # 0.1.0
 Sin `bun link`: `bun bin/heron.ts <comando>` o `bun run heron <comando>`.
 
 ```text
-heron init [path] [--stage <NN-slug>] [--locale <bcp47>] [--dry-run] [--json]
+heron init [path] [--stage <NN-slug>] [--adapter auto|markdown|manual] [--context <file>]... [--locale <bcp47>] [--dry-run] [--json]
 heron status [path] [--json]
 heron doctor [path] [--json]
 heron gate <gate> approve|reject [path] [--note <text>] [--reason <text>] [--yes] [--json]
@@ -94,11 +94,16 @@ heron references remove <REF-n> [path] [--reason <text>] [--json]
 heron references import <file.json> [path] [--allow-local] [--json]
 heron brand add [path] --kind <kind> --origin <origin> --value <text> [--file <path>] [--reference <REF-n>] [--note <text>] [--json]
 heron research render [path] [--json]
+heron intake [path] [--dry-run] [--refresh] [--json]
+heron conflicts list [path] [--all] [--json]
+heron conflicts ack <CONFLICT-NNN> [path] --note <text> [--yes] [--json]
 ```
 
 - `init`: detecta el contexto, decide el modo y escribe `.heron/`. Con varias etapas y ninguna activa usa la última `cerrada` y lo avisa; `--stage` fuerza una.
+- `init --adapter markdown|manual --context <archivo>...` elige explícitamente el adapter `markdown` (archivos `.md`/`.markdown`) o `manual` (un `.json` con `ManualContext`) en lugar de la detección; la selección se conserva entre ejecuciones hasta `--adapter auto`. Ambos trabajan siempre en `reference-only`.
 - `init --locale` fija el idioma de las salidas de research (tag BCP 47; se conserva entre ejecuciones).
-- `status`: modo, etapa, fase, gates, artefactos obsoletos y las órdenes permitidas (incluye las de research y el aviso `ASSETS_LARGE`). Solo lectura.
+- `intake`: construye el `ProductContext` desde las fuentes del producto y registra los conflictos entre ellas en `.heron/intake/` (escribe solo si cambian los bytes; `--dry-run` no escribe y funciona sin `.heron/`; `--refresh` se acepta y no cambia nada). `conflicts list|ack`: lista los conflictos y reconoce uno con una nota; un conflicto abierto sin reconocer bloquea `gate intake approve`. Modelo en [docs/contracts.md](docs/contracts.md) y lectura del harness en [docs/integrations/navori-harness.md](docs/integrations/navori-harness.md).
+- `status`: modo, etapa, fase, gates, artefactos obsoletos y las órdenes permitidas (incluye las de research y el aviso `ASSETS_LARGE`), el aviso `PRODUCT_CONTEXT_STALE` y los conflictos abiertos. Solo lectura.
 - `doctor`: revisa Bun, la ruta, `.heron/`, el lock, el `.gitignore` y la detección. Solo lectura.
 - `gate`: registra una decisión humana ligada a hashes. Gates: `intake`, `research`, `direction`, `foundations`, `representative-screens`, `visual-review`. Rechazar exige `--reason`; sin TTY hay que pasar `--yes`. Con P2, `research approve` funciona con 5 o más referencias con provenance; los demás gates siguen sin aprobar hasta que una parte posterior produzca sus artefactos (exit 3); `reject` funciona siempre.
 
@@ -215,7 +220,7 @@ scripts/       gen-schemas y check-coverage
 fixtures/      productos sintéticos para tests y pruebas manuales
 tests/         unit, e2e, repo (fronteras, schemas, CI) y perf
 specs/         master-plan (_master) y specs SDD
-docs/          arquitectura, research, seguridad y ADR
+docs/          arquitectura, contratos, integración con el harness, research, seguridad y ADR
 .claude/       harness navori: agentes, skills, hooks
 ```
 

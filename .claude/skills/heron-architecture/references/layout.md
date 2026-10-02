@@ -6,11 +6,12 @@
 bin/heron.ts                                   [E] solo importa cli
 src/core/contracts/   common canonical-json version index heron-project heron-state mode-decision cli-envelope [E]
                       research (Reference, Provenance, SecurityFinding, BrandInput) [P2] · directions agent-run [P3]
-                      product-context (ProductContext, Conflict) [P4] · design decisions validation manifest [P5] · penpot [P12]
+                      product-context (ProductContext, IntakeConflicts, ManualContext) intake-data [E, P4] · design decisions validation manifest [P5] · penpot [P12]
 src/core/state/       transitions gates stale lifecycle mode [E] · revise [P7]
 src/core/store/       fs-port paths hash atomic lock file-store [E] · append-log [P2] · temp-dir [P3] · export-writer [P5]
 src/security/         redact logger ssrf untrusted html [P2] · env [P3] · fetch/ (Fetcher) images/ (sharp) [P2]
-src/intake/           ports detect probe ux-contract adapters/{navori-master,filesystem}/ [E] · adapters/{markdown,manual}/ precedence conflicts [P4]
+src/intake/           ports detect probe ux-contract adapters/{navori-master,filesystem}/ [E] · adapters/{markdown,manual}/ inputs precedence conflicts product-context candidates draft-kit markdown text sources ux-markdown ux-model [E, P4]
+                      (ux-contract: ACTIVE_UX_READER es el punto de conmutación del lector, P11; adapters/navori-master/ trae decisions harness stage)
 src/research/         ports registry provenance brand render/ adapters/{manual,url,image,design-md}/ [P2] · brief [P3] · adapters/penpot/ [P6] · adapters/refero/ [P10]
 src/agents/           ports registry roles context-pack invoke prompts tasks/<task> adapters/{claude-code,codex-cli,fake}/ [P3] · review-loop [P7]
 src/tokens/           dtcg resolver contrast color brand-variant parity [P5]
@@ -22,10 +23,10 @@ src/app/              context result version init status doctor gate [E] · writ
 src/cli/              main args io envelope render commands/ [E] · output (emitResult) [pre-P2] · commands/<grupo> con CommandSpec [P2]
 src/web/              server auth/ middleware/{csp,csrf} routes/*.tsx views/*.tsx api/v1/ [P8] · islands/ (navegador) [P8]
 prompts/<role>/<task>@v<n>.md [P3]     templates/penpot/<op>@v<n>.penpot.js [P12]     tsconfig.islands.json [P8]
-schemas/<kind>.v<n>.schema.json [E]    fixtures/<product>/ [E] · conflict/ unsupported-versions/ [P4]
+schemas/<kind>.v<n>.schema.json [E]    fixtures/<product>/ [E] · conflict/ [E, P4] · unsupported-versions/ [P4]
 infra/docker/ [P9]   infra/penpot/ [P12]   scripts/ [E] · scripts/transpiler.ts [P8]
-docs/ architecture.md adr/0001-state-persistence.md [E] · adr/0002-store-write-zones.md [P3]
-tests/ unit/<module>/ e2e/ contracts/ security/ web/ infra/ repo/ perf/ helpers/ [E parcial] · assets/<module>/ y assets/p1-workspaces/ [pre-P2]
+docs/ architecture.md contracts.md integrations/navori-harness.md adr/0001-state-persistence.md adr/0006-canonical-data-model.md [E] · adr/0002-store-write-zones.md [P3]
+tests/ unit/<module>/ e2e/ contracts/ security/ web/ infra/ repo/ perf/ helpers/ [E parcial] · assets/<module>/ y assets/p1-workspaces/ [pre-P2] · assets/p2-workspaces/ (workspaces de P2 para compatibilidad) [P4]
 ```
 
 Verifica con `ls` qué existe antes de afirmarlo: esta lista se escribió el 2026-09-30.
@@ -35,7 +36,7 @@ Verifica con `ls` qué existe antes de afirmarlo: esta lista se escribió el 202
 - **Puertos** en `src/<module>/ports.ts`; los puertos de servicio junto a su implementación real; todos agregados en `AppContext`.
 - **Adapters** en `src/<module>/adapters/<id>/index.ts`, con `<id>` igual al valor del enum (se descarta `sources/<kind>/`).
 - **Contratos persistidos o exportados** solo en `core/contracts/`; los tipos internos de un módulo se quedan en él.
-- **Tests:** mandan las rutas de `specs/_master/01-heron/parts.json`; los unitarios nuevos van en `tests/unit/<module>/`; en P4, `tests/unit/ux-contract.test.ts` se mueve con `git mv` a `tests/contracts/`.
+- **Tests:** mandan las rutas de `specs/_master/01-heron/parts.json`; los unitarios nuevos van en `tests/unit/<module>/`; los contratos (incluido `ux-contract.test.ts`, movido en P4) van en `tests/contracts/`.
 - **Fixtures:** solo repos de producto; insumos sueltos en `tests/assets/<module>/` o generados en el test.
 - **ADRs:** `docs/adr/NNNN-<slug>.md` en orden de aceptación, sin renumerar; uno por cada parte que MASTER lo pida y por cada dependencia nueva (RNF-15).
 - No se renombran archivos de P1 (las rutas de `parts.json` ganan).

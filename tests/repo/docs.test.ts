@@ -69,3 +69,74 @@ describe("agent providers docs", () => {
     expect(section).toContain("Disparador de revisión");
   });
 });
+
+describe("canonical data model docs", () => {
+  // Covers: R17
+  // Covers: R10
+  test("documents the canonical data model and the navori-harness integration", async () => {
+    const adr = await read("docs/adr/0006-canonical-data-model.md");
+    expect(adr).toContain("# ADR 0006");
+    for (const term of [
+      "ProductContext",
+      "ProductContextAdapter",
+      "ACTIVE_UX_READER",
+      "SOURCE_PRECEDENCE",
+      "Frescura por regeneración",
+      "ajv",
+    ]) {
+      expect(adr).toContain(term);
+    }
+
+    const contracts = await read("docs/contracts.md");
+    for (const term of [
+      "ProductContext",
+      "IntakeConflicts",
+      "ManualContext",
+      "ACTIVE_UX_READER",
+      "provisional-1",
+      "regenerar y comparar",
+    ]) {
+      expect(contracts).toContain(term);
+    }
+
+    // the mapping, the provisional subset, the switch and the heuristic limits P4.A9 asks the user to check
+    const harness = await read("docs/integrations/navori-harness.md");
+    expect(harness).toMatch(/^## Qué aporta cada fuente$/m);
+    expect(harness).toMatch(/^## Subconjunto provisional de `ux.json`$/m);
+    expect(harness).toMatch(/^## Conmutación del lector de `ux.json`$/m);
+    expect(harness).toMatch(/^### Límites de las heurísticas$/m);
+    for (const term of [
+      "DECISIONS.md",
+      "MASTER.md",
+      "ux.json",
+      "extensions",
+      "ACTIVE_UX_READER",
+      "PRODUCT_CONTEXT_STALE",
+      "heron conflicts ack",
+      "no redefine su contrato",
+    ]) {
+      expect(harness).toContain(term);
+    }
+
+    // architecture amends DP9 and links the new docs; README documents the new commands
+    const architecture = await read("docs/architecture.md");
+    expect(architecture).toContain("Enmienda de DP9");
+    expect(architecture).toContain("0006-canonical-data-model.md");
+    expect(architecture).toContain("integrations/navori-harness.md");
+
+    const readme = await read("README.md");
+    for (const term of [
+      "heron intake [path]",
+      "heron conflicts list",
+      "heron conflicts ack",
+      "--adapter auto|markdown|manual",
+      "docs/contracts.md",
+      "docs/integrations/navori-harness.md",
+    ]) {
+      expect(readme).toContain(term);
+    }
+
+    const recipes = await read(".claude/skills/heron-architecture/references/recipes.md");
+    expect(recipes).toContain("## Fuente nueva de ProductContext");
+  });
+});

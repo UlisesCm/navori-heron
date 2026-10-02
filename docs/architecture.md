@@ -1,20 +1,20 @@
-# Arquitectura de Heron (P1 y P2)
+# Arquitectura de Heron (P1, P2 y P4)
 
-Un solo paquete con módulos por frontera en `src/` (D4). Se dividirá en paquetes solo cuando exista un segundo entregable real. Este documento describe lo que P1 y P2 implementan; los módulos de agentes, diseño, tokens, Penpot y web aparecen en `MASTER.md` pero no existen todavía.
+Un solo paquete con módulos por frontera en `src/` (D4). Se dividirá en paquetes solo cuando exista un segundo entregable real. Este documento describe lo que P1, P2 y P4 implementan; los módulos de agentes, diseño, tokens, Penpot y web aparecen en `MASTER.md` pero no existen todavía.
 
 ## Módulos y reglas de frontera
 
-| Módulo                | Responsabilidad                                                                                                                   | Puede importar                                        |
-| --------------------- | --------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------- |
-| `src/core/contracts/` | Esquemas Zod, tipos, JSON canónico, versionado, códigos de salida                                                                 | solo `zod` y archivos hermanos                        |
-| `src/core/state/`     | Dominio puro: fases, transiciones, gates, modo, obsolescencia                                                                     | `core/contracts` y hermanos; sin `Bun`/`bun:`         |
-| `src/core/store/`     | `FileStore`, escritura atómica, lock, hash                                                                                        | `core/contracts`; **único** que importa `node:fs`     |
-| `src/intake/`         | Puertos y adapters de detección de contexto (`navori-master`, `filesystem`), lector provisional de `ux.json`                      | `core`; recibe el filesystem como lectura inyectada   |
-| `src/security/`       | Primitivas puras o inyectables: clasificador SSRF, `Fetcher`, saneo de imágenes, escáner de texto no confiable, escape, redacción | solo `core/contracts`; no toca el filesystem          |
-| `src/research/`       | Puerto `ResearchSource`, registro y adapters (`manual`, `url`, `image`, `design-md`), validación de provenance, renderers         | `core/contracts`, lectura de `core/store`, `security` |
-| `src/app/`            | Casos de uso (init, status, doctor, gate, references, brand, research render) compartidos por CLI y, más adelante, web            | `core`, `intake`, `research`, `security`              |
-| `src/cli/`            | Parseo de argumentos, render, envelope, `runCli` (copy en inglés, D14)                                                            | `app`, `core`                                         |
-| `bin/heron.ts`        | Entrada del proceso                                                                                                               | `cli`                                                 |
+| Módulo                | Responsabilidad                                                                                                                               | Puede importar                                        |
+| --------------------- | --------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------- |
+| `src/core/contracts/` | Esquemas Zod, tipos, JSON canónico, versionado, códigos de salida                                                                             | solo `zod` y archivos hermanos                        |
+| `src/core/state/`     | Dominio puro: fases, transiciones, gates, modo, obsolescencia                                                                                 | `core/contracts` y hermanos; sin `Bun`/`bun:`         |
+| `src/core/store/`     | `FileStore`, escritura atómica, lock, hash                                                                                                    | `core/contracts`; **único** que importa `node:fs`     |
+| `src/intake/`         | Puerto `ProductContextAdapter`, adapters (`navori-master`, `filesystem`, `markdown`, `manual`), precedencia, conflictos y lector de `ux.json` | `core`; recibe el filesystem como lectura inyectada   |
+| `src/security/`       | Primitivas puras o inyectables: clasificador SSRF, `Fetcher`, saneo de imágenes, escáner de texto no confiable, escape, redacción             | solo `core/contracts`; no toca el filesystem          |
+| `src/research/`       | Puerto `ResearchSource`, registro y adapters (`manual`, `url`, `image`, `design-md`), validación de provenance, renderers                     | `core/contracts`, lectura de `core/store`, `security` |
+| `src/app/`            | Casos de uso (init, status, doctor, gate, intake, conflicts, references, brand, research render) compartidos por CLI y, más adelante, web     | `core`, `intake`, `research`, `security`              |
+| `src/cli/`            | Parseo de argumentos, render, envelope, `runCli` (copy en inglés, D14)                                                                        | `app`, `core`                                         |
+| `bin/heron.ts`        | Entrada del proceso                                                                                                                           | `cli`                                                 |
 
 Reglas:
 
@@ -42,13 +42,14 @@ flowchart LR
   FS --> CT
   IN --> NM[navori-master]
   IN --> FA[filesystem]
+  IN --> MD[markdown / manual]
   FS --> H[(.heron/)]
   CLI --> ENV[texto o CliEnvelope]
 ```
 
 `runCli` genera un `runId` por invocación, parsea los argumentos y llama al caso de uso. Los casos de uso devuelven un resultado tipado (`ok`, código, findings, datos) y la CLI lo traduce a texto (stdout; fallos en stderr) o, con `--json`, a un único `CliEnvelope`. Una excepción inesperada termina con exit 1 y `UNEXPECTED_ERROR`.
 
-Para los comandos que escriben (`init`, `gate`, `references add|import|remove`, `brand add`, `research render`), todos pasan por un único envoltorio (`withWriteRun`, `src/app/write-run.ts`) y el orden es: tomar el lock, recuperar staging huérfano, recalcular la huella de las entradas y el modo, evaluar precondiciones, escribir en staging, promover artefactos, promover `state.json` con `stateRevision + 1`, liberar el lock. `references add|import` y `brand add --file` capturan (red e imágenes) **antes** de tomar el lock, sobre una instantánea de `stateRevision`; si otro comando escribió mientras tanto, el commit falla con exit 6 sin escribir. `status`, `doctor` y `references list|show|compare` son de solo lectura: no toman el lock ni escriben. Detalle y justificación en el [ADR 0001](adr/0001-state-persistence.md).
+Para los comandos que escriben (`init`, `intake`, `conflicts ack`, `gate`, `references add|import|remove`, `brand add`, `research render`), todos pasan por un único envoltorio (`withWriteRun`, `src/app/write-run.ts`) y el orden es: tomar el lock, recuperar staging huérfano, recalcular la huella de las entradas y el modo, evaluar precondiciones, escribir en staging, promover artefactos, promover `state.json` con `stateRevision + 1`, liberar el lock. `references add|import` y `brand add --file` capturan (red e imágenes) **antes** de tomar el lock, sobre una instantánea de `stateRevision`; si otro comando escribió mientras tanto, el commit falla con exit 6 sin escribir. `status`, `doctor` y `references list|show|compare` son de solo lectura: no toman el lock ni escriben. Detalle y justificación en el [ADR 0001](adr/0001-state-persistence.md).
 
 ## Modo `full` / `reference-only`
 
@@ -86,6 +87,8 @@ Las transiciones válidas son la tabla `TRANSITIONS` (`src/core/state/transition
   state.json          HeronState v1; punto de commit, siempre el último en escribirse
   intake/
     mode.json         ModeDecision v1 (incluye el informe de detección; sin fechas)
+    product-context.json  ProductContext v1, modelo canónico (P4; atado al gate intake)
+    conflicts.json    IntakeConflicts v1, conflictos y reconocimientos (P4; atado al gate intake)
   research/           P2; ver docs/research.md
     references.json   ResearchReferences v1, fuente de verdad (atado al gate research)
     provenance.json   ResearchProvenance v1, proyección derivada (atado al gate research)
@@ -101,15 +104,23 @@ Las transiciones válidas son la tabla `TRANSITIONS` (`src/core/state/transition
   .lock.reclaim       transitorio (ignorado)
 ```
 
-`state.artifacts` registra el sha256 de `intake/mode.json`, `project.json` y, tras P2, los artefactos de research y marca. Las fechas solo viven en `history[]` y en las decisiones de gate, nunca en `mode.json`, y `init` es idempotente: si nada cambió, no escribe ni crea revisión. `/.heron/` está en el `.gitignore` del propio repo de Heron porque allí `init` es solo una prueba manual.
+`state.artifacts` registra el sha256 de `intake/mode.json`, `project.json` y, tras P2 y P4, `intake/product-context.json`, `intake/conflicts.json` y los artefactos de research y marca. Las fechas solo viven en `history[]` y en las decisiones de gate, nunca en `mode.json`, y `init` es idempotente: si nada cambió, no escribe ni crea revisión. `/.heron/` está en el `.gitignore` del propio repo de Heron porque allí `init` es solo una prueba manual.
 
 ## Contratos versionados y `gen:schemas`
 
-Los contratos viven en `src/core/contracts/` como esquemas Zod: `HeronProject`, `HeronState`, `ModeDecision`, `CliEnvelope` y, desde P2, `ResearchReferences`, `ResearchProvenance`, `BrandInputs` y `ReferenceBatch` (este último es una entrada, con `z.strictObject`). Los documentos persistidos usan `z.looseObject` (conservan campos desconocidos al reescribir) y un `schemaVersion` entero que sube solo con cambios incompatibles: renombrar, quitar o cambiar el significado de un campo, o añadir un valor a un enum persistido. Leer una versión mayor que la soportada falla nombrando la soportada y nunca se escribe un documento que no se pudo leer. `CliEnvelope` es salida transitoria y usa `z.object`.
+Los contratos viven en `src/core/contracts/` como esquemas Zod: `HeronProject`, `HeronState`, `ModeDecision`, `CliEnvelope` y, desde P2, `ResearchReferences`, `ResearchProvenance`, `BrandInputs` y `ReferenceBatch` (este último es una entrada, con `z.strictObject`) y, desde P4, `ProductContext`, `IntakeConflicts` y `ManualContext` (entrada, `z.strictObject`). El detalle del modelo está en [docs/contracts.md](contracts.md). Los documentos persistidos usan `z.looseObject` (conservan campos desconocidos al reescribir) y un `schemaVersion` entero que sube solo con cambios incompatibles: renombrar, quitar o cambiar el significado de un campo, o añadir un valor a un enum persistido. Leer una versión mayor que la soportada falla nombrando la soportada y nunca se escribe un documento que no se pudo leer. `CliEnvelope` es salida transitoria y usa `z.object`.
 
 **Enmienda (OD1-C′, P2).** Agregar un código de finding no sube versión: lo persistido guarda el código como texto con patrón `^[A-Z][A-Z0-9_]*$` y los emisores siguen tipados con la unión cerrada `FindingCode`. Agregar valores a `ADAPTER_IDS` en P2 (`markdown`, `manual`) es una corrección única de un enum que DP7 exigía completo desde P1. Un `.heron/` creado por P1 sigue leyéndose sin `DOCUMENT_INVALID`.
 
-`bun run gen:schemas` emite `schemas/*.v1.schema.json` desde esos esquemas. `tests/repo/schemas.test.ts` compara lo generado con los archivos en disco (faltantes, sobrantes o distintos), de modo que un contrato modificado sin regenerar rompe el test. No se emite schema de `ux.json`: es un contrato del harness, y Heron solo tiene un lector provisional (D5) en `src/intake/ux-contract.ts`.
+`bun run gen:schemas` emite `schemas/*.v1.schema.json` desde esos esquemas. `tests/repo/schemas.test.ts` compara lo generado con los archivos en disco (faltantes, sobrantes o distintos), de modo que un contrato modificado sin regenerar rompe el test. No se emite schema de `ux.json`: es un contrato del harness, y Heron solo tiene un lector provisional (D5) en `src/intake/ux-contract.ts`, intercambiable mediante `ACTIVE_UX_READER`.
+
+## Modelo canónico del producto (P4)
+
+`ProductContext` es el modelo único del producto que consumirán las partes posteriores; las fuentes (`navori-master`, `filesystem`, `markdown`, `manual`) se reducen a él con un adapter por fuente y un merge común (`src/intake/product-context.ts`). Cada elemento lleva su procedencia (`sourceRef`, con ancla de sección o JSON Pointer, nunca número de línea). La precedencia de RN-7 decide el valor de un mismo dato; las contradicciones se registran como conflictos y bloquean el gate `intake` hasta que una persona las reconoce. Decisión y alternativas en el [ADR 0006](adr/0006-canonical-data-model.md); contratos en [docs/contracts.md](contracts.md); lectura del harness en [docs/integrations/navori-harness.md](integrations/navori-harness.md).
+
+**Frescura = regenerar y comparar.** El documento no lleva fechas ni hashes de fuentes: está al día si `computeIntake` produce los mismos bytes que el archivo escrito. `status` y el gate usan esa misma función de solo lectura; `heron intake` la ejecuta y escribe solo si los bytes cambian.
+
+**Enmienda de DP9 (P4, DR7).** DP9 definía el gate `intake` como ortogonal al research: se aprueba desde `initialized` o desde fases posteriores a research. Con P4, `heron intake` escribe en cualquier fase y `transitions.ts` agrega una fila `approve-gate:intake` por cada fase de producción (`direction-selected` a `exported`), de modo que el gate se re-aprueba en sitio, sin cambiar de fase y con las guardas de modo y de aprobaciones intactas. Esto también cierra el caso en que un `init` repetido en producción reescribía `intake/mode.json` y dejaba la aprobación inválida sin forma de re-aprobar. `gate intake reject` sigue disponible para retroceder. Un cambio de contexto marca como obsoletos los artefactos posteriores (`ARTIFACT_DEPENDENCIES`).
 
 ## Códigos de salida
 
