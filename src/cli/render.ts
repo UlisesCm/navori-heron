@@ -41,7 +41,9 @@ function blocks(parts: readonly (readonly string[])[]): string {
 
 export function renderInitText(data: InitData): string {
   const { detection, mode } = data.decision;
+  const explicit = detection.adapter === "markdown" || detection.adapter === "manual";
   const header = ["Project detected", `Navori Master: ${detection.navoriMaster ? "yes" : "no"}`];
+  if (explicit) header.push(`Adapter: ${detection.adapter}`);
   if (detection.stageNotice !== null) header.push(detection.stageNotice);
   if (detection.navoriMaster) {
     const stage =
@@ -52,8 +54,9 @@ export function renderInitText(data: InitData): string {
           : "unknown";
     header.push(`Stage: ${stage}`);
   }
-  const presence =
-    detection.artifacts.length > 0
+  const presence = explicit
+    ? []
+    : detection.artifacts.length > 0
       ? detection.artifacts.map((file) => formatPresenceLine(file.name, file.present))
       : detection.stageStatus === "not-applicable"
         ? [

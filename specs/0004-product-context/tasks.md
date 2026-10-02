@@ -139,7 +139,7 @@ Lotes de 1–3 tareas. Cada test lleva `// Covers: R<n>` en la primera línea y 
   - **Nota:** eliminar la allowlist `PENDING_SPECS` del test de registros (`tests/unit/contracts.test.ts`, agregada en T2 con `TODO(T11)`) una vez que `intake` y `conflicts` tengan su `CommandSpec`: exime por nombre de grupo y podría ocultar una spec faltante.
   - **Fuera de alcance:** `init --adapter` (T13).
 
-- [ ] **T13** (R9, R18) — `heron init --adapter auto|markdown|manual --context <archivo>...` y compatibilidad con un workspace de P2.
+- [x] **T13** (R9, R18) — `heron init --adapter auto|markdown|manual --context <archivo>...` y compatibilidad con un workspace de P2.
   - **Archivos:** `src/app/init.ts`, `src/cli/commands/init.ts`, `src/cli/command.ts`, `src/cli/render.ts`, `tests/e2e/init.test.ts`, `tests/e2e/p2-compat.test.ts`, `tests/unit/cli-args.test.ts`
   - **Interfaces:** runInit; InitParsed; renderInitText
   - **Patrón:** src/app/init.ts

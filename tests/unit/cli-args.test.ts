@@ -253,4 +253,54 @@ describe("parseCliArgs", () => {
       'Unknown references command "bogus". Expected: add, list, show, compare, remove, import.',
     );
   });
+
+  // Covers: R8, R9
+  test("parses intake, conflicts and the init adapter options", () => {
+    expect(parseCliArgs(["intake", "p", "--dry-run", "--refresh", "--json"])).toEqual({
+      command: "intake",
+      path: "p",
+      dryRun: true,
+      json: true,
+    });
+    expect(parseCliArgs(["conflicts", "list", "--all"])).toEqual({
+      command: "conflicts",
+      action: "list",
+      path: ".",
+      all: true,
+      json: false,
+    });
+    expect(
+      parseCliArgs(["conflicts", "ack", "CONFLICT-001", "p", "--note", "ok", "--yes"]),
+    ).toEqual({
+      command: "conflicts",
+      action: "ack",
+      path: "p",
+      id: "CONFLICT-001",
+      note: "ok",
+      yes: true,
+      json: false,
+    });
+    expect(
+      parseCliArgs(["init", "--adapter", "markdown", "--context", "a.md", "--context", "b.md"]),
+    ).toEqual({
+      command: "init",
+      path: ".",
+      stage: null,
+      dryRun: false,
+      json: false,
+      adapter: "markdown",
+      context: ["a.md", "b.md"],
+    });
+    expect(parseCliArgs(["init", "--adapter", "auto"])).toMatchObject({ adapter: "auto" });
+    for (const argv of [
+      ["init", "--adapter", "other"],
+      ["init", "--adapter"],
+      ["init", "--context"],
+      ["intake", "--stage", "01-mvp"],
+      ["conflicts", "ack", "nope"],
+      ["conflicts", "bogus"],
+    ]) {
+      expect(parseCliArgs(argv) instanceof UsageError).toBe(true);
+    }
+  });
 });

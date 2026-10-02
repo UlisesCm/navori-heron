@@ -27,6 +27,10 @@ export type InitParsed = {
   json: boolean;
   /** Present only when --locale is given (P1 parse results keep their exact shape). */
   locale?: string;
+  /** Present only when --adapter is given. */
+  adapter?: "auto" | "markdown" | "manual";
+  /** Present only when --context is given (repeatable). */
+  context?: string[];
 };
 export type StatusParsed = { command: "status"; path: string; json: boolean };
 export type DoctorParsed = { command: "doctor"; path: string; json: boolean };

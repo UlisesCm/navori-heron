@@ -1,5 +1,13 @@
 import { afterEach, describe, expect, test } from "bun:test";
-import { existsSync, mkdirSync, readFileSync, rmSync, symlinkSync, writeFileSync } from "node:fs";
+import {
+  copyFileSync,
+  existsSync,
+  mkdirSync,
+  readFileSync,
+  rmSync,
+  symlinkSync,
+  writeFileSync,
+} from "node:fs";
 import { join } from "node:path";
 import {
   ExitCode,
@@ -7,6 +15,7 @@ import {
   MODE_DECISION_DOCUMENT,
   parseVersionedDocument,
   type CliEnvelope,
+  type FindingCode,
   type HeronState,
   type InitData,
   type StoredModeDecision,
@@ -26,6 +35,7 @@ afterEach(() => {
   for (const dir of copies.splice(0)) rmSync(dir, { recursive: true, force: true });
 });
 
+const INTAKE_ASSETS = join(import.meta.dir, "..", "assets", "intake");
 const READY = "Ready for research.";
 const DISABLED = "Full product generation disabled.\nVisual research is available.";
 
@@ -417,5 +427,108 @@ describe("heron init", () => {
     expect(read().penpot).toEqual(penpot);
     expect((await runCliCaptured(["init", root, "--locale", "en-US"])).code).toBe(ExitCode.Ok);
     expect(read().product).toEqual({ locale: "en-US" });
+  });
+
+  // Covers: R9
+  test("selects the markdown or manual adapter explicitly and keeps it on re-init", async () => {
+    const root = fixture("no-ux");
+    copyFileSync(join(INTAKE_ASSETS, "product-brief.md"), join(root, "brief.md"));
+    copyFileSync(join(INTAKE_ASSETS, "manual-context.json"), join(root, "context.json"));
+    const source = (): { adapter: string; inputs?: string[] } =>
+      JSON.parse(readFileSync(join(root, ".heron", "project.json"), "utf8")).source;
+
+    // Validation happens before anything is written.
+    const before = hashTree(root, { exclude: [] });
+    const invalid: [string[], FindingCode][] = [
+      [["--adapter", "markdown"], "CONTEXT_INPUT_INVALID"],
+      [["--context", "brief.md"], "CONTEXT_INPUT_INVALID"],
+      [["--adapter", "auto", "--context", "brief.md"], "CONTEXT_INPUT_INVALID"],
+      [["--adapter", "manual", "--context", "brief.md"], "CONTEXT_INPUT_INVALID"],
+      [["--adapter", "markdown", "--context", "../outside.md"], "UNSAFE_PATH"],
+      [["--adapter", "markdown", "--context", "missing.md"], "PATH_NOT_FOUND"],
+      [
+        [
+          "--adapter",
+          "markdown",
+          ...Array.from({ length: 51 }, () => ["--context", "brief.md"]).flat(),
+        ],
+        "CONTEXT_INPUT_INVALID",
+      ],
+    ];
+    for (const [flags, code] of invalid) {
+      const run = await runCliCaptured(["init", root, "--json", ...flags]);
+      expect({ flags: flags.slice(0, 3), code: run.code }).toEqual({
+        flags: flags.slice(0, 3),
+        code: ExitCode.Usage,
+      });
+      expect((JSON.parse(run.stdout) as CliEnvelope).findings.map((f) => f.code)).toContain(code);
+      expect(hashTree(root, { exclude: [] })).toEqual(before);
+    }
+    const bad = await runCliCaptured(["init", root, "--adapter", "other"]);
+    expect(bad.code).toBe(ExitCode.Usage);
+
+    // markdown: persisted, reference-only, no UX presence lines.
+    const first = await runCliCaptured([
+      "init",
+      root,
+      "--adapter",
+      "markdown",
+      "--context",
+      "brief.md",
+    ]);
+    expect(first.code).toBe(ExitCode.Ok);
+    expect(first.stdout).toContain("Adapter: markdown");
+    expect(first.stdout).toContain("Mode:\nREFERENCE ONLY");
+    expect(first.stdout).not.toContain("UX.md:");
+    expect(source()).toMatchObject({ adapter: "markdown", inputs: ["brief.md"] });
+    expect(readMode(root).mode).toBe("reference-only");
+
+    // Re-init without flags keeps the selection (and is a no-op).
+    const revision = readState(root).stateRevision;
+    expect((await runCliCaptured(["init", root])).code).toBe(ExitCode.Ok);
+    expect(source()).toMatchObject({ adapter: "markdown", inputs: ["brief.md"] });
+    expect(readState(root).stateRevision).toBe(revision);
+
+    // Re-init with different flags replaces the selection.
+    expect(
+      (await runCliCaptured(["init", root, "--adapter", "manual", "--context", "context.json"]))
+        .code,
+    ).toBe(ExitCode.Ok);
+    expect(source()).toMatchObject({ adapter: "manual", inputs: ["context.json"] });
+    expect((await runCliCaptured(["init", root])).code).toBe(ExitCode.Ok);
+    expect(source()).toMatchObject({ adapter: "manual", inputs: ["context.json"] });
+
+    // --adapter auto clears it and detection goes back to the repository.
+    expect((await runCliCaptured(["init", root, "--adapter", "auto"])).code).toBe(ExitCode.Ok);
+    expect(source().adapter).toBe("navori-master");
+    expect(source().inputs).toBeUndefined();
+  });
+
+  // Covers: R9
+  test("fails intake with CONTEXT_INPUT_INVALID when a selected manual input stops validating", async () => {
+    const root = fixture("no-ux");
+    copyFileSync(join(INTAKE_ASSETS, "manual-context.json"), join(root, "context.json"));
+    const init = ["init", root, "--adapter", "manual", "--context", "context.json"];
+    expect((await runCliCaptured(init)).code).toBe(ExitCode.Ok);
+    writeFileSync(join(root, "context.json"), '{"kind":"ManualContext"}');
+    const run = await runCliCaptured(["intake", "--json", root]);
+    expect(run.code).toBe(ExitCode.Usage);
+    expect((JSON.parse(run.stdout) as CliEnvelope).findings.map((f) => f.code)).toContain(
+      "CONTEXT_INPUT_INVALID",
+    );
+    expect(existsSync(join(root, ".heron", "intake", "product-context.json"))).toBe(false);
+  });
+
+  // Covers: R8
+  test("reports the stage error of intake --dry-run without a workspace", async () => {
+    const root = fixture("closed-stage");
+    const index = join(root, "specs", "_master", "index.json");
+    writeFileSync(index, readFileSync(index, "utf8").replaceAll('"cerrada"', '"abandonada"'));
+    const before = hashTree(root, { exclude: [] });
+    const run = await runCliCaptured(["intake", "--dry-run", root]);
+    expect(run.code).toBe(ExitCode.Usage);
+    expect(run.stderr).toContain("Available stages: ");
+    expect(existsSync(join(root, ".heron"))).toBe(false);
+    expect(hashTree(root, { exclude: [] })).toEqual(before);
   });
 });
