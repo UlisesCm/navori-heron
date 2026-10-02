@@ -20,7 +20,22 @@ type Node = Record<string, unknown>;
 const isNode = (value: unknown): value is Node =>
   typeof value === "object" && value !== null && !Array.isArray(value);
 
-/** Keeps only OPENAI_STRICT_KEYWORDS at every schema node; property names and enum/const values are data, not keywords. */
+/** Local constraints stay out of the conservative keyword dialect, but must reach the model. */
+const CONSTRAINT_HINT_KEYWORDS: readonly string[] = [
+  "pattern",
+  "format",
+  "minLength",
+  "maxLength",
+  "minItems",
+  "maxItems",
+  "minimum",
+  "maximum",
+  "exclusiveMinimum",
+  "exclusiveMaximum",
+  "multipleOf",
+];
+
+/** Keeps only strict keywords; stripped constraints become description hints, never weaker local validation. */
 function strictNode(node: Node): Node {
   const out: Node = {};
   for (const [key, value] of Object.entries(node)) {
@@ -42,13 +57,20 @@ function strictNode(node: Node): Node {
       out[key] = value;
     }
   }
+  const hints = Object.fromEntries(
+    Object.entries(node).filter(([key]) => CONSTRAINT_HINT_KEYWORDS.includes(key)),
+  );
+  if (Object.keys(hints).length > 0) {
+    const description = typeof node["description"] === "string" ? `${node["description"]}\n` : "";
+    out["description"] = `${description}Heron validation constraints: ${JSON.stringify(hints)}`;
+  }
   return out;
 }
 
 /**
  * claude: draft-7 `z.toJSONSchema` without the root `$schema`, so the CLI's own validator applies its default dialect
  * (its Ajv does not resolve the 2020-12 meta-schema; live probe 2026-10-01, DR13).
- * openai-strict: keeps only OPENAI_STRICT_KEYWORDS at every node (DR13).
+ * openai-strict: keeps only OPENAI_STRICT_KEYWORDS at every node, with local constraint hints in descriptions (DR13).
  */
 export function toProviderSchema(
   schema: z.ZodType<unknown>,
