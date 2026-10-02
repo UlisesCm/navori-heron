@@ -1681,7 +1681,7 @@
       "inheritedFrom": null,
       "state": "pendiente",
       "reason": null,
-      "spec": null,
+      "spec": "specs/0005-penpot-base",
       "issue": null
     }
   ]
