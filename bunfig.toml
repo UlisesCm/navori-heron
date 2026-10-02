@@ -3,6 +3,7 @@ exact = true
 
 [test]
 root = "tests"
+pathIgnorePatterns = ["tests/perf/**"] # wall-clock p95 suite runs via `bun run test:perf`
 coverageReporter = ["text", "lcov"]
 coverageDir = "coverage"
 coverageThreshold = { lines = 0.8, functions = 0.8 }

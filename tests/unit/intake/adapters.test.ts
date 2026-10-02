@@ -8,6 +8,7 @@ import { filesystemAdapter } from "../../../src/intake/adapters/filesystem/index
 import { navoriMasterAdapter } from "../../../src/intake/adapters/navori-master/index.ts";
 import { manualAdapter } from "../../../src/intake/adapters/manual/index.ts";
 import { markdownAdapter } from "../../../src/intake/adapters/markdown/index.ts";
+import { GROWTH_LIMIT_16X, growthRatio } from "../../helpers/timing.ts";
 import { adapterFor, detectProject } from "../../../src/intake/detect.ts";
 import {
   MAX_CONTEXT_INPUTS,
@@ -262,12 +263,9 @@ describe("parseManualContext", () => {
 
   test("stays linear on large adversarial input", () => {
     // Covers: R9
-    for (const n of [80_000, 160_000, 320_000]) {
-      const started = performance.now();
-      parseManualContext(bytes(`{"kind":"ManualContext","product":{"name":"${"\\".repeat(n)}`));
-      parseManualContext(bytes("[".repeat(n)));
-      expect(performance.now() - started).toBeLessThan(2_000);
-    }
+    // Growth ratio instead of absolute ms: linear ~16x for 16x input, quadratic ~256x; immune to load.
+    const { ratio } = growthRatio(parseAll(20_000), parseAll(320_000));
+    expect(ratio).toBeLessThan(GROWTH_LIMIT_16X);
   });
 });
 
@@ -291,3 +289,13 @@ describe("navori-master load without a stage", () => {
     expect(draft.candidates.every((c) => c.section === "product")).toBe(true);
   });
 });
+
+/** Closure parsing two adversarial manual-context payloads of size `n`. */
+function parseAll(n: number): () => void {
+  const a = bytes(`{"kind":"ManualContext","product":{"name":"${"\\".repeat(n)}`);
+  const b = bytes("[".repeat(n));
+  return () => {
+    parseManualContext(a);
+    parseManualContext(b);
+  };
+}

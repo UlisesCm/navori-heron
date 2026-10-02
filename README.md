@@ -213,7 +213,7 @@ src/           cli, app, core (contracts, state, store), intake, research, secur
 schemas/       JSON Schemas generados desde los contratos
 scripts/       gen-schemas y check-coverage
 fixtures/      productos sintéticos para tests y pruebas manuales
-tests/         unit, e2e, repo (fronteras, schemas, CI) y perf
+tests/         unit, e2e, repo (fronteras, schemas, CI) y perf (`bun run test:perf`, fuera de `check`, paso propio en CI)
 specs/         master-plan (_master) y specs SDD
 docs/          arquitectura, research, seguridad y ADR
 .claude/       harness navori: agentes, skills, hooks

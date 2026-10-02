@@ -11,6 +11,7 @@ import {
 } from "../../../src/agents/context-pack.ts";
 import type { ContextItem, ContextPack } from "../../../src/agents/ports.ts";
 import { sampleReference } from "../../helpers/research.ts";
+import { GROWTH_LIMIT_16X, growthRatio } from "../../helpers/timing.ts";
 
 const ALLOWED: readonly PackItemKind[] = [
   "task-input",
@@ -186,6 +187,26 @@ describe("context packs", () => {
     expect(again.ok && tight.pack.sha256 === (again.pack as ContextPack).sha256).toBe(true);
   });
 
+  test("compactText stays linear on hostile shapes (growth ratio, load-independent)", () => {
+    const shapes: ReadonlyArray<(size: number) => string> = [
+      (size) => "<".repeat(size),
+      (size) => "<a".repeat(size / 2),
+      (size) => "&amp".repeat(size / 4),
+      (size) => " ".repeat(size) + "x",
+    ];
+    for (const shape of shapes) {
+      const small = shape(20_000);
+      const large = shape(320_000);
+      // 16x input: linear ~16x, quadratic ~256x.
+      const { ratio } = growthRatio(
+        () => compactText(small, "text/html", 6_000),
+        () => compactText(large, "text/html", 6_000),
+        5,
+      );
+      expect(ratio).toBeLessThan(GROWTH_LIMIT_16X);
+    }
+  });
+
   test("compacts external text and caps items deterministically", () => {
     const html =
       '<html><head><style>p{color:red}</style><SCRIPT type="x">alert(1)</SCRIPT></head><body><p>Hello &amp; welcome&nbsp;&lt;you&gt; &quot;a&quot; &#39;b&#39;</p><noscript>no</noscript><br>next<!-- c --></body></html>';
@@ -205,19 +226,6 @@ describe("context packs", () => {
     expect(compactText("a <script>b", "text/html", 100).text).toBe("a");
     expect(compactText("a <scripts>b</scripts> c", "text/html", 100).text).toBe("a b c");
     expect(compactText("1 < 2 and 3 <4", "text/html", 100).text).toBe("1 < 2 and 3 <4");
-    // linear on hostile shapes
-    for (const size of [80_000, 160_000, 320_000]) {
-      for (const hostile of [
-        "<".repeat(size),
-        "<a".repeat(size / 2),
-        "&amp".repeat(size / 4),
-        " ".repeat(size) + "x",
-      ]) {
-        const started = performance.now();
-        compactText(hostile, "text/html", 6_000);
-        expect(performance.now() - started).toBeLessThan(1_000);
-      }
-    }
 
     // caps: 30 references (with their dependents), 20 brand inputs, 20 queries per kind, 6 000 external chars
     const refs = Array.from({ length: 35 }, (_, i) => `REF-${i + 1}`);

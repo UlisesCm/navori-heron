@@ -1,5 +1,6 @@
 // Covers: R12
 import { describe, expect, test } from "bun:test";
+import { GROWTH_LIMIT_16X, growthRatio } from "../../helpers/timing.ts";
 import {
   INSTRUCTION_RULES,
   INSTRUCTION_RULE_IDS,
@@ -113,29 +114,36 @@ describe("scanUntrustedText", () => {
     expect(scanUntrustedText("").findings).toEqual([]);
   });
 
-  test("scan stays far below a catastrophic bound on 1 MiB adversarial input", () => {
-    // Linear scan takes ~5-25 ms idle and <= ~0.5 s under heavy load; a quadratic one costs
-    // >> 10 s at 1 MiB, so 2 s per input separates them without measuring the machine.
-    const MiB = 1024 * 1024;
-    const adversarial = [
-      " ".repeat(MiB),
-      `ignore${" ".repeat(MiB)}`,
-      "ignore ".repeat(MiB / 7),
-      "ignore previous ".repeat(MiB / 16),
-      "curl ".repeat(MiB / 5),
-      `curl ${"a".repeat(MiB)}`,
-      "approve ".repeat(MiB / 8),
-      `approve ${"a-".repeat(MiB / 2)}`,
-      "act as ".repeat(MiB / 7),
-      "api ".repeat(MiB / 4),
-      "do not ".repeat(MiB / 7),
-      "<".repeat(MiB),
-      ZWSP.repeat(MiB),
-    ];
-    for (const input of adversarial) {
-      const started = performance.now();
-      scanUntrustedText(input);
-      expect(performance.now() - started).toBeLessThan(2_000);
+  test("scan grows linearly on adversarial input (64 KiB to 1 MiB growth ratio)", () => {
+    // Quadratic work would grow ~256x for 16x input, linear ~16x; a ratio is immune to machine load.
+    const small = adversarialAt(64 * 1024);
+    const large = adversarialAt(1024 * 1024);
+    for (const [i, smallInput] of small.entries()) {
+      const largeInput = large[i] ?? "";
+      const { ratio } = growthRatio(
+        () => scanUntrustedText(smallInput),
+        () => scanUntrustedText(largeInput),
+      );
+      expect(ratio).toBeLessThan(GROWTH_LIMIT_16X);
     }
   }, 60_000);
 });
+
+/** Adversarial inputs of `MiB` characters each (name kept from the 1 MiB original). */
+function adversarialAt(MiB: number): string[] {
+  return [
+    " ".repeat(MiB),
+    `ignore${" ".repeat(MiB)}`,
+    "ignore ".repeat(MiB / 7),
+    "ignore previous ".repeat(MiB / 16),
+    "curl ".repeat(MiB / 5),
+    `curl ${"a".repeat(MiB)}`,
+    "approve ".repeat(MiB / 8),
+    `approve ${"a-".repeat(MiB / 2)}`,
+    "act as ".repeat(MiB / 7),
+    "api ".repeat(MiB / 4),
+    "do not ".repeat(MiB / 7),
+    "<".repeat(MiB),
+    ZWSP.repeat(MiB),
+  ];
+}

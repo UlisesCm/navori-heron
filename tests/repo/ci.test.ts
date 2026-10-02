@@ -13,6 +13,10 @@ describe("ci workflow", () => {
     expect(yml).toContain("bun install --frozen-lockfile");
     expect(yml).toContain("bun run check");
     expect(pkg.scripts["check"]).toBeString();
+    // the wall-clock p95 suite (RNF-1) is its own mandatory CI step after `check`, not part of it
+    expect(yml.indexOf("bun run test:perf")).toBeGreaterThan(yml.indexOf("bun run check"));
+    expect(pkg.scripts["test:perf"]).toContain("tests/perf");
+    expect(pkg.scripts["check"]).not.toContain("test:perf");
     // every `uses:` is pinned by a full 40-hex commit SHA
     const uses = [...yml.matchAll(/uses:\s*(\S+)/g)].map((m) => m[1] ?? "");
     expect(uses.length).toBeGreaterThan(0);
