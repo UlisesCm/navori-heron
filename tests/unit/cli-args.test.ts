@@ -27,6 +27,12 @@ describe("parseCliArgs", () => {
       json: true,
     });
     expect(parseCliArgs(["doctor", "x"])).toEqual({ command: "doctor", path: "x", json: false });
+    expect(parseCliArgs(["doctor", "--deep", "x", "--json"])).toEqual({
+      command: "doctor",
+      path: "x",
+      json: true,
+      deep: true,
+    });
     expect(
       parseCliArgs(["gate", "intake", "reject", "p", "--reason", "no", "--note", "n", "--yes"]),
     ).toEqual({

@@ -34,7 +34,8 @@ export type InitParsed = {
   context?: string[];
 };
 export type StatusParsed = { command: "status"; path: string; json: boolean };
-export type DoctorParsed = { command: "doctor"; path: string; json: boolean };
+/** `deep` exists only when --deep was passed. */
+export type DoctorParsed = { command: "doctor"; path: string; json: boolean; deep?: true };
 export type GateParsed = {
   command: "gate";
   path: string;

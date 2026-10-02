@@ -202,7 +202,7 @@ Lotes de 1–3 tareas, **en serie** (cada tarea declara de qué depende y con qu
   - **Comparte archivos con:** T15, T17 (`src/cli/command.ts`, `tests/unit/cli-args.test.ts`).
   - **Fuera de alcance:** direcciones `full` y gate `direction` con Penpot (P5, P12).
 
-- [ ] **T17** (R9, R11, R13, R14, R21) — `doctor` con checks de agentes en paralelo, `--deep` y uso de tokens; `status` con las órdenes de P3 y los totales del log local.
+- [x] **T17** (R9, R11, R13, R14, R21) — `doctor` con checks de agentes en paralelo, `--deep` y uso de tokens; `status` con las órdenes de P3 y los totales del log local.
   - **Archivos:** `src/app/doctor.ts`, `src/cli/commands/doctor.ts`, `src/cli/command.ts`, `src/app/status.ts`, `src/cli/render.ts`, `tests/e2e/doctor.test.ts`, `tests/e2e/status.test.ts`, `tests/unit/cli-args.test.ts`
   - **Interfaces:** agentChecks; DoctorInput; DoctorParsed; AgentUsageSummary
   - **Patrón:** src/app/doctor.ts
