@@ -140,10 +140,10 @@ function direction(index: number, references: readonly string[]): VisualDirectio
       typeScale: {
         families: [{ role: "text", family: "Inter", fallback: ["system-ui", "sans-serif"] }],
         steps: [
-          step(1, "display", 40),
-          step(2, "title", 24),
-          step(3, "body", 16),
-          step(4, "caption", 12),
+          step(1, "caption", 12),
+          step(2, "body", 16),
+          step(3, "title", 24),
+          step(4, "display", 40),
         ],
       },
       componentSheet: [spec("button"), spec("text-input"), spec("card"), spec("badge")],

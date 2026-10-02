@@ -191,7 +191,7 @@ Lotes de 1–3 tareas, **en serie** (cada tarea declara de qué depende y con qu
 
 ## Lote 9 — Direcciones, status y doctor
 
-- [ ] **T16** (R11, R12, R13, R19, R20) — `heron direction propose|select` de punta a punta, alimentado por el análisis guardado y con cache.
+- [x] **T16** (R11, R12, R13, R19, R20) — `heron direction propose|select` de punta a punta, alimentado por el análisis guardado y con cache.
   - **Archivos:** `src/app/directions.ts`, `src/cli/commands/direction.ts`, `src/cli/commands/index.ts`, `src/cli/command.ts`, `src/cli/main.ts`, `src/cli/render-agents.ts`, `tests/e2e/directions.test.ts`, `tests/unit/cli-args.test.ts`
   - **Interfaces:** runDirectionPropose; runDirectionSelect; DirectionProposeInput; DirectionSelectInput; directionCommand; DirectionParsed; renderDirectionProposeText; renderDirectionSelectText
   - **Patrón:** src/app/references.ts

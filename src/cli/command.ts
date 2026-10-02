@@ -17,6 +17,7 @@ export type CommandName =
   | "references"
   | "brand"
   | "research"
+  | "direction"
   | "intake"
   | "conflicts";
 export type InitParsed = {
@@ -100,6 +101,17 @@ export type ResearchParsed =
       force?: true;
       json: boolean;
     };
+/** `heron direction <action>`: propose (`force` exists only when the flag was given) and select (P3). */
+export type DirectionParsed =
+  | { command: "direction"; action: "propose"; path: string; force?: true; json: boolean }
+  | {
+      command: "direction";
+      action: "select";
+      path: string;
+      direction: string;
+      note: string | null;
+      json: boolean;
+    };
 /** `heron intake`: `--refresh` is parsed and ignored (DR31). */
 export type IntakeParsed = { command: "intake"; path: string; dryRun: boolean; json: boolean };
 /** `heron conflicts <action>`: one variant per action, discriminated by `action`. */
@@ -122,6 +134,7 @@ export type ParsedCommand =
   | ReferencesParsed
   | BrandParsed
   | ResearchParsed
+  | DirectionParsed
   | IntakeParsed
   | ConflictsParsed
   | { command: "help" }

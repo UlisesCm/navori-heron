@@ -361,4 +361,56 @@ describe("parseCliArgs", () => {
     expect(USAGE_TEXT).toContain("Research facets: product-category, flow,");
     expect(USAGE_TEXT).toContain("Agent roles: creator, reviewer");
   });
+
+  // Covers: R11, R13, R19
+  test("parses direction propose and select and derives their usage lines", () => {
+    expect(parseCliArgs(["direction", "propose", "repo", "--force"])).toEqual({
+      command: "direction",
+      action: "propose",
+      path: "repo",
+      force: true,
+      json: false,
+    });
+    // A flag that was not passed does not exist in the result.
+    expect(parseCliArgs(["direction", "propose", "--json"])).toEqual({
+      command: "direction",
+      action: "propose",
+      path: ".",
+      json: true,
+    });
+    expect(parseCliArgs(["direction", "select", "DIR-B", "repo", "--note", "calm"])).toEqual({
+      command: "direction",
+      action: "select",
+      path: "repo",
+      direction: "DIR-B",
+      note: "calm",
+      json: false,
+    });
+    expect(parseCliArgs(["direction", "select", "DIR-A"])).toEqual({
+      command: "direction",
+      action: "select",
+      path: ".",
+      direction: "DIR-A",
+      note: null,
+      json: false,
+    });
+    for (const argv of [
+      ["direction", "select"],
+      ["direction", "select", "DIR-A", "a", "b"],
+      ["direction", "propose", "a", "b"],
+      ["direction", "propose", "--note", "x"],
+      ["direction", "select", "DIR-A", "--force"],
+    ]) {
+      expect({ argv, usage: parseCliArgs(argv) instanceof UsageError }).toEqual({
+        argv,
+        usage: true,
+      });
+    }
+    const unknown = parseCliArgs(["direction", "bogus"]);
+    expect(unknown instanceof UsageError && unknown.message).toBe(
+      'Unknown direction command "bogus". Expected: propose, select.',
+    );
+    expect(USAGE_TEXT).toContain("  direction propose [path] [--force] [--json]");
+    expect(USAGE_TEXT).toContain("  direction select <DIR-x> [path] [--note <text>] [--json]");
+  });
 });

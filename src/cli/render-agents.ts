@@ -1,5 +1,8 @@
 import type {
   AgentRunSummary,
+  DirectionProposeData,
+  DirectionSelectData,
+  VisualDirection,
   ResearchAnalyzeData,
   ResearchBriefData,
 } from "../core/contracts/index.ts";
@@ -64,5 +67,34 @@ export function renderResearchAnalyzeText(data: ResearchAnalyzeData): string {
     ...(data.run === null ? [] : [agentLine(data.run)]),
     ...writtenLine(data.written),
     ...pending,
+  ].join("\n");
+}
+
+/** `{DIR-x} {name}: cites {REF ids} · {c} colors, {p} pairs (min contrast {ratio}) · {s} type steps · {k} components`. */
+function directionLine(direction: VisualDirection): string {
+  const { palette, typeScale, componentSheet } = direction.proposal;
+  const cited = [...new Set(direction.attributes.references.map((entry) => entry.reference))];
+  const lowest = Math.min(...palette.pairs.map((pair) => pair.contrast.ratio));
+  return `  ${direction.id} ${safeText(direction.name)}: cites ${cited.join(", ")} · ${palette.colors.length} colors, ${palette.pairs.length} pairs (min contrast ${lowest.toFixed(2)}) · ${typeScale.steps.length} type steps · ${componentSheet.length} components`;
+}
+
+/** Text of `heron direction propose`; agent-authored text goes through safeText. */
+export function renderDirectionProposeText(data: DirectionProposeData, path: string): string {
+  const { directions } = data;
+  return [
+    `Proposed 3 visual directions (${MODE_LABELS[directions.mode]}, exploratory): ${data.phase.from} -> ${data.phase.to}`,
+    ...directions.directions.map(directionLine),
+    agentLine(data.run),
+    ...writtenLine(data.written),
+    `Next: heron direction select <DIR-x> ${path}`,
+  ].join("\n");
+}
+
+/** Text of `heron direction select`. */
+export function renderDirectionSelectText(data: DirectionSelectData): string {
+  const { selection } = data;
+  return [
+    `Preferred direction: ${selection.direction} "${safeText(data.name)}" (the direction gate is not approved)`,
+    `Recorded by ${safeText(selection.decidedBy)} at ${selection.decidedAt} · state revision ${data.stateRevision}`,
   ].join("\n");
 }

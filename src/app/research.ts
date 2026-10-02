@@ -184,7 +184,7 @@ const SUM_ZERO: AgentUsage = {
 const addNullable = (a: number | null, b: number | null): number | null =>
   a === null && b === null ? null : (a ?? 0) + (b ?? 0);
 
-function runSummary(run: AgentRun): AgentRunSummary {
+export function runSummary(run: AgentRun): AgentRunSummary {
   const usage = run.invocations.reduce<AgentUsage | null>(
     (sum, invocation) =>
       sum === null
@@ -217,7 +217,12 @@ function runSummary(run: AgentRun): AgentRunSummary {
 }
 
 /** DR39: nothing was sent, so attempts, duration and usage are zero; the model comes from the stored run when readable. */
-function reusedSummary(ctx: AppContext, path: string, ref: AgentRunRef): AgentRunSummary {
+export function reusedSummary(
+  ctx: AppContext,
+  path: string,
+  ref: AgentRunRef,
+  fallbackTask: AgentRunSummary["task"] = "research-brief",
+): AgentRunSummary {
   let stored: AgentRun | null = null;
   try {
     const loaded = loadWorkspace(ctx, path);
@@ -228,7 +233,7 @@ function reusedSummary(ctx: AppContext, path: string, ref: AgentRunRef): AgentRu
   const first = stored?.invocations[0];
   return {
     runId: ref.runId,
-    task: stored?.task ?? "research-brief",
+    task: stored?.task ?? fallbackTask,
     provider: ref.provider,
     role: stored?.role ?? "creator",
     attempts: 0,
@@ -266,7 +271,7 @@ function frozen(ws: Workspace): UseCaseResult<never> | null {
   );
 }
 
-const textItem = (
+export const textItem = (
   kind: ContextItem["kind"],
   id: string,
   trust: ContextItem["trust"],
@@ -274,7 +279,7 @@ const textItem = (
   content: string,
 ): ContextItem => ({ kind, id, trust, priority, content, findings: 0 });
 
-function brandItems(inputs: readonly BrandInput[]): ContextItem[] {
+export function brandItems(inputs: readonly BrandInput[]): ContextItem[] {
   return inputs.map((input) =>
     textItem(
       "brand-input",
@@ -291,23 +296,27 @@ function brandItems(inputs: readonly BrandInput[]): ContextItem[] {
   );
 }
 
-const queryContent = (query: Pick<BriefQuery, "facet" | "query" | "job">): string =>
+export const queryContent = (query: Pick<BriefQuery, "facet" | "query" | "job">): string =>
   `facet: ${query.facet}\nquery: ${query.query}\njob: ${query.job}`;
 
 /** Bound `.heron` files that exist, as the run record's `inputs`. */
-function boundInputs(ws: Workspace, paths: readonly RelativeArtifactPath[]): BoundArtifact[] {
+export function boundInputs(
+  ws: Workspace,
+  paths: readonly RelativeArtifactPath[],
+): BoundArtifact[] {
   return paths.flatMap((path) => {
     const sha256 = ws.store.sha256(path);
     return sha256 === null ? [] : [{ path, sha256 }];
   });
 }
 
-const activeOf = (references: readonly ResearchReference[]): ResearchReference[] =>
+export const activeOf = (references: readonly ResearchReference[]): ResearchReference[] =>
   byIdNumber(references.filter((reference) => reference.removed === null));
 
 /** Failure results of executeAgentStep keep their data null. */
-const stepFailure = <T>(step: Extract<AgentStepResult<unknown>, { ok: false }>): UseCaseResult<T> =>
-  step.result;
+export const stepFailure = <T>(
+  step: Extract<AgentStepResult<unknown>, { ok: false }>,
+): UseCaseResult<T> => step.result;
 
 type Provided = { facet: ResearchFacet; text: string };
 

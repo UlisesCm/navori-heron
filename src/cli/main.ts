@@ -12,7 +12,7 @@ function errorFinding(code: Finding["code"], message: string): Finding {
   return { code, severity: "error", message, paths: [], issues: [] };
 }
 
-/** The envelope's command name: `references`, `brand`, `research` and `conflicts` are reported per action ("references add"). */
+/** The envelope's command name: `references`, `brand`, `research`, `direction` and `conflicts` are reported per action ("references add"). */
 function envelopeCommand(
   parsed: Exclude<ParsedCommand, { command: "help" | "version" }>,
 ): CliCommand {
@@ -23,6 +23,8 @@ function envelopeCommand(
       return "brand add";
     case "research":
       return `research ${parsed.action}`;
+    case "direction":
+      return `direction ${parsed.action}`;
     case "conflicts":
       return `conflicts ${parsed.action}`;
     default:
