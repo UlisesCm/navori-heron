@@ -75,7 +75,7 @@ Lotes de 1–3 tareas, **en serie** (cada tarea declara de qué depende y con qu
 
 ## Lote 3 — Scripts, plantillas y fronteras
 
-- [ ] **T6** (R9, R19) — Nodos, registro de plantillas con sha256, renderer único de scripts, las dos plantillas `@v1`, todas las filas de frontera de `src/penpot` y cobertura a 0,9.
+- [x] **T6** (R9, R19) — Nodos, registro de plantillas con sha256, renderer único de scripts, las dos plantillas `@v1`, todas las filas de frontera de `src/penpot` y cobertura a 0,9.
   - **Archivos:** `src/penpot/compiler/nodes.ts`, `src/penpot/compiler/templates.ts`, `src/penpot/compiler/script.ts`, `src/penpot/text-modules.d.ts`, `templates/penpot/inspect@v1.penpot.js`, `templates/penpot/review-page@v1.penpot.js`, `tests/unit/penpot/script.test.ts`, `tests/repo/boundaries.test.ts`, `scripts/check-coverage.ts`, `tests/repo/coverage-rules.test.ts`
   - **Interfaces:** PenpotNode; BoardLayout; ReviewPage; ReviewPageKind; CompileIssue; HERON_NAMESPACE; PenpotTemplate; PENPOT_TEMPLATES; penpotTemplate; renderScript; safeJsonLiteral; reviewScriptData; ReviewScriptData; MAX_SCRIPT_BYTES; LAYERS; VENDORS; TOKENS; COVERAGE_RULES
   - **Patrón:** src/agents/prompts.ts

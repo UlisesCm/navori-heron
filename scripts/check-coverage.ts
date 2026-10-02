@@ -2,7 +2,7 @@ import { readFileSync } from "node:fs";
 
 export type CoverageRule = { prefix: string; lines: number; functions: number };
 
-/** src/core/contracts/, src/core/state/, src/core/store/, src/security/, src/research/, src/tokens/, src/agents/ and src/intake/ at 0.9 lines and functions.
+/** src/core/contracts/, src/core/state/, src/core/store/, src/security/, src/research/, src/tokens/, src/agents/, src/intake/ and src/penpot/ at 0.9 lines and functions.
  * The global 0.8 lives in bunfig.toml. */
 export const COVERAGE_RULES: readonly CoverageRule[] = [
   { prefix: "src/core/contracts/", lines: 0.9, functions: 0.9 },
@@ -13,6 +13,7 @@ export const COVERAGE_RULES: readonly CoverageRule[] = [
   { prefix: "src/tokens/", lines: 0.9, functions: 0.9 },
   { prefix: "src/agents/", lines: 0.9, functions: 0.9 },
   { prefix: "src/intake/", lines: 0.9, functions: 0.9 },
+  { prefix: "src/penpot/", lines: 0.9, functions: 0.9 },
 ];
 
 export type LcovFile = {
