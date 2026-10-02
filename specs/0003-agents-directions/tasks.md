@@ -143,7 +143,7 @@ Lotes de 1–3 tareas, **en serie** (cada tarea declara de qué depende y con qu
 
 ## Lote 7 — Ejecución de tareas y paso de IA en `app`
 
-- [ ] **T12** (R3, R6, R11, R12, R15, R19, R20) — `runAgentTask` con reparación compacta y registro de intentos, clave de cache, proveedor `fake` y registro de proveedores.
+- [x] **T12** (R3, R6, R11, R12, R15, R19, R20) — `runAgentTask` con reparación compacta y registro de intentos, clave de cache, proveedor `fake` y registro de proveedores.
   - **Archivos:** `src/agents/invoke.ts`, `src/agents/cache.ts`, `src/agents/registry.ts`, `src/agents/adapters/fake/index.ts`, `src/agents/adapters/fake/responders.ts`, `tests/unit/agents/invoke.test.ts`, `tests/unit/agents/cache.test.ts`
   - **Interfaces:** runAgentTask; RunTaskInput; TaskOutcome; agentCacheKey; analysisInputKey; AGENT_PROVIDERS; providerFor; fakeProvider; createFakeProvider; FakeStep
   - **Patrón:** src/research/registry.ts
