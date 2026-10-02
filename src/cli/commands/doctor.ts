@@ -7,7 +7,7 @@ import {
   type DoctorParsed,
 } from "../command.ts";
 import { emitResult } from "../output.ts";
-import { renderDoctorText } from "../render.ts";
+import { renderPenpotDoctorText } from "../render-penpot.ts";
 
 export const doctorCommand: CommandSpec<DoctorParsed> = {
   name: "doctor",
@@ -38,7 +38,7 @@ export const doctorCommand: CommandSpec<DoctorParsed> = {
         json: parsed.json,
         started,
         runId: ctx.ids.runId(ctx.clock.now()),
-        render: renderDoctorText,
+        render: renderPenpotDoctorText,
         renderFailedData: true,
       },
       result,

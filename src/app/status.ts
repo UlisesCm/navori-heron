@@ -209,6 +209,10 @@ function readStatus(
       ...(state.phase === "directions-ready" || state.phase === "direction-selected"
         ? ["heron direction select"]
         : []),
+      "heron penpot link|doctor",
+      ...(workspace.project.penpot.enabled && workspace.project.penpot.fileId !== null
+        ? ["heron penpot inspect|sync"]
+        : []),
     ],
   };
   if (effective === "reference-only") {

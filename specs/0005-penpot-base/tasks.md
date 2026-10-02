@@ -228,7 +228,7 @@ Lotes de 1–3 tareas, **en serie** (cada tarea declara de qué depende y con qu
   - **Comparte archivos con:** ninguna tarea posterior.
   - **Fuera de alcance:** check de Penpot dentro de `heron gate direction approve` (P5).
 
-- [ ] **T19** (R4, R5, R6, R8, R11, R16) — Grupo `heron penpot` (`link`, `doctor`, `inspect`, `sync`) en la CLI, render de texto, pie de uso y órdenes permitidas en `status`.
+- [x] **T19** (R4, R5, R6, R8, R11, R16) — Grupo `heron penpot` (`link`, `doctor`, `inspect`, `sync`) en la CLI, render de texto, pie de uso y órdenes permitidas en `status`.
   - **Archivos:** `src/cli/commands/penpot.ts`, `src/cli/commands/index.ts`, `src/cli/command.ts`, `src/cli/main.ts`, `src/cli/args.ts`, `src/cli/render-penpot.ts`, `src/app/status.ts`, `tests/e2e/penpot.test.ts`, `tests/unit/cli-args.test.ts`, `tests/e2e/status.test.ts`
   - **Interfaces:** penpotCommand; PenpotParsed; renderPenpotLinkText; renderPenpotInspectText; renderPenpotSyncText; USAGE_TEXT; allowedCommands
   - **Patrón:** src/cli/commands/research.ts
