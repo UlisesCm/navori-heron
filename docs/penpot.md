@@ -61,7 +61,7 @@ export PENPOT_MCP_KEY_FILE=~/.config/heron/penpot-mcp-key        # archivo 0600 
 # o bien PENPOT_MCP_KEY=<key>; definir ambas es un error de uso
 ```
 
-Heron **no lee `.env`** (DR43). Una vez integrado el PR #16 (T14, el lanzador), `bun run heron` y el ejecutable `heron` corren con `--no-env-file --config=/dev/null`, para que un repo no pueda fijar `PENPOT_URL` ni ejecutar un `preload`; hasta entonces esa defensa no existe. `bun bin/heron.ts` a mano en un directorio no confiable no la tiene nunca. La orden `heron penpot link` (caso de uso en T16, CLI en T19) guardará en `project.json` solo el `fileId`, nunca la URL (DR33); todavía no está disponible.
+Heron **no lee `.env`** (DR43). Desde el PR #16 ya integrado (T14, el lanzador), `bun run heron` y el ejecutable `heron` corren con `--no-env-file --config=/dev/null`, para que un repo no pueda fijar `PENPOT_URL` ni ejecutar un `preload`. `bun bin/heron.ts` a mano en un directorio no confiable no la tiene nunca. La orden `heron penpot link` (caso de uso en T16, CLI en T19) guardará en `project.json` solo el `fileId`, nunca la URL (DR33); todavía no está disponible.
 
 ## Secretos
 
@@ -69,13 +69,13 @@ Heron **no lee `.env`** (DR43). Una vez integrado el PR #16 (T14, el lanzador), 
 - `PENPOT_DB_PASSWORD` se fija **antes del primer `up`**: Postgres la toma solo al inicializar el volumen. Cambiarla después exige `ALTER ROLE` dentro del contenedor y luego editar `.env`.
 - Rotar `PENPOT_SECRET_KEY` puede invalidar sesiones y tokens: vuelve a entrar y, si la MCP key es rechazada, genera otra.
 - `docker compose config` imprime los secretos interpolados: córrelo solo con `tests/assets/infra/penpot.synthetic.env`. `infra/penpot/compose config --services` no los imprime.
-- La key viaja en la query (`?userToken=`): todo log de acceso del frontend o de un proxy que registre la línea de la petición la contiene. Reduce la retención y rota la key si se filtra. [SIN VERIFICAR: S8 anota aquí si el nginx del frontend de 2.17.2 la registra.]
+- La key viaja en la query (`?userToken=`): todo log de acceso del frontend o de un proxy que registre la línea de la petición la contiene. Reduce la retención y rota la key si se filtra. **Confirmado en S8 (2026-10-02): el access log del frontend de 2.17.2 registra la key real en `?userToken=`.** No compartas la salida cruda de `compose logs`; redacta la query antes de cualquier diagnóstico que salga de la máquina.
 - Un `PENPOT_MCP_KEY_FILE` con bits de grupo u otros produce un aviso (`PENPOT_KEY_FILE_PERMISSIONS`), no un rechazo, para no romper montajes de solo lectura.
 
 ## Fuentes y egreso a terceros
 
 - La telemetría de Penpot está desactivada por default (`PENPOT_TELEMETRY_ENABLED=false`).
-- El proveedor de **Google Fonts** queda activo: el navegador pide fuentes a Google (egreso a un tercero). Se conserva porque las propuestas comparan tipografía y sin el proveedor las familias caen a la fuente por default. Opt-out: `PENPOT_EXTRA_FLAGS=disable-google-fonts-provider`, con la consecuencia de que Heron usa `PENPOT_FONT_FALLBACK`. [SIN VERIFICAR: S6 anota la disponibilidad por nombre.]
+- El proveedor de **Google Fonts** queda activo: el navegador pide fuentes a Google (egreso a un tercero). Se conserva porque las propuestas comparan tipografía y sin el proveedor las familias caen a la fuente por default. Opt-out: `PENPOT_EXTRA_FLAGS=disable-google-fonts-provider`, con la consecuencia de que Heron usa `PENPOT_FONT_FALLBACK`. S6 (2026-10-02): `Inter` está disponible, pero `fonts.findByName("Inter")` devuelve `Inter Tight`; la búsqueda es por coincidencia parcial. `fonts.all.find(font => font.name === "Inter")` devuelve la familia exacta y una familia inexistente devuelve `null`. La selección exacta debe resolverse en DR25 antes de escribir las plantillas.
 - Fuera de eso, Penpot no contacta a terceros salvo el SMTP que configures.
 
 ## Backups
@@ -123,3 +123,33 @@ Antes del Lote 2 y sin Heron, con `infra/penpot/` y esta guía:
 | S8  | `infra/penpot/compose logs penpot-frontend` tras S3 (informativo)                                                                                                                                                   | Anota si el log registra `?userToken=`                                                                           |
 
 El PR registra las versiones (Docker, Compose, Chrome), la salida de `test:live:compose`, cada resultado de S1–S8 y el commit de la spec que los asienta en sus DR o activa su respaldo (`design.md` § Spike). Si S1 falla, P12 se detiene y se revisa D7; si S2 falla, la decisión de cuentas vuelve al usuario.
+
+## Evidencia del spike S1–S8 (2026-10-02)
+
+Entorno: Penpot **2.17.2**, Docker **29.4.0**, Compose **5.1.2**, Chrome **154.0.8037.98**, Bun **1.4.2**, acceso `http://localhost:9001`. Cuenta y archivo desechables; no se usaron diseños del usuario. Archivo de prueba: `a0ce7988-853a-8093-8008-ba9507529e93`. La key no forma parte de esta evidencia.
+
+```text
+$ HERON_LIVE_COMPOSE=1 bun run test:live:compose
+Docker Compose version v5.1.2
+PASS assertPenpotComposeInvariants on the real docker compose config
+PASS config --services lists no penpot-mailcatch
+```
+
+El spike se ejecutó con un cliente Streamable HTTP desechable en Bun, fuera del repo; protocolo `2025-11-25`, servidor `penpot` `1.0.0`. Herramientas anunciadas: `execute_code`, `high_level_overview`, `penpot_api_info`, `export_shape`.
+
+| Id  | Resultado observado                                                                                                                                                                                                                                                        | Consecuencia                                                                                                       |
+| --- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------ |
+| S1  | Login y conexión correctos. Con la key habilitada, el archivo nuevo conectó automáticamente el plugin; en español, **Menú principal → Servidor MCP → Desconectar** confirma la conexión. No hay submenú Archivo para MCP en este entorno.                                  | Ajustar la guía y los remedios de DR21/DR42 al menú real.                                                          |
+| S2  | El perfil creado por `manage.py create-profile` entró al dashboard sin verificar email manualmente, manteniendo cookies seguras y verificación de email activas.                                                                                                           | DR35 confirmado; no se necesita SMTP para este flujo.                                                              |
+| S3  | `return { ok: 1 }` devuelve texto JSON con `result` y `log: ""`. El error devuelve `Tool execution failed: Error: Error handling task: heron-spike` sin `isError`. La key incorrecta admite handshake; al ejecutar devuelve `No Penpot instance connected for user token`. | DR10 confirmado; no asumir que handshake implica key válida o plugin conectado.                                    |
+| S4  | `penpot.version` devuelve la cadena `2.17.2`.                                                                                                                                                                                                                              | DR22 confirmado.                                                                                                   |
+| S5  | `createPage`, `await openPage`, tablero y rectángulo hijo funcionaron. Desde otra página se leyeron las marcas `heron` de la página, tablero y rectángulo; la página activa no cambió al leer.                                                                             | No se necesita índice alternativo ni abrir páginas para inspeccionar (DR14/DR15/DR29).                             |
+| S6  | Búsqueda parcial de `Inter` devolvió `Inter Tight`; búsqueda exacta en `fonts.all` devolvió `Inter` (`gfont-inter`). `Heron Missing Font` devolvió `null`.                                                                                                                 | Corregir selección de familia en DR25 antes de T6–T7.                                                              |
+| S7  | 262 144 bytes: HTTP 413 (9 ms). 131 072 bytes: HTTP 413 (10 ms). **65 536 bytes: `result: 1` (17 ms)**.                                                                                                                                                                    | El tope debe considerar el escape JSON del transporte: ver prueba adicional abajo; resolver DR11/DR30 antes de T6. |
+| S8  | El access log del frontend contiene la key real. La comprobación solo emitió un booleano y un contador, nunca el token.                                                                                                                                                    | Redactar `userToken` antes de compartir logs; la key sigue fuera del repo.                                         |
+
+**Causa de S7:** el contenedor MCP usa `express.json()` sin opciones (`/opt/penpot/mcp/index.js:16722`); `body-parser@2.2.2` fija por default `100kb` en `lib/utils.js:63–65`. El límite es del parser del MCP, no del nginx. No se alteró el servidor para evitar el rechazo.
+
+**S7 adicional (cuerpo JSON real):** 65 536 bytes de script con barras invertidas en el comentario generan 131 162 bytes de cuerpo RPC y HTTP 413. Con 32 768 bytes de script, el cuerpo mide 65 626 bytes y devuelve `result: 1` en 81 ms. **64 KiB no es un presupuesto seguro para contenido escapado**; se propone 32 KiB para el script completo y recortar References por tamaño real antes de enviar, sin aumentar el límite del servidor.
+
+**Estado de salida:** las comprobaciones terminaron; **T6–T7 todavía no empiezan**. Falta asentar los cambios de tamaño, presupuesto de References y selección exacta de fuentes en los contratos/tareas de la spec. Esta evidencia no sustituye T12, la sonda viva con el código de Heron, ni las aceptaciones manuales P12.A7/P12.A8.

@@ -315,7 +315,19 @@ A mano, por el MCP oficial, contra el Penpot 2.17.2 que dejan T1–T3; ~15 min. 
 | S7 | Un `execute_code` de ~256 KiB (comentario de relleno + `return 1`) por `/mcp/stream`, con su duración | Pasa en < 10 s | `MAX_SCRIPT_BYTES` baja a la mayor potencia de 2 que pase y `REFERENCES_LIMITS.maxCards` baja para que la página References quepa, antes de T6 | DR11, DR30 |
 | S8 | `infra/penpot/compose logs penpot-frontend` tras S3 (informativo) | — | `docs/penpot.md` § Secretos dice si el log de acceso del frontend registra `?userToken=` | DR39 |
 
+### Resultado del spike (2026-10-02)
+
+Evidencia completa: `docs/penpot.md` § Evidencia del spike S1–S8. Penpot 2.17.2, Docker 29.4.0, Compose 5.1.2, Chrome 154.0.8037.98, Bun 1.4.2. S1–S5 confirmaron el flujo previsto (el menú real es Menú principal → Servidor MCP, con conexión automática en el archivo nuevo). S6 confirmó disponibilidad de Inter y `null` para una familia inexistente, pero `findByName` elige por substring: devuelve Inter Tight para Inter. La familia exacta sí aparece en `fonts.all`; el [código del tag 2.17.2](https://github.com/penpot/penpot/blob/2.17.2/frontend/src/app/plugins/fonts.cljs#L109-L118) confirma el matching parcial.
+
+S7 activó el respaldo: 256 y 128 KiB dan HTTP 413; 64 KiB pasa en 17 ms. Causa confirmada en el contenedor: `express.json()` sin opciones y `body-parser@2.2.2` con límite default `100kb`. S8 confirmó que el access log del frontend registra la key en la query; la evidencia se obtuvo sin volcarla.
+
+La prueba adicional con barras invertidas confirmó que un script de 64 KiB produce un cuerpo JSON de 131 162 bytes (HTTP 413), mientras que uno de 32 KiB produce 65 626 bytes (`result: 1`, 81 ms). El límite se aplica al transporte escapado: no fijar 64 KiB como presupuesto robusto.
+
+**Pendiente antes de T6:** resolver DR11/Contracts 4 con presupuesto propuesto de 32 KiB, resolver el presupuesto de References de DR30/Contracts 4 y la selección exacta de fuente de DR25; actualizar las tareas afectadas y los remedios del menú. Los valores de 256 KiB y 48 tarjetas que siguen abajo son el diseño anterior al resultado, no una validación de esos límites. No se cambia el servidor ni se congela ninguna plantilla con este spike.
+
 ### Supuestos y [SIN VERIFICAR]
+
+Las entradas S1–S7 de esta lista eran supuestos previos al spike; los resultados y cambios pendientes están en la sección anterior. La sonda de 2.18.1 sigue pendiente.
 
 - [SIN VERIFICAR] S1 — Que el plugin integrado de 2.17.2 self-hosted conecte con el override de DR2 detrás de `http://localhost:9001` en Chrome (lo que #12003 rompe en 2.18.0), y la etiqueta exacta del botón.
 - [SIN VERIFICAR] S2 — Que `create-profile` cree un perfil que entra sin verificar email con `enable-email-verification` activo.
