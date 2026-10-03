@@ -14,6 +14,7 @@ import { join } from "node:path";
 import {
   penpotRedactor,
   readPenpotLink,
+  resolvePenpotConnection,
   resolvePenpotKey,
   resolvePenpotUrl,
 } from "../../../src/app/penpot-config.ts";
@@ -50,6 +51,59 @@ const input = {
   runId: RUN,
   log: false as const,
 };
+
+// Covers: R4, R7
+test("connection resolution validates the URL before reading credentials and forwards exact failures", () => {
+  let reads = 0;
+  const fs: FsPort = {
+    ...nodeFs,
+    realpathSync: (_path: string): string => {
+      reads += 1;
+      throw new Error(KEY);
+    },
+  };
+  const ctx = {
+    ...fixedContext({ env: { PENPOT_URL: "invalid-secret", PENPOT_MCP_KEY_FILE: KEY } }),
+    fs,
+  };
+  const connection = resolvePenpotConnection(ctx);
+  const url = resolvePenpotUrl(ctx);
+  if (connection.ok || url.ok) throw new Error("Synthetic URL should be rejected");
+  expect(connection).toEqual(url);
+  expect(reads).toBe(0);
+  const validUrl = { ...ctx, env: { ...ctx.env, PENPOT_URL: "http://localhost:9001" } };
+  const failed = resolvePenpotConnection(validUrl);
+  expect(reads).toBe(1);
+  const key = resolvePenpotKey(validUrl);
+  if (failed.ok || key.ok) throw new Error("Synthetic filesystem should reject the key");
+  expect(failed).toEqual(key);
+  expect(JSON.stringify(failed)).not.toContain(KEY);
+});
+
+// Covers: R4, R7
+test("connection resolution forwards the normalized URL, opaque key and permission warnings", () => {
+  const cwd = root();
+  const file = join(cwd, "synthetic-key");
+  writeFileSync(file, ` ${KEY}\n`, { mode: 0o600 });
+  chmodSync(file, 0o644);
+  const ctx = fixedContext({
+    cwd,
+    env: { PENPOT_URL: "http://localhost:9001/", PENPOT_MCP_KEY_FILE: "synthetic-key" },
+  });
+  const resolved = resolvePenpotConnection(ctx);
+  const key = resolvePenpotKey(ctx);
+  expect(key.ok).toBe(true);
+  if (!key.ok) throw new Error("Synthetic key should resolve");
+  expect(resolved).toEqual({
+    ok: true,
+    baseUrl: "http://localhost:9001",
+    key: KEY,
+    warnings: key.warnings,
+  });
+  expect(key.warnings).toMatchObject([{ code: "PENPOT_KEY_FILE_PERMISSIONS" }]);
+  expect(JSON.stringify(key.warnings)).not.toContain(KEY);
+  expect(JSON.stringify(key.warnings)).not.toContain(file);
+});
 
 test("resolves the Penpot URL and the MCP key only from the environment and warns on an open key file", () => {
   const cwd = root();

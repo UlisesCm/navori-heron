@@ -20,6 +20,7 @@ import type { ReviewPage } from "../penpot/compiler/nodes.ts";
 import type { AppContext } from "./context.ts";
 import {
   readPenpotLink,
+  resolvePenpotConnection,
   resolvePenpotKey,
   resolvePenpotUrl,
   penpotRedactor,
@@ -185,16 +186,14 @@ export async function runPenpotInspect(
     const ws = loaded.workspace;
     const link = readPenpotLink(ws.project, input.path);
     if (!link.ok) return link.result;
-    const url = resolvePenpotUrl(ctx);
-    if (!url.ok) return url.result;
-    const key = resolvePenpotKey(ctx);
-    if (!key.ok) return key.result;
+    const connection = resolvePenpotConnection(ctx);
+    if (!connection.ok) return connection.result;
     const desired = desiredReviewPages(ws);
     return await withPenpotSession(
       ctx,
       {
-        baseUrl: url.baseUrl,
-        key: key.key,
+        baseUrl: connection.baseUrl,
+        key: connection.key,
         command: "penpot inspect",
         runId: ctx.ids.runId(ctx.clock.now()),
         log: false,
@@ -206,7 +205,7 @@ export async function runPenpotInspect(
             template: "inspect@v1",
             timeoutMs: ctx.penpot.readTimeoutMs,
           });
-        const redact = penpotRedactor(ctx, key.key);
+        const redact = penpotRedactor(ctx, connection.key);
         const inspected = {
           ...result.value,
           penpotVersion: redact(result.value.penpotVersion),
@@ -216,7 +215,10 @@ export async function runPenpotInspect(
               : { ...result.value.file, name: redact(result.value.file.name) },
           pages: result.value.pages.map((page) => ({ ...page, name: redact(page.name) })),
         };
-        const findings = [...key.warnings, ...penpotVersionFindings(inspected.penpotVersion)];
+        const findings = [
+          ...connection.warnings,
+          ...penpotVersionFindings(inspected.penpotVersion),
+        ];
         const matches = inspected.file?.id === link.link.fileId;
         if (inspected.file !== null && !matches)
           findings.push(penpotFileMismatch(inspected.file, link.link.fileId, "warning"));

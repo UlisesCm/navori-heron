@@ -105,6 +105,17 @@ export function resolvePenpotKey(ctx: AppContext): ResolvedKey {
 }
 
 export type PenpotLink = { fileId: string };
+/** Validate the credential destination before reading any local credential. */
+export function resolvePenpotConnection(
+  ctx: AppContext,
+): { ok: true; baseUrl: string; key: string; warnings: Finding[] } | InvalidConfig {
+  const url = resolvePenpotUrl(ctx);
+  if (!url.ok) return url;
+  const key = resolvePenpotKey(ctx);
+  if (!key.ok) return key;
+  return { ok: true, baseUrl: url.baseUrl, key: key.key, warnings: key.warnings };
+}
+
 export function readPenpotLink(
   project: HeronProject,
   path: string,

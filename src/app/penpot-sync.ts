@@ -18,12 +18,7 @@ import { penpotTemplate } from "../penpot/compiler/templates.ts";
 import type { ReviewPage } from "../penpot/compiler/nodes.ts";
 import type { PenpotFailure, PenpotSession } from "../penpot/ports.ts";
 import type { AppContext } from "./context.ts";
-import {
-  readPenpotLink,
-  resolvePenpotKey,
-  resolvePenpotUrl,
-  penpotRedactor,
-} from "./penpot-config.ts";
+import { readPenpotLink, resolvePenpotConnection, penpotRedactor } from "./penpot-config.ts";
 import { penpotFailureResult, withPenpotSession } from "./penpot-session.ts";
 import { desiredReviewPages, penpotFileMismatch, penpotVersionFindings } from "./penpot.ts";
 import { failure, makeFinding, storeErrorResult, type UseCaseResult } from "./result.ts";
@@ -130,10 +125,8 @@ export async function runPenpotSync(
     const ws = loaded.workspace;
     const link = readPenpotLink(ws.project, input.path);
     if (!link.ok) return link.result;
-    const url = resolvePenpotUrl(ctx);
-    if (!url.ok) return url.result;
-    const key = resolvePenpotKey(ctx);
-    if (!key.ok) return key.result;
+    const connection = resolvePenpotConnection(ctx);
+    if (!connection.ok) return connection.result;
     const desired = syncPages(ws, input, link.link.fileId);
     if (!desired.ok) return desired.result;
     // Flags select writes, not which confirmed pages remain tracked (R15).
@@ -145,8 +138,8 @@ export async function runPenpotSync(
     return await withPenpotSession(
       ctx,
       {
-        baseUrl: url.baseUrl,
-        key: key.key,
+        baseUrl: connection.baseUrl,
+        key: connection.key,
         command: "penpot sync",
         runId: ctx.ids.runId(ctx.clock.now()),
         log: !input.dryRun,
@@ -160,8 +153,8 @@ export async function runPenpotSync(
           desired.pages,
           recordPages,
           link.link.fileId,
-          key.key,
-          key.warnings,
+          connection.key,
+          connection.warnings,
           session,
         ),
     );
