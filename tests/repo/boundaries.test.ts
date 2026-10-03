@@ -173,6 +173,65 @@ export const LAYERS: readonly LayerRule[] = [
     ),
   },
   {
+    from: "src/penpot",
+    allow: ["src/core/contracts", ...STORE_READ, "src/security", "src/penpot"],
+    typeOnly: [],
+    bare: [/^zod$/],
+    violates: ex("src/penpot/x.ts", 'import "../research/directions.ts";'),
+    passes: ex(
+      "src/penpot/x.ts",
+      'import { z } from "zod";',
+      'import "../security/ssrf.ts";',
+      'import "./compiler/script.ts";',
+    ),
+  },
+  {
+    from: "src/penpot/compiler",
+    allow: ["src/core/contracts", "src/core/store/hash.ts", "src/penpot/compiler"],
+    typeOnly: ["src/penpot/results.ts"],
+    bare: [],
+    violates: ex(
+      "src/penpot/compiler/plan.ts",
+      'import t from "../../../templates/penpot/inspect@v1.penpot.js" with { type: "text" };',
+    ),
+    passes: ex(
+      "src/penpot/compiler/plan.ts",
+      'import type { InspectedFile } from "../results.ts";',
+      'import "../../core/contracts/index.ts";',
+    ),
+  },
+  {
+    from: "src/penpot/compiler/templates.ts",
+    allow: ["src/core/contracts", "src/core/store/hash.ts", "templates/penpot"],
+    typeOnly: [],
+    bare: [],
+    violates: ex("src/penpot/compiler/templates.ts", 'import "../session.ts";'),
+    passes: ex(
+      "src/penpot/compiler/templates.ts",
+      'import t from "../../../templates/penpot/inspect@v1.penpot.js" with { type: "text" };',
+      'import "../../core/store/hash.ts";',
+    ),
+  },
+  {
+    from: "src/penpot/adapters/mcp",
+    allow: [
+      "src/core/contracts",
+      "src/security/fetch/system.ts",
+      "src/penpot/ports.ts",
+      "src/penpot/config.ts",
+      "src/penpot/adapters/mcp",
+    ],
+    typeOnly: [],
+    bare: [/^@modelcontextprotocol\/sdk\/client\/(?:index|streamableHttp)\.js$/],
+    violates: ex("src/penpot/adapters/mcp/index.ts", 'import "../../session.ts";'),
+    passes: ex(
+      "src/penpot/adapters/mcp/index.ts",
+      'import { Client } from "@modelcontextprotocol/sdk/client/index.js";',
+      'import "../../../security/fetch/system.ts";',
+      'import type { PenpotGateway } from "../../ports.ts";',
+    ),
+  },
+  {
     from: "src/app",
     allow: [
       "src/core",
@@ -181,6 +240,7 @@ export const LAYERS: readonly LayerRule[] = [
       "src/research",
       "src/security",
       "src/tokens",
+      "src/penpot",
       "src/app",
       "package.json",
     ],
@@ -232,6 +292,16 @@ export const LAYERS: readonly LayerRule[] = [
 ];
 
 export const VENDORS: readonly VendorRule[] = [
+  {
+    specifier: /^@modelcontextprotocol\/sdk(?:\/.*)?$/,
+    only: ["src/penpot/adapters/mcp"],
+    rule: "the MCP SDK lives only in src/penpot/adapters/mcp",
+    violates: ex("src/penpot/session.ts", 'import "@modelcontextprotocol/sdk/client/index.js";'),
+    passes: ex(
+      "src/penpot/adapters/mcp/index.ts",
+      'import "@modelcontextprotocol/sdk/client/index.js";',
+    ),
+  },
   {
     specifier: /^(?:node:)?fs(?:\/.*)?$/,
     only: ["src/core/store", "scripts/gen-schemas.ts", "scripts/check-coverage.ts"],
@@ -291,6 +361,14 @@ export const VENDORS: readonly VendorRule[] = [
 ];
 
 export const TOKENS: readonly TokenRule[] = [
+  {
+    pattern: /\b(?:Bun|process)\.|\bMath\.random\(/,
+    scope: ["src/penpot/compiler"],
+    allow: [],
+    rule: "the Penpot compiler is pure and deterministic (no Bun, process or Math.random)",
+    violates: ex("src/penpot/compiler/x.ts", "const v = Bun.version;"),
+    passes: ex("src/penpot/compiler/x.ts", 'const s = "Bun.version";'),
+  },
   {
     pattern: /\bnew\s+RegExp\(/,
     scope: ["src"],
@@ -529,6 +607,13 @@ describe("module boundaries", () => {
       violationsFor("src/intake/detect.ts", 'import "./adapters/filesystem/index.ts";'),
     ).toEqual([]);
     expect(violationsFor("src/security/x.ts", "const r = ctx.fetch(url);")).toEqual([]);
+
+    expect(
+      violationsFor("src/app/context.ts", 'import "../penpot/adapters/mcp/index.ts";').length,
+    ).toBeGreaterThan(0);
+    expect(violationsFor("src/penpot/registry.ts", 'import "./adapters/mcp/index.ts";')).toEqual(
+      [],
+    );
 
     expect(SOURCE_FILES.length).toBeGreaterThan(20);
     const violations = SOURCE_FILES.flatMap((file) => violationsFor(file, readSource(file)));

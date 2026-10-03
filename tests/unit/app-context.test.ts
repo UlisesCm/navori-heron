@@ -57,6 +57,12 @@ describe("app context", () => {
       4_000, 60_000, 3_000,
     ]);
     expect(ctx.logRetentionDays).toBe(30);
+    expect(ctx.penpot.gateway.id).toBe("mcp");
+    expect([
+      ctx.penpot.connectTimeoutMs,
+      ctx.penpot.readTimeoutMs,
+      ctx.penpot.writeTimeoutMs,
+    ]).toEqual([10_000, 10_000, 60_000]);
     expect(ctx.env["PATH"]).toBe(process.env["PATH"]);
     expect(await ctx.confirm("Approve? ")).toBe(true);
     expect(await ctx.confirm("Approve? ")).toBe(false);

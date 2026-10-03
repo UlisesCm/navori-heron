@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, test } from "bun:test";
-import { mkdirSync, symlinkSync, writeFileSync } from "node:fs";
+import { mkdirSync, rmSync, symlinkSync, writeFileSync } from "node:fs";
 import { nodeFs } from "../../src/core/store/fs-port.ts";
 import { join } from "node:path";
 import { createFakeProvider } from "../../src/agents/adapters/fake/index.ts";
@@ -17,6 +17,7 @@ import { fixedContext, runCliCaptured } from "../helpers/cli.ts";
 import { withAgentSettings } from "../helpers/agents.ts";
 import { e2eSetup } from "../helpers/e2e.ts";
 import { hashTree } from "../helpers/fixtures.ts";
+import { linkedWorkspace } from "../helpers/penpot.ts";
 
 const { fresh, initialized } = e2eSetup();
 
@@ -41,6 +42,32 @@ function stub(id: AgentProviderId, label: string, probe: ProviderProbe): AgentPr
 
 beforeEach(() => {
   invokes = 0;
+});
+
+// Covers: R6, R7
+test("shows Penpot checks only for a linked workspace", async () => {
+  const root = await initialized("no-ux");
+  const unlinked = await runCliCaptured(["doctor", root, "--json"]);
+  expect(
+    (JSON.parse(unlinked.stdout) as CliEnvelope & { data: DoctorData }).data.checks.some((check) =>
+      check.id.startsWith("penpot."),
+    ),
+  ).toBe(false);
+  const probe = await linkedWorkspace();
+  try {
+    const before = hashTree(probe.root, { exclude: [] });
+    const result = await runCliCaptured(["doctor", probe.root, "--json"], probe.ctx);
+    expect(result.code).toBe(0);
+    const penpotRows = (
+      JSON.parse(result.stdout) as CliEnvelope & { data: DoctorData }
+    ).data.checks.filter((check) => check.id.startsWith("penpot."));
+    expect(penpotRows).toHaveLength(7);
+    expect(penpotRows?.every((check) => check.status === "PASS")).toBe(true);
+    expect(probe.calls).toHaveLength(1);
+    expect(hashTree(probe.root, { exclude: [] })).toEqual(before);
+  } finally {
+    rmSync(probe.root, { recursive: true, force: true });
+  }
 });
 
 const hung = (id: AgentProviderId): AgentProvider => ({

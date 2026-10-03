@@ -65,6 +65,14 @@ import {
   type ReferencesShowData,
   type ResearchRenderData,
 } from "./research-data.ts";
+import {
+  PenpotInspectDataSchema,
+  PenpotLinkDataSchema,
+  PenpotSyncDataSchema,
+  type PenpotInspectData,
+  type PenpotLinkData,
+  type PenpotSyncData,
+} from "./penpot.ts";
 import type { DocumentSpec } from "./version.ts";
 
 export const CLI_COMMANDS = [
@@ -87,6 +95,10 @@ export const CLI_COMMANDS = [
   "research analyze",
   "direction propose",
   "direction select",
+  "penpot link",
+  "penpot doctor",
+  "penpot inspect",
+  "penpot sync",
 ] as const;
 export type CliCommand = (typeof CLI_COMMANDS)[number];
 
@@ -131,6 +143,13 @@ export const DOCTOR_CHECK_IDS = [
   "probe.claude-code",
   "probe.codex-cli",
   "probe.fake",
+  "penpot.config",
+  "penpot.url",
+  "penpot.key",
+  "penpot.mcp",
+  "penpot.plugin",
+  "penpot.file",
+  "penpot.version",
 ] as const;
 export type DoctorCheckId = (typeof DOCTOR_CHECK_IDS)[number];
 export type DoctorCheckStatus = "PASS" | "WARNING" | "FAIL";
@@ -179,6 +198,9 @@ export type CliEnvelope = {
     | ResearchAnalyzeData
     | DirectionProposeData
     | DirectionSelectData
+    | PenpotLinkData
+    | PenpotInspectData
+    | PenpotSyncData
     | null;
   findings: Finding[];
   runId: RunId;
@@ -255,6 +277,9 @@ export const CliEnvelopeSchema: z.ZodType<CliEnvelope> = z.object({
   // Larger shapes first so a z.object never matches a narrower payload by stripping keys.
   data: z
     .union([
+      PenpotSyncDataSchema,
+      PenpotInspectDataSchema,
+      PenpotLinkDataSchema,
       DirectionProposeDataSchema,
       ResearchBriefDataSchema,
       ResearchAnalyzeDataSchema,

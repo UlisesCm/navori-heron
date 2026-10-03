@@ -1,6 +1,6 @@
 import type { Sha256Hex, TemplateRef } from "../core/contracts/index.ts";
 import { sha256Hex } from "../core/store/hash.ts";
-import directionPropose from "../../prompts/design-director/direction-propose@v1.md" with { type: "text" };
+import directionPropose from "../../prompts/design-director/direction-propose@v2.md" with { type: "text" };
 import repair from "../../prompts/shared/repair@v1.md" with { type: "text" };
 import probe from "../../prompts/shared/probe@v1.md" with { type: "text" };
 import researchAnalyze from "../../prompts/visual-researcher/research-analyze@v1.md" with { type: "text" };
@@ -26,7 +26,7 @@ function template(id: string, version: number, text: string): PromptTemplate {
 export const PROMPT_TEMPLATES: readonly PromptTemplate[] = [
   template("visual-researcher/research-brief", 1, researchBrief),
   template("visual-researcher/research-analyze", 1, researchAnalyze),
-  template("design-director/direction-propose", 1, directionPropose),
+  template("design-director/direction-propose", 2, directionPropose),
   template("shared/repair", 1, repair),
   template("shared/probe", 1, probe),
 ];

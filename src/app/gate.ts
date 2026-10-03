@@ -13,6 +13,7 @@ import type { AppContext } from "./context.ts";
 import {
   boundArtifacts,
   collectIntakeFacts,
+  collectPenpotFacts,
   collectResearchFacts,
   collectTransitionFacts,
 } from "./facts.ts";
@@ -62,6 +63,7 @@ function gateFacts(
     ...collectTransitionFacts(store, state, gate, ctx.fs),
     ...collectResearchFacts(store, ctx.research),
     ...(gate === "intake" ? collectIntakeFacts(ctx, workspace, store) : {}),
+    ...(gate === "direction" ? collectPenpotFacts(store, workspace.project) : {}),
   };
 }
 

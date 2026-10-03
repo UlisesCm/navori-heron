@@ -24,6 +24,7 @@ const healthy: LcovFile[] = [
   file("src/tokens/f.ts", 10, 10),
   file("src/agents/g.ts", 10, 10),
   file("src/intake/h.ts", 10, 10),
+  file("src/penpot/i.ts", 10, 10),
 ];
 
 describe("evaluateCoverage", () => {
@@ -43,6 +44,7 @@ describe("evaluateCoverage", () => {
       true,
       true,
       true,
+      true,
     ]);
 
     // exactly 90 percent passes; function ratio alone can fail
@@ -55,6 +57,7 @@ describe("evaluateCoverage", () => {
       [5, "src/tokens/"],
       [6, "src/agents/"],
       [7, "src/intake/"],
+      [8, "src/penpot/"],
     ] as const) {
       const lowNew = healthy.map((f) => (f.path.startsWith(prefix) ? file(f.path, 8, 10) : f));
       const report = evaluateCoverage(lowNew, sources, COVERAGE_RULES);

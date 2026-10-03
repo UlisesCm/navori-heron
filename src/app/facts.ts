@@ -1,10 +1,13 @@
 import { join } from "node:path";
 import {
   INTAKE_CONFLICTS_DOCUMENT,
+  PENPOT_SYNC_STATE_DOCUMENT,
+  VISUAL_DIRECTIONS_DOCUMENT,
   RESEARCH_REFERENCES_DOCUMENT,
   type BoundArtifact,
   type GateName,
   type HeronState,
+  type HeronProject,
   type RelativeArtifactPath,
   type Sha256Hex,
 } from "../core/contracts/index.ts";
@@ -21,10 +24,36 @@ import type { ReadonlyFs } from "../core/store/fs-port.ts";
 import type { ResearchSettings } from "../research/ports.ts";
 import { missingProvenance } from "../research/provenance.ts";
 import { unacknowledgedCount } from "../intake/conflicts.ts";
+import { proposalPageId, proposalSourceSha256 } from "../penpot/compiler/ids.ts";
 import type { AppContext } from "./context.ts";
 import { CONFLICTS_FILE, PRODUCT_CONTEXT_FILE, computeIntake } from "./intake.ts";
 import { selectionOf, type Workspace } from "./workspace.ts";
 const GLOB_SUFFIX = "/**";
+
+/** Count current proposals confirmed in the locally recorded bound file, never contact Penpot under a gate lock. */
+export function collectPenpotFacts(
+  store: FileStore,
+  project: HeronProject,
+): Pick<TransitionFacts, "penpotEnabled" | "penpotProposalsWritten"> {
+  const penpotEnabled = project.penpot.enabled && project.penpot.fileId !== null;
+  const directions = store.readDocument(
+    "research/visual-directions.json",
+    VISUAL_DIRECTIONS_DOCUMENT,
+  );
+  const record = store.readDocument("penpot/review-sync.json", PENPOT_SYNC_STATE_DOCUMENT);
+  const entries = penpotEnabled && record?.file.id === project.penpot.fileId ? record.entries : [];
+  return {
+    penpotEnabled,
+    penpotProposalsWritten:
+      directions?.directions.filter((direction) =>
+        entries.some(
+          (entry) =>
+            entry.heronId === proposalPageId(direction.id) &&
+            entry.sourceSha256 === proposalSourceSha256(direction),
+        ),
+      ).length ?? 0,
+  };
+}
 
 /** Files under `dir` (relative to .heron/), recursively; symlinks are never followed. */
 function listFiles(fs: ReadonlyFs, heronDir: string, dir: string): string[] {

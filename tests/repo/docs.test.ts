@@ -198,3 +198,118 @@ describe("agent provider boundary docs", () => {
     expect(await read("docs/research.md")).toContain("research analyze");
   });
 });
+
+describe("penpot docs", () => {
+  // Covers: R18, R20
+  test("records live v2 evidence without claiming manual acceptance", async () => {
+    const docs = await read("docs/penpot.md");
+    for (const term of [
+      "Prueba viva de v2",
+      "7/7 PASS",
+      "0 escrituras",
+      "review-page@v2",
+      "tres direcciones válidas de Codex",
+      "Las referencias originales no cambiaron",
+      "T21 y la aceptación final permanecen pendientes",
+    ])
+      expect(docs).toContain(term);
+  });
+  // Covers: R3, R19
+  test("records the Penpot boundary ADR and the Penpot sections of the docs", async () => {
+    const adr = await read("docs/adr/0007-penpot-boundary.md");
+    for (const term of [
+      "# ADR 0007",
+      "PenpotGateway",
+      "PenpotCodeRunner",
+      "mcpGateway",
+      "defaultPenpotGateway",
+      "renderScript",
+      "PENPOT_TEMPLATES",
+      "PENPOT_TESTED_VERSIONS",
+      "expectedRevision",
+      "refusingGateway",
+      "32 KiB",
+    ])
+      expect(adr).toContain(term);
+    for (const path of ["docs/architecture.md", "docs/security.md", "README.md"])
+      expect(await read(path)).toMatch(/^##(?:#)? Penpot \(P12\)$/m);
+    const doc = await read("docs/penpot.md");
+    for (const term of [
+      "heron penpot link",
+      "heron penpot doctor",
+      "heron penpot inspect",
+      "heron penpot sync",
+      "--dry-run",
+      "PENPOT_SYNC_PARTIAL",
+      "review-sync.json",
+      "32 KiB",
+      "48 tarjetas",
+      "0 escrituras",
+    ])
+      expect(doc).toContain(term);
+    const layout = await read(".claude/skills/heron-architecture/references/layout.md");
+    expect(layout).toContain("ports registry config session results compatibility");
+    expect(layout).toContain("0007-penpot-boundary.md");
+    expect(await read(".claude/skills/heron-architecture/references/patterns.md")).toContain(
+      "refusingGateway",
+    );
+    expect(await read(".claude/skills/heron-architecture/references/recipes.md")).toContain(
+      "nunca del workspace",
+    );
+  });
+
+  // Covers: R3, R21
+  test("documents the Penpot setup, MCP connection, secrets, backups, upgrades and versions", async () => {
+    const doc = await read("docs/penpot.md");
+    for (const heading of [
+      "Requisitos",
+      "Instalación",
+      "Cuentas",
+      "HTTPS y websocket",
+      "MCP",
+      "Configuración de Heron",
+      "Secretos",
+      "Fuentes y egreso a terceros",
+      "Backups",
+      "Upgrade",
+      "Versiones",
+    ]) {
+      expect(doc).toMatch(new RegExp(`^## ${heading}$`, "m"));
+    }
+    for (const term of [
+      "Docker 29.4.0",
+      "Compose 5.1.2",
+      "Chrome",
+      "Edge",
+      "infra/penpot/init-env",
+      "infra/penpot/compose",
+      "create-profile",
+      "PENPOT_PUBLIC_URI",
+      "/mcp/ws",
+      "PENPOT_URL",
+      "PENPOT_MCP_KEY",
+      "PENPOT_MCP_KEY_FILE",
+      "PENPOT_VERSION",
+      "userToken",
+      "Google Fonts",
+      "disable-google-fonts-provider",
+      "docker compose` directo se salta",
+      "HERON_LIVE_COMPOSE=1 bun run test:live:compose",
+      "no lee `.env`",
+    ]) {
+      expect(doc).toContain(term);
+    }
+    // the evidence rule for infra/penpot/ and the dated versions section (R18)
+    expect(doc).toContain("todo PR que toque `infra/penpot/` adjunta");
+    expect(doc).toMatch(/^- \d{4}-\d{2}-\d{2}: \*\*2\.17\.2 fijada \(D7\)\*\*/m);
+    expect(doc).toMatch(
+      /^- \d{4}-\d{2}-\d{2}: \*\*2\.18\.1 probada en instancia aislada \(T13\): PASS, 0 comprobaciones fallidas; se conserva 2\.17\.2 fijada\.\*\*/m,
+    );
+    expect(doc).toContain("no se reprodujo en este entorno local");
+    expect(doc).toContain('PENPOT_TESTED_VERSIONS` conserva `["2.17.2"]`');
+    // the manual spike of the Lote 1 exit criterion
+    for (const id of ["S1", "S2", "S3", "S4", "S5", "S6", "S7", "S8"]) {
+      expect(doc).toMatch(new RegExp(`^\\| ${id} +\\|`, "m"));
+    }
+  });
+});

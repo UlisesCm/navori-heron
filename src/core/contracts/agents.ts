@@ -91,7 +91,7 @@ export const AgentSettingsInputSchema: z.ZodType<AgentSettingsInput> = z.looseOb
 });
 
 export type TemplateRef = { id: string; version: number; sha256: Sha256Hex };
-const TemplateRefSchema: z.ZodType<TemplateRef> = z.looseObject({
+export const TemplateRefSchema: z.ZodType<TemplateRef> = z.looseObject({
   id: z.string().min(1),
   version: z.number().int().min(1),
   sha256: Sha256HexSchema,

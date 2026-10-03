@@ -176,10 +176,12 @@ const text = (max: number): z.ZodString => z.string().min(1).max(max);
 const list = (max: number, itemMax: number): z.ZodArray<z.ZodString> =>
   z.array(text(itemMax)).min(1).max(max);
 
+export const BRIEF_QUERY_MAX_LENGTH = 120;
+
 const BriefQueryOutputSchema: z.ZodType<BriefQueryOutput> = z.strictObject({
   facet: FacetSchema,
   job: text(200),
-  query: text(120),
+  query: text(BRIEF_QUERY_MAX_LENGTH),
   question: text(300),
   rationale: text(300),
 });
@@ -257,9 +259,22 @@ const TypeStepOutputSchema: z.ZodType<TypeStepOutput> = z.strictObject({
 const ComponentSpecOutputSchema: z.ZodType<ComponentSpecOutput> = z.strictObject({
   kind: z.enum(BASIC_COMPONENT_KINDS),
   variant: text(60),
-  fill: z.string().min(1),
-  text: z.string().min(1),
-  typeStep: z.string().min(1),
+  fill: z
+    .string()
+    .min(1)
+    .describe(
+      "Background color ID from this direction’s palette.colors[].id; not a literal color.",
+    ),
+  text: z
+    .string()
+    .min(1)
+    .describe(
+      "Text color ID from this direction’s palette.colors[].id; not label text or UI copy.",
+    ),
+  typeStep: z
+    .string()
+    .min(1)
+    .describe("Typography step ID from this direction’s typeScale.steps[].id."),
   radiusPx: z.number().min(0).max(32),
   notes: z.string().max(300),
 });
@@ -372,7 +387,7 @@ const BriefQuerySchema: z.ZodType<BriefQuery> = z.looseObject({
   id: QueryIdSchema,
   facet: FacetSchema,
   job: text(200),
-  query: text(120),
+  query: text(BRIEF_QUERY_MAX_LENGTH),
   question: z.string().nullable(),
   rationale: z.string().nullable(),
   origin: z.enum(["provided", "inferred"]),

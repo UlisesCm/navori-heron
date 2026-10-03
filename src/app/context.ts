@@ -12,6 +12,8 @@ import {
 import { nodeTempDirs, type TempDirPort } from "../core/store/temp-dir.ts";
 import { DEFAULT_INPUT_LIMITS, type InputLimits } from "../intake/ports.ts";
 import { DEFAULT_RESEARCH_SETTINGS, type ResearchSettings } from "../research/ports.ts";
+import type { PenpotGateway } from "../penpot/ports.ts";
+import { defaultPenpotGateway } from "../penpot/registry.ts";
 import { createSafeFetcher } from "../security/fetch/safe-fetch.ts";
 import { bunTransport, systemResolver } from "../security/fetch/system.ts";
 import type { Fetcher } from "../security/fetch/types.ts";
@@ -39,6 +41,13 @@ export type AgentServices = {
   killGraceMs: number;
 };
 
+export type PenpotServices = {
+  gateway: PenpotGateway;
+  connectTimeoutMs: number;
+  readTimeoutMs: number;
+  writeTimeoutMs: number;
+};
+
 export type AppContext = {
   fs: FsPort;
   clock: Clock;
@@ -57,6 +66,7 @@ export type AppContext = {
   /** Parent environment, only read: agent children get an allowlisted copy (DR14). */
   env: Readonly<Record<string, string | undefined>>;
   agents: AgentServices;
+  penpot: PenpotServices;
   /** Days of `.heron/logs/` kept, and the window of the agent usage totals. */
   logRetentionDays: number;
   /** Base of relative `--file` paths (the process working directory). */
@@ -131,6 +141,12 @@ export function createDefaultContext(io: {
       killGraceMs: 3_000,
     },
     logRetentionDays: 30,
+    penpot: {
+      gateway: defaultPenpotGateway,
+      connectTimeoutMs: 10_000,
+      readTimeoutMs: 10_000,
+      writeTimeoutMs: 60_000,
+    },
     cwd: process.cwd(),
   };
 }

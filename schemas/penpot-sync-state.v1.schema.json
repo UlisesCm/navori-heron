@@ -1,0 +1,131 @@
+{
+  "$id": "penpot-sync-state.v1.schema.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": {},
+  "properties": {
+    "entries": {
+      "items": {
+        "additionalProperties": {},
+        "properties": {
+          "contentSha256": {
+            "pattern": "^[0-9a-f]{64}$",
+            "type": "string"
+          },
+          "heronId": {
+            "pattern": "^heron:[a-z][a-z0-9-]*(?::[A-Za-z0-9-]+)*$",
+            "type": "string"
+          },
+          "kind": {
+            "pattern": "^[a-z][a-z-]*$",
+            "type": "string"
+          },
+          "mode": {
+            "enum": [
+              "full",
+              "reference-only"
+            ],
+            "type": "string"
+          },
+          "pageId": {
+            "maxLength": 64,
+            "minLength": 1,
+            "type": "string"
+          },
+          "pageName": {
+            "maxLength": 200,
+            "type": "string"
+          },
+          "sourceSha256": {
+            "pattern": "^[0-9a-f]{64}$",
+            "type": "string"
+          },
+          "template": {
+            "additionalProperties": {},
+            "properties": {
+              "id": {
+                "minLength": 1,
+                "type": "string"
+              },
+              "sha256": {
+                "pattern": "^[0-9a-f]{64}$",
+                "type": "string"
+              },
+              "version": {
+                "maximum": 9007199254740991,
+                "minimum": 1,
+                "type": "integer"
+              }
+            },
+            "required": [
+              "id",
+              "version",
+              "sha256"
+            ],
+            "type": "object"
+          }
+        },
+        "required": [
+          "heronId",
+          "kind",
+          "pageId",
+          "pageName",
+          "template",
+          "sourceSha256",
+          "contentSha256",
+          "mode"
+        ],
+        "type": "object"
+      },
+      "type": "array"
+    },
+    "file": {
+      "additionalProperties": {},
+      "properties": {
+        "id": {
+          "maxLength": 64,
+          "minLength": 1,
+          "type": "string"
+        },
+        "name": {
+          "maxLength": 200,
+          "type": "string"
+        }
+      },
+      "required": [
+        "id",
+        "name"
+      ],
+      "type": "object"
+    },
+    "kind": {
+      "const": "PenpotSyncState",
+      "type": "string"
+    },
+    "penpotVersion": {
+      "maxLength": 40,
+      "minLength": 1,
+      "type": "string"
+    },
+    "schemaVersion": {
+      "const": 1,
+      "type": "number"
+    },
+    "scope": {
+      "enum": [
+        "review",
+        "system"
+      ],
+      "type": "string"
+    }
+  },
+  "required": [
+    "kind",
+    "schemaVersion",
+    "scope",
+    "file",
+    "penpotVersion",
+    "entries"
+  ],
+  "title": "PenpotSyncState",
+  "type": "object"
+}

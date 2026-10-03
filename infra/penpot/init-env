@@ -1,0 +1,42 @@
+#!/bin/sh
+# Create infra/penpot/.env once, with random secrets and mode 0600 (specs/0005 DR39).
+set -eu
+umask 077
+
+if [ "$#" -ne 0 ]; then
+  cat >&2 <<'USAGE'
+Usage: infra/penpot/init-env
+  create infra/penpot/.env (or $PENPOT_ENV_FILE) from .env.example with random secrets, mode 0600
+Exit: 0 created; 1 the file already exists (left untouched) or openssl failed; 2 usage
+USAGE
+  exit 2
+fi
+
+here=$(cd "$(dirname "$0")" && pwd)
+envfile=${PENPOT_ENV_FILE:-$here/.env}
+
+if [ -e "$envfile" ]; then
+  echo "init-env: $envfile already exists; left untouched" >&2
+  exit 1
+fi
+
+secret_key=$(openssl rand -hex 64) || exit 1
+db_password=$(openssl rand -hex 32) || exit 1
+if [ -z "$secret_key" ] || [ -z "$db_password" ]; then
+  echo "init-env: openssl produced no output" >&2
+  exit 1
+fi
+
+# noclobber makes the creation atomic: a concurrent run cannot overwrite the file.
+(set -C; : > "$envfile") || {
+  echo "init-env: could not create $envfile" >&2
+  exit 1
+}
+chmod 600 "$envfile"
+# Secrets travel through the environment of awk, never through its argv.
+PENPOT_GEN_SECRET_KEY=$secret_key PENPOT_GEN_DB_PASSWORD=$db_password awk '
+  /^PENPOT_SECRET_KEY=/ { print "PENPOT_SECRET_KEY=" ENVIRON["PENPOT_GEN_SECRET_KEY"]; next }
+  /^PENPOT_DB_PASSWORD=/ { print "PENPOT_DB_PASSWORD=" ENVIRON["PENPOT_GEN_DB_PASSWORD"]; next }
+  { print }
+' "$here/.env.example" > "$envfile"
+echo "init-env: created $envfile (mode 0600)" >&2

@@ -19,7 +19,8 @@ export type CommandName =
   | "research"
   | "direction"
   | "intake"
-  | "conflicts";
+  | "conflicts"
+  | "penpot";
 export type InitParsed = {
   command: "init";
   path: string;
@@ -138,8 +139,22 @@ export type ParsedCommand =
   | DirectionParsed
   | IntakeParsed
   | ConflictsParsed
+  | PenpotParsed
   | { command: "help" }
   | { command: "version" };
+
+export type PenpotParsed =
+  | { command: "penpot"; action: "link"; path: string; fileId: string | null; json: boolean }
+  | { command: "penpot"; action: "doctor" | "inspect"; path: string; json: boolean }
+  | {
+      command: "penpot";
+      action: "sync";
+      path: string;
+      proposals: boolean;
+      references: boolean;
+      dryRun: boolean;
+      json: boolean;
+    };
 
 export class UsageError extends Error {
   readonly json: boolean;

@@ -95,6 +95,12 @@ Sin tope duro de costo (DR38), pero con patrones que ahorran tokens y un límite
 
 Sin `--deep`, por cada proveedor asignado a un rol: versión, capacidades (banderas en `--help`) y sesión (`auth status`, con stdout descartado; nunca lee `~/.claude`, `~/.codex` ni el llavero). Ausente, viejo o sin sesión es WARNING, un proveedor `fake` asignado también, y `agents` inválido es el WARNING `agents.config`. Con `--deep`, una falla pasa a FAIL de dependencia (exit 5).
 
+## Referencias de tokens en las propuestas
+
+La plantilla `design-director/direction-propose@v2` aclara que `componentSheet.fill` y `componentSheet.text` son IDs de `palette.colors`: **`text` representa el color del texto, no el label del componente**. `componentSheet.typeStep` referencia un ID de `typeScale.steps`. El copy sintético se declara en `composition.nodes[].text`.
+
+El validador de dominio rechaza referencias no declaradas con un pointer al campo para el ciclo de reparación existente, antes de persistir la propuesta. No corrige copy a mano ni oculta fallbacks del compilador. La plantilla v1 conserva sus bytes y las propuestas anteriores no se migran automáticamente; una regeneración usa v2 y cambia su huella de origen.
+
 ## Pendiente de verificación manual
 
 P3.A11 está registrado en §Términos, con la decisión del usuario del 2026-10-01 (`Aprobado` queda a su lectura de esta página). El recorrido de P3.A12 (Codex como `creator` con `agents.roles` intercambiado, `doctor --deep` y demás pasos de `specs/0003-agents-directions/design.md` §Testing strategy) lo ejecuta el usuario con `HERON_LIVE_AGENTS=1 bun run test:live` como paso previo. Este documento no los da por cerrados.

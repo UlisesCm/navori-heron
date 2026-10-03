@@ -1,0 +1,613 @@
+{
+  "basis": {
+    "analysis": null,
+    "brief": null,
+    "references": ["REF-1", "REF-2"]
+  },
+  "directions": [
+    {
+      "attributes": {
+        "colorStrategy": "SYNTHETIC DIR-A color",
+        "componentWeight": "SYNTHETIC DIR-A components",
+        "density": "SYNTHETIC DIR-A density",
+        "imageryStrategy": "SYNTHETIC DIR-A imagery",
+        "motionCharacter": "SYNTHETIC DIR-A motion",
+        "navigationCharacter": "SYNTHETIC DIR-A navigation",
+        "personality": "SYNTHETIC DIR-A personality",
+        "references": [
+          {
+            "doNotCopy": ["SYNTHETIC DIR-A copies nothing from REF-1"],
+            "reference": "REF-1",
+            "takes": ["SYNTHETIC DIR-A takes from REF-1"]
+          },
+          {
+            "doNotCopy": ["SYNTHETIC DIR-A copies nothing from REF-2"],
+            "reference": "REF-2",
+            "takes": ["SYNTHETIC DIR-A takes from REF-2"]
+          }
+        ],
+        "risks": ["SYNTHETIC DIR-A risk"],
+        "surfaceTreatment": "SYNTHETIC DIR-A surface",
+        "typographyStrategy": "SYNTHETIC DIR-A typography",
+        "whenItDoesnt": ["SYNTHETIC DIR-A does not fit"],
+        "whenItFits": ["SYNTHETIC DIR-A fits"]
+      },
+      "id": "DIR-A",
+      "name": "SYNTHETIC \"); malicious()",
+      "origin": "inferred",
+      "proposal": {
+        "componentSheet": [
+          {
+            "fill": "c2",
+            "kind": "button",
+            "notes": "SYNTHETIC DIR-A button",
+            "radiusPx": 8,
+            "text": "c3",
+            "typeStep": "t3",
+            "variant": "default"
+          },
+          {
+            "fill": "c2",
+            "kind": "text-input",
+            "notes": "SYNTHETIC DIR-A text-input",
+            "radiusPx": 8,
+            "text": "c3",
+            "typeStep": "t3",
+            "variant": "default"
+          },
+          {
+            "fill": "c2",
+            "kind": "card",
+            "notes": "SYNTHETIC DIR-A card",
+            "radiusPx": 8,
+            "text": "c3",
+            "typeStep": "t3",
+            "variant": "default"
+          },
+          {
+            "fill": "c2",
+            "kind": "badge",
+            "notes": "SYNTHETIC DIR-A badge",
+            "radiusPx": 8,
+            "text": "c3",
+            "typeStep": "t3",
+            "variant": "default"
+          }
+        ],
+        "composition": {
+          "description": "SYNTHETIC DIR-A composition description",
+          "nodes": [
+            {
+              "columns": null,
+              "component": null,
+              "direction": "column",
+              "fill": "c1",
+              "id": "n1",
+              "imageHint": null,
+              "parent": null,
+              "text": null,
+              "type": "frame",
+              "typeStep": null
+            },
+            {
+              "columns": null,
+              "component": null,
+              "direction": null,
+              "fill": null,
+              "id": "n2",
+              "imageHint": null,
+              "parent": "n1",
+              "text": "SYNTHETIC DIR-A headline",
+              "type": "text",
+              "typeStep": "t3"
+            }
+          ],
+          "title": "SYNTHETIC DIR-A composition"
+        },
+        "marking": "SYNTHETIC",
+        "palette": {
+          "colors": [
+            {
+              "hex": "#FFFFFF",
+              "id": "c1",
+              "name": "Paper",
+              "role": "background"
+            },
+            {
+              "hex": "#F5F5F5",
+              "id": "c2",
+              "name": "Surface",
+              "role": "surface"
+            },
+            {
+              "hex": "#111111",
+              "id": "c3",
+              "name": "Ink",
+              "role": "text"
+            },
+            {
+              "hex": "#0B5FFF",
+              "id": "c4",
+              "name": "Primary",
+              "role": "primary"
+            }
+          ],
+          "pairs": [
+            {
+              "background": "c1",
+              "contrast": {
+                "passes": true,
+                "ratio": 18.88,
+                "threshold": 4.5
+              },
+              "foreground": "c3",
+              "usage": "body-text"
+            },
+            {
+              "background": "c4",
+              "contrast": {
+                "passes": true,
+                "ratio": 5.13,
+                "threshold": 3
+              },
+              "foreground": "c1",
+              "usage": "large-text"
+            }
+          ]
+        },
+        "typeScale": {
+          "families": [
+            {
+              "fallback": ["system-ui", "sans-serif"],
+              "family": "Inter",
+              "role": "text"
+            }
+          ],
+          "steps": [
+            {
+              "id": "t1",
+              "lineHeight": 1.4,
+              "name": "caption",
+              "sizePx": 12,
+              "usage": "SYNTHETIC DIR-A caption",
+              "weight": 400
+            },
+            {
+              "id": "t2",
+              "lineHeight": 1.4,
+              "name": "body",
+              "sizePx": 16,
+              "usage": "SYNTHETIC DIR-A body",
+              "weight": 400
+            },
+            {
+              "id": "t3",
+              "lineHeight": 1.4,
+              "name": "title",
+              "sizePx": 24,
+              "usage": "SYNTHETIC DIR-A title",
+              "weight": 400
+            },
+            {
+              "id": "t4",
+              "lineHeight": 1.4,
+              "name": "display",
+              "sizePx": 40,
+              "usage": "SYNTHETIC DIR-A display",
+              "weight": 400
+            }
+          ]
+        }
+      },
+      "summary": "SYNTHETIC DIR-A summary"
+    },
+    {
+      "attributes": {
+        "colorStrategy": "SYNTHETIC DIR-B color",
+        "componentWeight": "SYNTHETIC DIR-B components",
+        "density": "SYNTHETIC DIR-B density",
+        "imageryStrategy": "SYNTHETIC DIR-B imagery",
+        "motionCharacter": "SYNTHETIC DIR-B motion",
+        "navigationCharacter": "SYNTHETIC DIR-B navigation",
+        "personality": "SYNTHETIC DIR-B personality",
+        "references": [
+          {
+            "doNotCopy": ["SYNTHETIC DIR-B copies nothing from REF-2"],
+            "reference": "REF-2",
+            "takes": ["SYNTHETIC DIR-B takes from REF-2"]
+          },
+          {
+            "doNotCopy": ["SYNTHETIC DIR-B copies nothing from REF-1"],
+            "reference": "REF-1",
+            "takes": ["SYNTHETIC DIR-B takes from REF-1"]
+          }
+        ],
+        "risks": ["SYNTHETIC DIR-B risk"],
+        "surfaceTreatment": "SYNTHETIC DIR-B surface",
+        "typographyStrategy": "SYNTHETIC DIR-B typography",
+        "whenItDoesnt": ["SYNTHETIC DIR-B does not fit"],
+        "whenItFits": ["SYNTHETIC DIR-B fits"]
+      },
+      "id": "DIR-B",
+      "name": "SYNTHETIC DIR-B direction",
+      "origin": "inferred",
+      "proposal": {
+        "componentSheet": [
+          {
+            "fill": "c2",
+            "kind": "button",
+            "notes": "SYNTHETIC DIR-B button",
+            "radiusPx": 8,
+            "text": "c3",
+            "typeStep": "t3",
+            "variant": "default"
+          },
+          {
+            "fill": "c2",
+            "kind": "text-input",
+            "notes": "SYNTHETIC DIR-B text-input",
+            "radiusPx": 8,
+            "text": "c3",
+            "typeStep": "t3",
+            "variant": "default"
+          },
+          {
+            "fill": "c2",
+            "kind": "card",
+            "notes": "SYNTHETIC DIR-B card",
+            "radiusPx": 8,
+            "text": "c3",
+            "typeStep": "t3",
+            "variant": "default"
+          },
+          {
+            "fill": "c2",
+            "kind": "badge",
+            "notes": "SYNTHETIC DIR-B badge",
+            "radiusPx": 8,
+            "text": "c3",
+            "typeStep": "t3",
+            "variant": "default"
+          }
+        ],
+        "composition": {
+          "description": "SYNTHETIC DIR-B composition description",
+          "nodes": [
+            {
+              "columns": null,
+              "component": null,
+              "direction": "column",
+              "fill": "c1",
+              "id": "n1",
+              "imageHint": null,
+              "parent": null,
+              "text": null,
+              "type": "frame",
+              "typeStep": null
+            },
+            {
+              "columns": null,
+              "component": null,
+              "direction": null,
+              "fill": null,
+              "id": "n2",
+              "imageHint": null,
+              "parent": "n1",
+              "text": "SYNTHETIC DIR-B headline",
+              "type": "text",
+              "typeStep": "t3"
+            }
+          ],
+          "title": "SYNTHETIC DIR-B composition"
+        },
+        "marking": "SYNTHETIC",
+        "palette": {
+          "colors": [
+            {
+              "hex": "#FFFFFF",
+              "id": "c1",
+              "name": "Paper",
+              "role": "background"
+            },
+            {
+              "hex": "#F5F5F5",
+              "id": "c2",
+              "name": "Surface",
+              "role": "surface"
+            },
+            {
+              "hex": "#111111",
+              "id": "c3",
+              "name": "Ink",
+              "role": "text"
+            },
+            {
+              "hex": "#A31621",
+              "id": "c4",
+              "name": "Primary",
+              "role": "primary"
+            }
+          ],
+          "pairs": [
+            {
+              "background": "c1",
+              "contrast": {
+                "passes": true,
+                "ratio": 18.88,
+                "threshold": 4.5
+              },
+              "foreground": "c3",
+              "usage": "body-text"
+            },
+            {
+              "background": "c4",
+              "contrast": {
+                "passes": true,
+                "ratio": 7.8,
+                "threshold": 3
+              },
+              "foreground": "c1",
+              "usage": "large-text"
+            }
+          ]
+        },
+        "typeScale": {
+          "families": [
+            {
+              "fallback": ["system-ui", "sans-serif"],
+              "family": "Inter",
+              "role": "text"
+            }
+          ],
+          "steps": [
+            {
+              "id": "t1",
+              "lineHeight": 1.4,
+              "name": "caption",
+              "sizePx": 12,
+              "usage": "SYNTHETIC DIR-B caption",
+              "weight": 400
+            },
+            {
+              "id": "t2",
+              "lineHeight": 1.4,
+              "name": "body",
+              "sizePx": 16,
+              "usage": "SYNTHETIC DIR-B body",
+              "weight": 400
+            },
+            {
+              "id": "t3",
+              "lineHeight": 1.4,
+              "name": "title",
+              "sizePx": 24,
+              "usage": "SYNTHETIC DIR-B title",
+              "weight": 400
+            },
+            {
+              "id": "t4",
+              "lineHeight": 1.4,
+              "name": "display",
+              "sizePx": 40,
+              "usage": "SYNTHETIC DIR-B display",
+              "weight": 400
+            }
+          ]
+        }
+      },
+      "summary": "SYNTHETIC DIR-B summary"
+    },
+    {
+      "attributes": {
+        "colorStrategy": "SYNTHETIC DIR-C color",
+        "componentWeight": "SYNTHETIC DIR-C components",
+        "density": "SYNTHETIC DIR-C density",
+        "imageryStrategy": "SYNTHETIC DIR-C imagery",
+        "motionCharacter": "SYNTHETIC DIR-C motion",
+        "navigationCharacter": "SYNTHETIC DIR-C navigation",
+        "personality": "SYNTHETIC DIR-C personality",
+        "references": [
+          {
+            "doNotCopy": ["SYNTHETIC DIR-C copies nothing from REF-1"],
+            "reference": "REF-1",
+            "takes": ["SYNTHETIC DIR-C takes from REF-1"]
+          },
+          {
+            "doNotCopy": ["SYNTHETIC DIR-C copies nothing from REF-2"],
+            "reference": "REF-2",
+            "takes": ["SYNTHETIC DIR-C takes from REF-2"]
+          }
+        ],
+        "risks": ["SYNTHETIC DIR-C risk"],
+        "surfaceTreatment": "SYNTHETIC DIR-C surface",
+        "typographyStrategy": "SYNTHETIC DIR-C typography",
+        "whenItDoesnt": ["SYNTHETIC DIR-C does not fit"],
+        "whenItFits": ["SYNTHETIC DIR-C fits"]
+      },
+      "id": "DIR-C",
+      "name": "SYNTHETIC DIR-C direction",
+      "origin": "inferred",
+      "proposal": {
+        "componentSheet": [
+          {
+            "fill": "c2",
+            "kind": "button",
+            "notes": "SYNTHETIC DIR-C button",
+            "radiusPx": 8,
+            "text": "c3",
+            "typeStep": "t3",
+            "variant": "default"
+          },
+          {
+            "fill": "c2",
+            "kind": "text-input",
+            "notes": "SYNTHETIC DIR-C text-input",
+            "radiusPx": 8,
+            "text": "c3",
+            "typeStep": "t3",
+            "variant": "default"
+          },
+          {
+            "fill": "c2",
+            "kind": "card",
+            "notes": "SYNTHETIC DIR-C card",
+            "radiusPx": 8,
+            "text": "c3",
+            "typeStep": "t3",
+            "variant": "default"
+          },
+          {
+            "fill": "c2",
+            "kind": "badge",
+            "notes": "SYNTHETIC DIR-C badge",
+            "radiusPx": 8,
+            "text": "c3",
+            "typeStep": "t3",
+            "variant": "default"
+          }
+        ],
+        "composition": {
+          "description": "SYNTHETIC DIR-C composition description",
+          "nodes": [
+            {
+              "columns": null,
+              "component": null,
+              "direction": "column",
+              "fill": "c1",
+              "id": "n1",
+              "imageHint": null,
+              "parent": null,
+              "text": null,
+              "type": "frame",
+              "typeStep": null
+            },
+            {
+              "columns": null,
+              "component": null,
+              "direction": null,
+              "fill": null,
+              "id": "n2",
+              "imageHint": null,
+              "parent": "n1",
+              "text": "SYNTHETIC DIR-C headline",
+              "type": "text",
+              "typeStep": "t3"
+            }
+          ],
+          "title": "SYNTHETIC DIR-C composition"
+        },
+        "marking": "SYNTHETIC",
+        "palette": {
+          "colors": [
+            {
+              "hex": "#FFFFFF",
+              "id": "c1",
+              "name": "Paper",
+              "role": "background"
+            },
+            {
+              "hex": "#F5F5F5",
+              "id": "c2",
+              "name": "Surface",
+              "role": "surface"
+            },
+            {
+              "hex": "#111111",
+              "id": "c3",
+              "name": "Ink",
+              "role": "text"
+            },
+            {
+              "hex": "#0B6E4F",
+              "id": "c4",
+              "name": "Primary",
+              "role": "primary"
+            }
+          ],
+          "pairs": [
+            {
+              "background": "c1",
+              "contrast": {
+                "passes": true,
+                "ratio": 18.88,
+                "threshold": 4.5
+              },
+              "foreground": "c3",
+              "usage": "body-text"
+            },
+            {
+              "background": "c4",
+              "contrast": {
+                "passes": true,
+                "ratio": 6.25,
+                "threshold": 3
+              },
+              "foreground": "c1",
+              "usage": "large-text"
+            }
+          ]
+        },
+        "typeScale": {
+          "families": [
+            {
+              "fallback": ["system-ui", "sans-serif"],
+              "family": "Inter",
+              "role": "text"
+            }
+          ],
+          "steps": [
+            {
+              "id": "t1",
+              "lineHeight": 1.4,
+              "name": "caption",
+              "sizePx": 12,
+              "usage": "SYNTHETIC DIR-C caption",
+              "weight": 400
+            },
+            {
+              "id": "t2",
+              "lineHeight": 1.4,
+              "name": "body",
+              "sizePx": 16,
+              "usage": "SYNTHETIC DIR-C body",
+              "weight": 400
+            },
+            {
+              "id": "t3",
+              "lineHeight": 1.4,
+              "name": "title",
+              "sizePx": 24,
+              "usage": "SYNTHETIC DIR-C title",
+              "weight": 400
+            },
+            {
+              "id": "t4",
+              "lineHeight": 1.4,
+              "name": "display",
+              "sizePx": 40,
+              "usage": "SYNTHETIC DIR-C display",
+              "weight": 400
+            }
+          ]
+        }
+      },
+      "summary": "SYNTHETIC DIR-C summary"
+    }
+  ],
+  "kind": "VisualDirections",
+  "mode": "reference-only",
+  "proposedAt": "2026-10-02T10:00:00.000Z",
+  "run": {
+    "cacheKey": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+    "path": "runs/run-20261002T100000Z-aaaaaaaa.json",
+    "provider": "fake",
+    "runId": "run-20261002T100000Z-aaaaaaaa",
+    "template": {
+      "id": "design-director/direction-propose",
+      "sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      "version": 1
+    }
+  },
+  "schemaVersion": 1,
+  "selection": null
+}

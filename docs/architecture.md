@@ -1,21 +1,22 @@
-# Arquitectura de Heron (P1 a P4)
+# Arquitectura de Heron (P1 a P4 y P12)
 
-Un solo paquete con módulos por frontera en `src/` (D4). Se dividirá en paquetes solo cuando exista un segundo entregable real. Este documento describe lo que P1, P2, P3 y P4 implementan; los módulos de diseño, tokens, Penpot y web aparecen en `MASTER.md` pero no existen todavía.
+Un solo paquete con módulos por frontera en `src/` (D4). Se dividirá en paquetes solo cuando exista un segundo entregable real. Este documento describe P1–P4 y Penpot base (P12); el sistema de diseño completo y web siguen planeados.
 
 ## Módulos y reglas de frontera
 
-| Módulo                | Responsabilidad                                                                                                                               | Puede importar                                           |
-| --------------------- | --------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------- |
-| `src/core/contracts/` | Esquemas Zod, tipos, JSON canónico, versionado, códigos de salida                                                                             | solo `zod` y archivos hermanos                           |
-| `src/core/state/`     | Dominio puro: fases, transiciones, gates, modo, obsolescencia                                                                                 | `core/contracts` y hermanos; sin `Bun`/`bun:`            |
-| `src/core/store/`     | `FileStore`, escritura atómica, lock, hash                                                                                                    | `core/contracts`; **único** que importa `node:fs`        |
-| `src/intake/`         | Puerto `ProductContextAdapter`, adapters (`navori-master`, `filesystem`, `markdown`, `manual`), precedencia, conflictos y lector de `ux.json` | `core`; recibe el filesystem como lectura inyectada      |
-| `src/security/`       | Primitivas puras o inyectables: clasificador SSRF, `Fetcher`, saneo de imágenes, escáner de texto no confiable, escape, redacción             | solo `core/contracts`; no toca el filesystem             |
-| `src/research/`       | Puerto `ResearchSource`, registro y adapters (`manual`, `url`, `image`, `design-md`), validación de provenance, renderers                     | `core/contracts`, lectura de `core/store`, `security`    |
-| `src/agents/`         | Puerto `AgentProvider`, registro, adapters (`claude-code`, `codex-cli`, `fake`), runner de procesos, context packs, cache y uso de tokens     | `core/contracts`, `security`, `core/store` (hash y temp) |
-| `src/app/`            | Casos de uso (init, status, doctor, gate, intake, conflicts, references, brand, research render) compartidos por CLI y, más adelante, web     | `core`, `intake`, `research`, `security`                 |
-| `src/cli/`            | Parseo de argumentos, render, envelope, `runCli` (copy en inglés, D14)                                                                        | `app`, `core`                                            |
-| `bin/heron.ts`        | Entrada del proceso                                                                                                                           | `cli`                                                    |
+| Módulo                | Responsabilidad                                                                                                                               | Puede importar                                                                     |
+| --------------------- | --------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------- |
+| `src/core/contracts/` | Esquemas Zod, tipos, JSON canónico, versionado, códigos de salida                                                                             | solo `zod` y archivos hermanos                                                     |
+| `src/core/state/`     | Dominio puro: fases, transiciones, gates, modo, obsolescencia                                                                                 | `core/contracts` y hermanos; sin `Bun`/`bun:`                                      |
+| `src/core/store/`     | `FileStore`, escritura atómica, lock, hash                                                                                                    | `core/contracts`; **único** que importa `node:fs`                                  |
+| `src/intake/`         | Puerto `ProductContextAdapter`, adapters (`navori-master`, `filesystem`, `markdown`, `manual`), precedencia, conflictos y lector de `ux.json` | `core`; recibe el filesystem como lectura inyectada                                |
+| `src/security/`       | Primitivas puras o inyectables: clasificador SSRF, `Fetcher`, saneo de imágenes, escáner de texto no confiable, escape, redacción             | solo `core/contracts`; no toca el filesystem                                       |
+| `src/research/`       | Puerto `ResearchSource`, registro y adapters (`manual`, `url`, `image`, `design-md`), validación de provenance, renderers                     | `core/contracts`, lectura de `core/store`, `security`                              |
+| `src/agents/`         | Puerto `AgentProvider`, registro, adapters (`claude-code`, `codex-cli`, `fake`), runner de procesos, context packs, cache y uso de tokens     | `core/contracts`, `security`, `core/store` (hash y temp)                           |
+| `src/penpot/`         | Puerto y registro MCP, sesión validada, compilador puro de páginas de revisión                                                                | `core/contracts`, lectura/hash de `core/store`, `security`, plantillas versionadas |
+| `src/app/`            | Casos de uso (init, status, doctor, gate, intake, conflicts, references, brand, research render) compartidos por CLI y, más adelante, web     | `core`, `intake`, `research`, `security`                                           |
+| `src/cli/`            | Parseo de argumentos, render, envelope, `runCli` (copy en inglés, D14)                                                                        | `app`, `core`                                                                      |
+| `bin/heron.ts`        | Entrada del proceso                                                                                                                           | `cli`                                                                              |
 
 Reglas:
 
@@ -105,7 +106,8 @@ Las transiciones válidas son la tabla `TRANSITIONS` (`src/core/state/transition
     brand.json        BrandInputs v1
     assets/{sha256}.webp   imágenes de marca saneadas
   runs/{runId}.json   P3; AgentRun de runs exitosos (fuera de state.artifacts)
-  logs/{fecha}.jsonl  P3; eventos agent.invocation y security.finding, poda a 30 días
+  penpot/review-sync.json  P12; PenpotSyncState v1, scope review (no producción)
+  logs/{fecha}.jsonl  P3/P12; eventos agent.invocation, security.finding y penpot.error, poda a 30 días
   staging/{runId}/    transitorio (ignorado)
   .lock               transitorio (ignorado)
   .lock.reclaim       transitorio (ignorado)
@@ -128,6 +130,16 @@ Los contratos viven en `src/core/contracts/` como esquemas Zod: `HeronProject`, 
 **Frescura = regenerar y comparar.** El documento no lleva fechas ni hashes de fuentes: está al día si `computeIntake` produce los mismos bytes que el archivo escrito. `status` y el gate usan esa misma función de solo lectura; `heron intake` la ejecuta y escribe solo si los bytes cambian.
 
 **Enmienda de DP9 (P4, DR7).** DP9 definía el gate `intake` como ortogonal al research: se aprueba desde `initialized` o desde fases posteriores a research. Con P4, `heron intake` escribe en cualquier fase y `transitions.ts` agrega una fila `approve-gate:intake` por cada fase de producción (`direction-selected` a `exported`), de modo que el gate se re-aprueba en sitio, sin cambiar de fase y con las guardas de modo y de aprobaciones intactas. Esto también cierra el caso en que un `init` repetido en producción reescribía `intake/mode.json` y dejaba la aprobación inválida sin forma de re-aprobar. `gate intake reject` sigue disponible para retroceder. Un cambio de contexto marca como obsoletos los artefactos posteriores (`ARTIFACT_DEPENDENCIES`).
+
+## Penpot (P12)
+
+El [ADR 0007](adr/0007-penpot-boundary.md) fija la frontera: `registry.ts` es el único importador de `mcpGateway` y expone `defaultPenpotGateway`; el SDK 1.31.0 solo vive en `adapters/mcp/`. `compiler/` no tiene vendors ni efectos. `PENPOT_TEMPLATES` importa texto y registra versión/sha256; `renderScript` une un literal JSON seguro con la plantilla exacta, sin scripts de IA. Las plantillas `@v1` están congeladas tras T12: toda modificación usa una versión nueva. Los límites de 32 KiB y la selección de fuentes exactas son políticas verificadas de Heron.
+
+`AppContext.penpot` inyecta gateway y timeouts (10 s conectar/leer, 60 s escribir). `withPenpotSession` cierra en `finally`, redacta errores antes de truncarlos y abre el log solo si una invocación que lo permite falla. `fixedContext` usa `refusingGateway`: una conexión real accidental en el suite default lanza. Las sondas vivas se ejecutan aparte con opt-in.
+
+Link y sync trabajan sobre revisión R; toda llamada MCP ocurre fuera del lock. El commit local usa `expectedRevision = R`, `recordCommand`, `withArtifacts` y `freshen`. Link actualiza también la huella del artefacto `project.json`. Sync reinspecciona tras intentar escribir y registra solo páginas confirmadas en `penpot/review-sync.json`; un error puede dejar escrituras remotas sin commit local y la siguiente corrida converge. Una corrida sin cambios omite el commit. Las banderas seleccionan las páginas que se escriben, no las otras páginas actuales que pueden registrarse.
+
+`collectPenpotFacts` cuenta propuestas con fuente actual en el archivo vinculado para el gate `direction`, sin red dentro del lock. `inspect`, `penpot doctor` y dry-run son de solo lectura; el doctor general agrega Penpot solo si `enabled` y `fileId` están presentes. La configuración de destino proviene del entorno, nunca de `project.json` ni del `.env`/`bunfig.toml` del producto. Guía: [penpot.md](penpot.md); controles: [security.md](security.md#penpot-p12).
 
 ## Códigos de salida
 

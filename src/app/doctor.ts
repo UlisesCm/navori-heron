@@ -18,6 +18,7 @@ import {
   type DoctorCheckId,
   type DoctorCheckStatus,
   type DoctorData,
+  type HeronProject,
 } from "../core/contracts/index.ts";
 import { detectMode } from "../core/state/mode.ts";
 import { readLogEvents } from "../core/store/append-log.ts";
@@ -37,6 +38,7 @@ import { buildAgentEnv } from "../security/env.ts";
 import { createValueRedactor } from "../security/redact.ts";
 import { summarizeAgentUsage } from "./agent-usage.ts";
 import type { AppContext } from "./context.ts";
+import { penpotChecks } from "./penpot-doctor.ts";
 import { resolveDirectory, storeErrorResult, type UseCaseResult } from "./result.ts";
 
 export const DOCTOR_CHECK_TIMEOUT_MS = 10_000;
@@ -449,14 +451,14 @@ export async function agentChecks(
 function agentWorkspace(
   ctx: AppContext,
   root: string | null,
-): { rawSettings: unknown; heronDir: string | null } {
-  if (root === null) return { rawSettings: undefined, heronDir: null };
+): { rawSettings: unknown; heronDir: string | null; project: HeronProject | null } {
+  if (root === null) return { rawSettings: undefined, heronDir: null, project: null };
   try {
     const store = openFileStore(ctx.fs, root, { create: false });
     const project = store.readDocument(PROJECT_FILE, HERON_PROJECT_DOCUMENT);
-    return { rawSettings: project?.agents, heronDir: store.heronDir };
+    return { rawSettings: project?.agents, heronDir: store.heronDir, project };
   } catch {
-    return { rawSettings: undefined, heronDir: null };
+    return { rawSettings: undefined, heronDir: null, project: null };
   }
 }
 
@@ -501,8 +503,14 @@ export async function runDoctor(
   ];
   const checks: DoctorCheck[] = [];
   for (const spec of specs) checks.push(await runCheck(spec, DOCTOR_CHECK_TIMEOUT_MS));
-  const { rawSettings, heronDir } = agentWorkspace(ctx, root);
-  checks.push(...(await agentChecks(ctx, rawSettings, input.deep, heronDir)));
+  const { rawSettings, heronDir, project } = agentWorkspace(ctx, root);
+  const [agents, penpot] = await Promise.all([
+    agentChecks(ctx, rawSettings, input.deep, heronDir),
+    project?.penpot.enabled && project.penpot.fileId !== null
+      ? penpotChecks(ctx, project)
+      : Promise.resolve([]),
+  ]);
+  checks.push(...agents, ...penpot);
   const data: DoctorData = { checks };
   const failed = checks.filter((check) => check.status === "FAIL");
   if (failed.length === 0) return { ok: true, data, findings: [], next: [] };

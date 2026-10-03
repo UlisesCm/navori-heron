@@ -33,6 +33,49 @@ function keywordsIn(node: unknown, out: Set<string>): void {
 }
 
 describe("toProviderSchema", () => {
+  test("communicates component color and typography references to both providers", () => {
+    for (const dialect of ["openai-strict", "claude"] as const) {
+      const schema = JSON.stringify(toProviderSchema(DirectionProposalOutputSchema, dialect));
+      expect(schema).toContain(
+        "Text color ID from this direction’s palette.colors[].id; not label text or UI copy.",
+      );
+      expect(schema).toContain("Background color ID from this direction’s palette.colors[].id");
+      expect(schema).toContain("Typography step ID from this direction’s typeScale.steps[].id.");
+    }
+  });
+
+  test("communicates stripped constraints through descriptions without widening strict keywords", () => {
+    const schema = z.strictObject({
+      id: z
+        .string()
+        .regex(/^n[0-9]{1,2}$/)
+        .min(2)
+        .max(3)
+        .describe("Node ID"),
+      list: z.array(z.number().min(0).max(5)).min(1).max(3),
+    });
+    const strict = toProviderSchema(schema, "openai-strict");
+    const text = JSON.stringify(strict);
+    expect(text).toContain("n[0-9]{1,2}");
+    expect(text).toContain("Node ID");
+    for (const constraint of [
+      "minLength",
+      "maxLength",
+      "minItems",
+      "maxItems",
+      "minimum",
+      "maximum",
+    ])
+      expect(text).toContain(constraint);
+    expect(() => assertStrictCompatible(strict, "openai-strict")).not.toThrow();
+    const used = new Set<string>();
+    keywordsIn(strict, used);
+    for (const key of used) expect(OPENAI_STRICT_KEYWORDS).toContain(key);
+    expect(JSON.stringify(toProviderSchema(schema, "openai-strict"))).toBe(text);
+    expect(JSON.stringify(toProviderSchema(OUTPUTS.directions, "openai-strict"))).toContain(
+      "n[0-9]{1,2}",
+    );
+  });
   test("emits provider schemas that both CLIs accept in strict mode", () => {
     for (const [name, schema] of Object.entries(OUTPUTS)) {
       const claude = toProviderSchema(schema, "claude");
@@ -56,9 +99,9 @@ describe("toProviderSchema", () => {
     }
     // the strict dialect really strips what the claude one keeps
     expect(JSON.stringify(toProviderSchema(OUTPUTS.brief, "claude"))).toContain("minItems");
-    expect(JSON.stringify(toProviderSchema(OUTPUTS.brief, "openai-strict"))).not.toContain(
-      "minItems",
-    );
+    const briefKeywords = new Set<string>();
+    keywordsIn(toProviderSchema(OUTPUTS.brief, "openai-strict"), briefKeywords);
+    expect(briefKeywords).not.toContain("minItems");
     // property names that collide with keywords survive
     const odd = toProviderSchema(
       z.strictObject({ pattern: z.string().min(1), tag: z.enum(["a", "b"]).nullable() }),

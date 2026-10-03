@@ -5,6 +5,7 @@
     "bun.lock",
     "coverage/**",
     "fixtures/**",
+    "infra/penpot/docker-compose.yaml",
     "schemas/**",
     "specs/**",
     "tests/assets/p1-workspaces/**",

@@ -4,6 +4,65 @@ import { UsageError, type CommandSpec, type ParsedCommand } from "../../src/cli/
 import { COMMANDS } from "../../src/cli/commands/index.ts";
 import { runCliCaptured } from "../helpers/cli.ts";
 
+// Covers: R4, R5, R6, R8, R11, R16
+test("parses the Penpot group with explicit environment-only connection settings", () => {
+  expect(
+    parseCliArgs([
+      "penpot",
+      "link",
+      "repo",
+      "--file-id",
+      "81393c30-ef74-81fb-8008-bac02a1b685a",
+      "--json",
+    ]),
+  ).toEqual({
+    command: "penpot",
+    action: "link",
+    path: "repo",
+    fileId: "81393c30-ef74-81fb-8008-bac02a1b685a",
+    json: true,
+  });
+  expect(parseCliArgs(["penpot", "link"])).toEqual({
+    command: "penpot",
+    action: "link",
+    path: ".",
+    fileId: null,
+    json: false,
+  });
+  for (const action of ["doctor", "inspect"] as const)
+    expect(parseCliArgs(["penpot", action])).toEqual({
+      command: "penpot",
+      action,
+      path: ".",
+      json: false,
+    });
+  expect(
+    parseCliArgs(["penpot", "sync", "repo", "--references", "--proposals", "--dry-run"]),
+  ).toEqual({
+    command: "penpot",
+    action: "sync",
+    path: "repo",
+    references: true,
+    proposals: true,
+    dryRun: true,
+    json: false,
+  });
+  for (const args of [
+    ["penpot"],
+    ["penpot", "bad"],
+    ["penpot", "sync"],
+    ["penpot", "link", "--url", "https://evil.test"],
+    ["penpot", "link", "--file-id", "not-a-uuid"],
+    ["penpot", "doctor", "--deep"],
+    ["penpot", "inspect", "a", "b"],
+  ])
+    expect(parseCliArgs(args)).toBeInstanceOf(UsageError);
+  expect(USAGE_TEXT).toContain("Penpot: set PENPOT_URL and PENPOT_MCP_KEY or PENPOT_MCP_KEY_FILE");
+  expect(USAGE_TEXT).toContain(
+    "  penpot sync [path] [--proposals] [--references] [--dry-run] [--json]",
+  );
+});
+
 describe("parseCliArgs", () => {
   // Covers: R6
   test("parses init, status and gate with defaults and options", () => {

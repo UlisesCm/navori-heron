@@ -137,6 +137,32 @@ describe("direction dependencies", () => {
   });
 });
 
+describe("review sync dependencies", () => {
+  // Covers: R15
+  test("marks the review sync stale when the directions or the references change", () => {
+    const state = createInitialState({
+      mode: "full",
+      meta,
+      artifacts: [
+        art("research/references.json"),
+        art("research/visual-directions.json"),
+        art("penpot/review-sync.json"),
+      ],
+    });
+    expect(
+      paths(propagateStale(state, ["research/visual-directions.json"], "directions changed")),
+    ).toEqual(["penpot/review-sync.json"]);
+    expect(paths(propagateStale(state, ["research/references.json"], "refs changed"))).toEqual([
+      "penpot/review-sync.json",
+      "research/visual-directions.json",
+    ]);
+    // a regression before directions-ready stales it, like any artifact of a later phase
+    expect(paths(markStaleAfter(state, "research-ready", "regressed"))).toContain(
+      "penpot/review-sync.json",
+    );
+  });
+});
+
 describe("lifecycle", () => {
   test("createInitialState starts at revision 1 in initialized", () => {
     const created = createInitialState({

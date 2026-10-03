@@ -18,7 +18,8 @@ src/tokens/           dtcg resolver contrast color brand-variant parity [P5]
 src/design/           foundations components patterns screens layout design-md preview-html copy [P5] · ux-proposal [P7]
 src/validation/       registry categories coverage validators/<id> [P5]
 src/export/           manifest layout (lista pura de archivos de dist/) [P5]
-src/penpot/           ports compiler/{plan,script,ids,templates} adapters/mcp/ [P12] · sync/drift [P6]
+src/penpot/           ports registry config session results compatibility [E, P12]
+                      compiler/{nodes,templates,script,ids,copy,components,composition,proposal-page,references-page,plan} adapters/mcp/ [E, P12] · sync/drift [P6]
 src/app/              context result version init status doctor gate [E] · write-run [pre-P2] · config [P3] · <familia>.ts por grupo de órdenes [P2+]
 src/cli/              main args io envelope render commands/ [E] · output (emitResult) [pre-P2] · commands/<grupo> con CommandSpec [P2]
 src/web/              server auth/ middleware/{csp,csrf} routes/*.tsx views/*.tsx api/v1/ [P8] · islands/ (navegador) [P8]
@@ -30,6 +31,8 @@ tests/ unit/<module>/ e2e/ contracts/ security/ web/ infra/ repo/ perf/ helpers/
 ```
 
 Verifica con `ls` qué existe antes de afirmarlo: esta lista se escribió el 2026-09-30.
+
+Actualización P12 (2026-10-02): `src/app/{penpot,penpot-config,penpot-session,penpot-sync,penpot-doctor}.ts`, `src/cli/commands/penpot.ts` y `src/cli/render-penpot.ts` componen la integración. `templates/penpot/{inspect,review-page}@v1.penpot.js` son texto congelado; `compiler/templates.ts` es su único importador. Infraestructura existente: `infra/penpot/{fetch-compose,init-env,compose}`; frontera: `docs/adr/0007-penpot-boundary.md`. El registro de revisión es `.heron/penpot/review-sync.json`, separado del futuro estado productivo.
 
 ## Reglas de ubicación
 

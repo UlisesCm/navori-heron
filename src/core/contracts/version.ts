@@ -17,6 +17,7 @@ export const DOCUMENT_KINDS = [
   "ResearchBrief",
   "ResearchAnalysis",
   "VisualDirections",
+  "PenpotSyncState",
 ] as const;
 export type DocumentKind = (typeof DOCUMENT_KINDS)[number];
 

@@ -510,7 +510,8 @@
               "AgentRun",
               "ResearchBrief",
               "ResearchAnalysis",
-              "VisualDirections"
+              "VisualDirections",
+              "PenpotSyncState"
             ],
             "type": "string"
           },

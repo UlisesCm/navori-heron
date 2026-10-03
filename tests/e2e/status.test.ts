@@ -19,6 +19,29 @@ import { makePng, referenceArgs } from "../helpers/research.ts";
 
 const { fresh, initialized } = e2eSetup();
 
+// Covers: R8, R11
+test("offers Penpot link and doctor always and inspection and sync only after binding", async () => {
+  const root = await initialized("no-ux");
+  const before = await runCliCaptured(["status", root, "--json"]);
+  const unlinked = (JSON.parse(before.stdout) as CliEnvelope & { data: StatusData }).data
+    .allowedCommands;
+  expect(unlinked).toContain("heron penpot link|doctor");
+  expect(unlinked).not.toContain("heron penpot inspect|sync");
+  const projectPath = join(root, ".heron/project.json");
+  const project = JSON.parse(readFileSync(projectPath, "utf8")) as {
+    penpot: { enabled: boolean; fileId: string | null };
+  };
+  project.penpot.enabled = true;
+  project.penpot.fileId = "file-1";
+  writeFileSync(projectPath, JSON.stringify(project));
+  const settled = hashTree(root, { exclude: [] });
+  const result = await runCliCaptured(["status", root, "--json"]);
+  const commands = (JSON.parse(result.stdout) as CliEnvelope & { data: StatusData }).data
+    .allowedCommands;
+  expect(commands).toContain("heron penpot inspect|sync");
+  expect(hashTree(root, { exclude: [] })).toEqual(settled);
+});
+
 // P1/P2 are a fixed prefix; later specs only append commands after `heron research render`.
 const ALLOWED_COMMANDS_PREFIX =
   "Allowed commands: heron init, heron status, heron doctor, heron gate intake approve|reject, heron references add|import, heron references list|show|compare|remove, heron brand add, heron research render";

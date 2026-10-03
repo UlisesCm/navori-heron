@@ -196,6 +196,7 @@ describe("validateDirectionsOutput", () => {
     ]);
     expect(pointers(withFirst((d) => (d.proposal.palette.colors[3]!.id = "c1")))).toEqual([
       "/directions/0/proposal/palette/colors/3/id",
+      ...[0, 1, 2, 3].map((i) => `/directions/0/proposal/componentSheet/${i}/fill`),
       "/directions/0/proposal/composition/nodes/3/fill", // c4 was renamed away
     ]);
     expect(pointers(withFirst((d) => (d.proposal.palette.pairs[0]!.usage = "large-text")))).toEqual(
@@ -208,6 +209,7 @@ describe("validateDirectionsOutput", () => {
     ]);
     expect(pointers(withFirst((d) => (d.proposal.typeScale.steps[1]!.id = "t1")))).toEqual([
       "/directions/0/proposal/typeScale/steps/1/id",
+      ...[0, 1, 2, 3].map((i) => `/directions/0/proposal/componentSheet/${i}/typeStep`),
       "/directions/0/proposal/composition/nodes/3/typeStep", // t2 no longer exists
     ]);
     const noCard = pointers(withFirst((d) => (d.proposal.componentSheet[2]!.kind = "badge")));
@@ -217,6 +219,19 @@ describe("validateDirectionsOutput", () => {
         withFirst((d) => (d.proposal.componentSheet = d.proposal.componentSheet.slice(0, 3))),
       ),
     ).toContain("/directions/0/proposal/componentSheet");
+  });
+
+  test("rejects component copy or unknown token references before rendering", () => {
+    const base = "/directions/0/proposal/componentSheet/0";
+    expect(pointers(withFirst((d) => (d.proposal.componentSheet[0]!.text = "Crear Post")))).toEqual(
+      [`${base}/text`],
+    );
+    expect(pointers(withFirst((d) => (d.proposal.componentSheet[0]!.fill = "c99")))).toEqual([
+      `${base}/fill`,
+    ]);
+    expect(pointers(withFirst((d) => (d.proposal.componentSheet[0]!.typeStep = "t99")))).toEqual([
+      `${base}/typeStep`,
+    ]);
   });
 
   test("rejects invalid compositions", () => {

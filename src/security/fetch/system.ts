@@ -77,3 +77,7 @@ export const bunTransport: Transport = {
     };
   },
 };
+
+export type McpFetch = (url: string | URL, init?: RequestInit) => Promise<Response>;
+/** Block redirects on every SDK request, including its standalone SSE GET (DR7). */
+export const mcpFetch: McpFetch = (url, init) => fetch(url, { ...init, redirect: "error" });

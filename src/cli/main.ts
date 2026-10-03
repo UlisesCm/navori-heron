@@ -27,6 +27,8 @@ function envelopeCommand(
       return `direction ${parsed.action}`;
     case "conflicts":
       return `conflicts ${parsed.action}`;
+    case "penpot":
+      return `penpot ${parsed.action}`;
     default:
       return parsed.command;
   }

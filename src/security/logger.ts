@@ -1,7 +1,7 @@
 import { REDACTED, isSecretName } from "./redact.ts";
 import type { Redactor } from "./redact.ts";
 
-export const LOG_EVENT_NAMES = ["agent.invocation", "security.finding"] as const;
+export const LOG_EVENT_NAMES = ["agent.invocation", "security.finding", "penpot.error"] as const;
 export type LogEventName = (typeof LOG_EVENT_NAMES)[number];
 export type LogFields = Readonly<Record<string, string | number | boolean | null>>;
 

@@ -51,6 +51,7 @@ Brand kinds: ${BRAND_KINDS.join(", ")}
 Brand origins: ${BRAND_ORIGINS.join(", ")}
 Research facets: ${RESEARCH_FACETS.join(", ")}
 Agent roles: ${AGENT_ROLES.join(", ")} (configured in .heron/project.json "agents"; see docs/agent-providers.md)
+Penpot: set PENPOT_URL and PENPOT_MCP_KEY or PENPOT_MCP_KEY_FILE in your shell; Heron never reads them from a .env file (see docs/penpot.md)
 
 Options:
   -h, --help     Show this help

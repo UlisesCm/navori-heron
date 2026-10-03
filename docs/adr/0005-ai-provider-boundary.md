@@ -36,3 +36,9 @@ Hace falta una frontera que permita cambiar o añadir proveedores sin tocar los 
 - La separación entre plantilla y datos es más débil en Codex (la plantilla va en stdin a nivel de usuario); lo compensan el sandbox y el monitor.
 - Un descendiente que cree otra sesión escapa a `kill(-pid)`. En Claude no existen (sin herramientas); en Codex los contiene el sandbox sin red.
 - La suscripción puede tener límites de uso ordinario. Heron no los controla; registra tokens y avisa, y el uso multiusuario u hospedado exige releer los términos (P9).
+
+## Constraints en el dialecto conservador (2026-10-02)
+
+La proyección `openai-strict` descartaba patrones y límites sin comunicarlos al modelo; la salida real de Codex rechazó IDs de composición. Sin ampliar `OPENAI_STRICT_KEYWORDS`, `strictNode` convierte las restricciones escalares omitidas en hints JSON deterministas en `description`, conserva el texto original y recorre objetos, arrays y uniones. Claude no cambia. Estos hints no reemplazan Zod ni prometen salida válida: la validación completa y los intentos acotados siguen siendo obligatorios.
+
+La [documentación oficial de OpenAI](https://developers.openai.com/api/docs/guides/structured-outputs) recomienda descripciones claras y documenta restricciones adicionales con excepciones para modelos fine-tuned. Heron mantiene la lista conservadora probada; no infiere de la API la compatibilidad de cada modelo de suscripción del CLI.

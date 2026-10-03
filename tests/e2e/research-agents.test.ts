@@ -43,6 +43,26 @@ const read = (root: string, path: string): string =>
 
 describe("heron research brief and analyze", () => {
   // Covers: R9, R16
+  test("rejects an overlong operator query before spending tokens or writing", async () => {
+    const { root, ctx, requests } = await setup();
+    const before = hashTree(join(root, ".heron"), { exclude: [] });
+    const bad = await runCliCaptured(
+      ["research", "brief", root, "--query", `screen-type:${"x".repeat(121)}`, "--json"],
+      ctx,
+    );
+    expect(bad.code).toBe(ExitCode.Usage);
+    expect(bad.stdout).toContain("RESEARCH_QUERY_INVALID");
+    expect(requests).toHaveLength(0);
+    expect(hashTree(join(root, ".heron"), { exclude: [] })).toEqual(before);
+    const good = await runCliCaptured(
+      ["research", "brief", root, "--query", `screen-type:${"x".repeat(120)}`, "--json"],
+      ctx,
+    );
+    expect(good.code).toBe(ExitCode.Ok);
+    expect(requests).toHaveLength(1);
+  });
+
+  // Covers: R9, R16
   test("formulates a faceted brief with the fake provider and rejects facet-less operator queries", async () => {
     const { root, ctx, requests } = await setup();
     const run = await runCliCaptured(

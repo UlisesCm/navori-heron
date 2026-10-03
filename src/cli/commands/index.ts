@@ -9,6 +9,7 @@ import { intakeCommand } from "./intake.ts";
 import { referencesCommand } from "./references.ts";
 import { researchCommand } from "./research.ts";
 import { statusCommand } from "./status.ts";
+import { penpotCommand } from "./penpot.ts";
 
 /** Every CLI command; a command group registers here and nowhere else. */
 export const COMMANDS: readonly CommandSpec[] = [
@@ -22,4 +23,5 @@ export const COMMANDS: readonly CommandSpec[] = [
   intakeCommand,
   conflictsCommand,
   directionCommand,
+  penpotCommand,
 ];
