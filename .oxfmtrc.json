@@ -12,6 +12,7 @@
     "progress/**",
     ".claude/**",
     ".codex/**",
+    ".agents/**",
     ".navori/**",
     "CLAUDE.md",
     "AGENTS.md",

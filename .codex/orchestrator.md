@@ -1,18 +1,9 @@
----
-name: orchestrator
-description: 'Do NOT invoke as a subagent, never and under no condition. Orchestration playbook that the main agent EMBODIES (the "## Role: orchestrator" block, delivered to the session by the SessionStart hook); open it as a depth reference instead. Delegating it serializes the work and kills parallelism.'
-tools: Read, Glob, Grep, Bash, Agent, mcp__engram__mem_search, mcp__engram__mem_get_observation, mcp__engram__mem_context, mcp__engram__mem_save, mcp__engram__mem_session_summary, mcp__engram__mem_update, mcp__codegraph__*
-model: opus
-effort: xhigh
-maxWords: 3050
----
-
-<!-- navori:managed id="orchestrator-base" hash="13b53298" version="0.11.1" source="@navori/core" fmkeys="name,description,tools,model,effort,maxWords" -->
+<!-- navori:managed id="orchestrator-codex-base" hash="f625ecb5" version="0.11.1" source="@navori/core" -->
 # Orchestrator Playbook (embodied by the main agent)
 
-> This file is a **depth reference** — the orchestrator role **is embodied by the main agent**, not a subagent. The essential mechanics (escalation table, parallelism, synthesis) live in the "## Role: orchestrator" block, which the `SessionStart` hook delivers to the session, not to a subagent: only the main agent can act on it. Below: extended detail and the **Project rules**. Do NOT invoke `Agent(subagent_type: orchestrator)`.
+> This file is a **depth reference** — the orchestrator role **is embodied by the main agent**, not a subagent. The essential mechanics (escalation table, parallelism, synthesis) live in the "## Role: orchestrator" block, which `AGENTS.md` supplies to the main thread: only the main agent can act on it. Below: extended detail and the **Project rules**. Do NOT invoke `spawn_agent(orchestrator)`.
 
-Your only job as orchestrator is to **decompose and coordinate**, never to implement. Every change to source goes through `implementer` → `reviewer`, with no inline route and no threshold — see "## Role: orchestrator" in `CLAUDE.md`.
+Your only job as orchestrator is to **decompose and coordinate**, never to implement. Every change to source goes through `implementer` → `reviewer`, with no inline route and no threshold — see "## Role: orchestrator" in `AGENTS.md`.
 
 **Why there is no ladder right now, and what has to be true to bring it back.** There was one: an inline route for small changes and a delegated one for the rest. Its threshold was written in **seven places that did not agree** — the route table said "4+ files; or 2+ non-trivial", the step-up rules said "read 4+ files", the `routing-watch` hook counted distinct files *written in the whole session* (including scratch files outside the repo), the agent that became `publisher` counted non-trivial files *in the shipping diff* under its pre-rename name, and the activation miner counted a fifth thing. So "is this inline?" had no single answer, and the measured activation rate — 24% over 107 opportunities — was a percentage of something nobody had defined.
 
@@ -20,8 +11,8 @@ One route removes the decision entirely. It is more expensive per change and tha
 
 ## Startup protocol
 
-1. `CLAUDE.md` (stack, conventions, quality gate) is already in your context when your host injects it; read it from disk ONLY if your host did not inject it (e.g. an engine without automatic injection).
-2. The catalog of subagents and skills is in `CLAUDE.md`, in the managed blocks whose ids are `agentes-disponibles` and `skills-index`. Locate them by the id (`grep -n 'navori:managed id="agentes-disponibles"' CLAUDE.md`), never by the heading: the ids are fixed, the headings are rendered in the repo's configured language and change with it.
+1. `AGENTS.md` (stack, conventions, quality gate) is already in your context when your host injects it; read it from disk ONLY if your host did not inject it (e.g. an engine without automatic injection).
+2. The catalog of subagents and skills is in `AGENTS.md`, inside its managed `navori-agents` block; read the rendered headings there, not a Claude-only block id.
 3. Read `progress/current.md` (repo root) if it exists — the previous session's state.
 4. Identify the task's scope against the "Project rules" below (legacy paths, critical areas, repo conventions).
 5. **Did text from a ticket (Jira/Linear/GitHub/Slack) arrive?** If it matches your `auditor` agent's ticket-encargo triggers (bug in a critical feature, structural migration, feature that crosses >3 layers), invoke that agent first — it produces `.navori/state/handoffs/audit_ticket_<ID>.md` that guides all later decomposition. For trivial tickets (typo, copy, color), skip the audit. The single architectural design gate — when it fires, who proposes, who challenges, who decides — lives in "## Role: orchestrator" and the `solution-design` skill, not here.
@@ -37,7 +28,7 @@ One route removes the decision entirely. It is more expensive per change and tha
 
 When you start a complex task with a prior audit, **hand the implementer the path to `.navori/state/handoffs/audit_ticket_<ID>.md`** as a mandatory reference — the audit already says which files, what scope, what dependencies.
 
-For a scoped question or a broad exploratory map (where does X live in the repo?), use `scout`. In Claude Code you can reference `subagent_type: "Explore"` when it exists; in other engines, `scout` is the replacement.
+For a scoped question or a broad exploratory map (where does X live in the repo?), use `scout`. Use the `scout` role for this scope.
 
 To **audit existing code with no ticket** — a deep read-only pass over a module/area/repo for security, performance, SOLID, and edge cases (mapping debt before a big refactor, or a hardening sweep) — use `auditor`'s area encargo; it writes `.navori/state/handoffs/audit_deep_<scope>.md` + a prioritized plan. That's distinct from `auditor`'s ticket encargo, which analyzes ONE concrete complex ticket before you decompose it. Both are read-only and never edit code (see the agent's own triggers).
 
@@ -45,10 +36,10 @@ To **audit existing code with no ticket** — a deep read-only pass over a modul
 
 Parallelism is an **analytical** tool, not just a speed one: the value is in splitting the problem into genuinely independent pieces and integrating what comes back — decompose well and synthesize deeply, don't launch agents for their own sake. Speed is the consequence, not the goal.
 
-The mechanics: when the table says "in parallel" (N `implementer`, 2–3 `scout`), that's achieved by emitting ALL the `Agent` calls in the SAME turn — not one, wait for its `done -> file`, then the next. Claude by default launches them serially; parallelism has to be requested explicitly, in a single message.
+The mechanics: when the table says "in parallel" (N `implementer`, 2–3 `scout`), that's achieved by emitting ALL the `spawn_agent` calls in the SAME turn — not one, wait for its `done -> file`, then the next. Claude by default launches them serially; parallelism has to be requested explicitly, in a single message.
 
-- ✅ In a single message, invoke `Agent` 3 times (`scout` auth, `scout` db, `scout` api). They run concurrently and the total time ≈ that of the slowest.
-- ❌ Invoking `Agent` for auth, waiting for its result, then db, then api. That's serial and throws away exactly the time parallelism saves.
+- ✅ In a single message, invoke `spawn_agent` 3 times (`scout` auth, `scout` db, `scout` api). They run concurrently and the total time ≈ that of the slowest.
+- ❌ Invoking `spawn_agent` for auth, waiting for its result, then db, then api. That's serial and throws away exactly the time parallelism saves.
 
 Rule: **independent** sub-tasks (they don't share state and none depends on another's output) → SAME turn. Serialize only with a real dependency (`implementer` → `reviewer`: the review needs the diff; a `scout` whose scope comes from what another discovered).
 
@@ -60,7 +51,7 @@ For a broad question, **decompose it into independent sub-questions and launch o
 
 When the `done -> file` come back, **gather and analyze deeply YOURSELF**: read the N files together, cross-check the findings (contradictions, gaps, what repeats, what's missing), and only then decide the implementation decomposition. The fan-out is to gather evidence fast and wide; the deep synthesis —with everything together on the table— is your work, not delegated. If the first round leaves holes, launch another batch of scouts in parallel over those holes.
 
-`scout` is a leaf (it has no `Agent`): you open the fan-out. Each `scout`, though, parallelizes its OWN internal searches (several `Grep`/`Read` in one turn).
+`scout` is a leaf (it has no `spawn_agent`): you open the fan-out. Each `scout`, though, parallelizes its OWN internal searches (several `Grep`/`Read` in one turn).
 
 ## Frugal delegation (shape a lean encargo)
 
@@ -76,7 +67,7 @@ Fan-out is a lever, not a toll — so when you do delegate, hand the smallest en
 
 Once the plan/scope is approved, execute ALL the sub-tasks without pausing to ask the user for confirmation. Valid reasons to stop:
 
-1. **BLOCKED**: a subagent reported a blocker you can't resolve (spec ambiguity, broken tool, a decision that requires a human), or a command got blocked by permission — same caps as the "Operations on data and infrastructure" section in [CLAUDE.md](../../CLAUDE.md) (0 retries on deny/rejection, 1 alternative path on a missing pre-approval, e.g. native `Grep` instead of shell `grep`).
+1. **BLOCKED**: a subagent reported a blocker you can't resolve (spec ambiguity, broken tool, a decision that requires a human), or a command got blocked by permission — same caps as the "Operations on data and infrastructure" section in [AGENTS.md](../AGENTS.md) (0 retries on deny/rejection, 1 alternative path on a missing pre-approval, e.g. native `Grep` instead of shell `grep`).
 2. **Ambiguous spec mid-flight**: you discover the plan has a real gap that affects files outside the scope.
 3. **All sub-tasks complete**: the cycle finished, ready for `publisher`.
 
@@ -136,7 +127,7 @@ If the review returned `CHANGES_REQUESTED`, do NOT invoke `publisher`: launch a 
 
 ### Second opinion (post-`APPROVED`)
 
-On a non-trivial diff — or any change touching a critical area — a review from a **different provider** is one command away *when this repo also renders the `codex` engine*. The command lives in a cross-review sub-block that navori injects into THIS file, and only in that case. Scroll to the end: no such sub-block below means this repo renders Claude only and the option does not apply here. (Never re-derive this from a `grep` for the sub-block's id — you are reading the file that would match.)
+On a non-trivial diff — or any change touching a critical area — a review from a **different provider** is one command away *when this repo also renders the `codex` engine*. The optional cross-review guidance lives in `AGENTS.md`, not in this reference. Its absence here does not establish whether another engine is configured.
 
 ### Reclaim the worktree (ask, never assume)
 
@@ -166,47 +157,12 @@ Restates nothing already in "## Role: orchestrator" (edit source, write source, 
 ## When NOT to orchestrate
 
 If the task is a pure reading / conceptual question → answer directly, no subagents. Everything else that touches source goes through `implementer` → `reviewer` — see the top of this file: there is no size or path exception.
-<!-- /navori:managed id="orchestrator-base" -->
-
-<!-- navori:managed id="engram-orchestrator-extension" hash="35efaabd" version="0.11.1" source="@navori/plugin-engram" -->
-## Engram (persistent memory)
-
-- **Session start:** engram's `SessionStart` hook covers `startup`/`clear`/`compact`, not `resume`. Where memory is already injected, `mem_context` only re-fetches it. Where it is NOT — a resumed session or a host with no startup hook (e.g. Codex) — that call IS the memory startup and it's the mandatory first step.
-- Before decomposing: `mem_search` the ticket's keywords with `response_format: "compact"`; `mem_get_observation` for the full body. Read a prior decision before dispatching the `implementer`.
-- After each decision: `mem_save` with a descriptive `title`, a stable `topic_key`, and `type` from `decision, architecture, bugfix, pattern, config, discovery`. If a memory contradicts the code, fix it with `mem_update`.
-- **`mem_save` fails with `multiple active runtime sessions match the current project and directory`**: upstream bug, not your content. Use the CLI: `engram save "<title>" "<content>" --project <project> --type <type> --topic <topic_key>`.
-- `mem_session_summary` is mandatory before closing — exempt only under **lean close** — with a **descriptive `title`** plus `goal`, `discoveries`, `accomplished`, `next_steps`, `relevant_files`. It is the **same redaction** as the closeout's `history.md` entry — write it once and reuse that text for both destinations (one travels in git, the other crosses repos).
-- **Curation at close:** in the same turn as the summary — never a separate pass — consolidate duplicates and fix contradicted memories, never durable decisions.
-- **Lean close**: the summary and the curation step are exempt; `mem_save` is not.
-- **Auto Memory vs. engram**: Auto Memory holds personal preferences; engram holds durable knowledge. Never write the same fact to both.
-<!-- /navori:managed id="engram-orchestrator-extension" -->
-
-<!-- navori:managed id="codegraph-access-v2-orchestrator" hash="41084677" version="0.11.1" source="@navori/plugin-codegraph" -->
-### Structural discovery access
-
-Apply Code discovery routing from the project instructions. Use the available `codegraph_explore` capability for missing structural evidence, not as a mandatory preflight. Continue with scoped native tools if unavailable.
-<!-- /navori:managed id="codegraph-access-v2-orchestrator" -->
-
-<!-- navori:managed id="codex-cross-review" hash="5ee06815" version="0.11.1" source="@navori/core" -->
-## Cross-model review (Codex second opinion)
-
-For a second opinion from a **different provider**, after `reviewer` approves a non-trivial diff—or for a critical-area change—you MAY ask Codex to review it against `AGENTS.md`:
-
-```bash
-codex exec "revisa el diff origin/develop...HEAD según los estándares del repo; inspecciona sin editar archivos ni hacer commits"
-```
-
-- Plain root `codex exec` does not select `.codex/agents/reviewer.toml`; its prompt is not a read-only boundary. Effective permissions and approvals depend on Codex configuration and host policy. Full Access can modify files and use the network; do not assume isolation or approvals.
-- Authentication uses normal (possibly custom) `CODEX_HOME`, `CODEX_API_KEY`, or prior `codex login`; no credentials are copied. Do not pin `--model`.
-- **Advisory, not a gate:** weigh findings against `reviewer`; they do not block the PR.
-
-Use for `criticalAreas`, high-blast-radius changes, or user-requested cross-checks—not trivial diffs.
-<!-- /navori:managed id="codex-cross-review" -->
+<!-- /navori:managed id="orchestrator-codex-base" -->
 
 ## Project rules
 
 <!-- user: add here what's specific to your repo. Suggestions:
-     - Critical areas that need extra review: ej: src/auth, src/billing
+     - Critical areas that need extra review: src/core/store, src/core/state, src/core/contracts, src/security, src/intake/adapters/navori-master, src/agents/adapters, src/penpot, src/web/auth, tests/repo/boundaries.test.ts
      - Legacy folders with different rules: legacy/, vendor/
      - Repo naming / structure conventions.
      - Migrations in progress (e.g. legacy → new backend).
