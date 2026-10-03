@@ -3,7 +3,8 @@
   "name": "navori-heron",
   "version": "1.0.0",
   "engines": [
-    "claude"
+    "claude",
+    "codex"
   ],
   "preset": "custom",
   "language": "es",
