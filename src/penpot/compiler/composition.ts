@@ -27,6 +27,9 @@ export function compositionNodes(
       return makeBoard(`${nodeKey}/cycle`, [], { layout: null, width, height: 80 });
     }
     visited.add(source.id);
+    const next = new Set(path);
+    next.add(source.id);
+    const childSources = nodes.filter((node) => node.parent === source.id);
     const fill = proposalColor(proposal, source.fill, "surface", `${nodeKey}/fill`, issues);
     const text = proposalColor(proposal, null, "text", `${nodeKey}/text`, issues);
     const step = proposalStep(proposal, source.typeStep, `${nodeKey}/typeStep`, issues);
@@ -36,6 +39,13 @@ export function compositionNodes(
       if (spec) {
         const result = componentNodes(spec, proposal, nodeKey, copy);
         issues.push(...result.issues);
+        if (result.node.type === "board" && childSources.length > 0) {
+          const childWidth = Math.max(
+            32,
+            result.node.width - 2 * (result.node.layout?.padding ?? 0),
+          );
+          result.node.children = childSources.map((node) => compile(node, next, childWidth));
+        }
         return result.node;
       }
       issues.push({
@@ -69,9 +79,6 @@ export function compositionNodes(
         },
       );
     }
-    const next = new Set(path);
-    next.add(source.id);
-    const childSources = nodes.filter((node) => node.parent === source.id);
     const columns =
       source.type === "grid"
         ? (source.columns ?? 2)

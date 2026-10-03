@@ -238,6 +238,89 @@ describe("proposal page compiler", () => {
     expect(compositionNodes(proposal, "composition", context.copy).node).toBeDefined();
   });
 
+  test("preserves SYNTHETIC explicit component descendants instead of generic specimen copy", () => {
+    // Covers: R10
+    const proposal = structuredClone(first.proposal);
+    const spec = proposal.componentSheet[0]!;
+    proposal.componentSheet = [
+      { ...spec, kind: "card" },
+      { ...spec, kind: "list-item" },
+      { ...spec, kind: "button" },
+    ];
+    proposal.composition.nodes = [
+      { ...graphNode("card", null, "component"), component: 0 },
+      { ...graphNode("title", "card", "text"), text: "SYNTHETIC explicit title" },
+      { ...graphNode("item", "card", "component"), component: 1 },
+      { ...graphNode("button", "item", "component"), component: 2 },
+      { ...graphNode("label", "button", "text"), text: "SYNTHETIC explicit action" },
+    ];
+    const result = compositionNodes(proposal, "composition", context.copy);
+    const compiled = flatten([result.node]);
+    expect(result.issues).toEqual([]);
+    expect(new Set(compiled.map((node) => node.key)).size).toBe(compiled.length);
+    for (const source of proposal.composition.nodes) {
+      const key = `composition/${source.id}`;
+      expect(compiled.filter((node) => node.key === key)).toHaveLength(1);
+      const parent = compiled.find(
+        (node) => node.type === "board" && node.children.some((child) => child.key === key),
+      );
+      expect(parent?.key).toBe(
+        source.parent === null ? "composition" : `composition/${source.parent}`,
+      );
+    }
+    const card = compiled.find((node) => node.key === "composition/card");
+    const button = compiled.find((node) => node.key === "composition/button");
+    expect(card).toMatchObject({ width: 280, height: 160, layout: { padding: 8 } });
+    expect(compiled.find((node) => node.key === "composition/title")).toMatchObject({ width: 264 });
+    expect(button).toMatchObject({ width: 160, height: 44 });
+    expect(compiled.find((node) => node.key === "composition/label")).toMatchObject({ width: 144 });
+    expect(textOf([result.node])).toBe("SYNTHETIC explicit title\nSYNTHETIC explicit action");
+  });
+
+  test("preserves leaf component bytes and bounds SYNTHETIC component cycles and missing parents", () => {
+    // Covers: R10
+    const proposal = structuredClone(first.proposal);
+    for (const kind of BASIC_COMPONENT_KINDS) {
+      proposal.componentSheet = [{ ...first.proposal.componentSheet[0]!, kind }];
+      proposal.composition.nodes = [{ ...graphNode("leaf", null, "component"), component: 0 }];
+      const result = compositionNodes(proposal, "composition", context.copy);
+      const expected = componentNodes(
+        proposal.componentSheet[0]!,
+        proposal,
+        "composition/leaf",
+        context.copy,
+      );
+      if (result.node.type !== "board") throw new Error("expected composition board");
+      expect(canonicalJson(result.node.children[0])).toBe(canonicalJson(expected.node));
+      expect(result.issues).toEqual(expected.issues);
+    }
+    proposal.componentSheet = [{ ...first.proposal.componentSheet[0]!, kind: "card" }];
+    proposal.composition.nodes = [
+      { ...graphNode("a", "b", "component"), component: 0 },
+      { ...graphNode("b", "a", "component"), component: 0 },
+    ];
+    const cyclic = compositionNodes(proposal, "composition", context.copy);
+    expect(cyclic.issues).toHaveLength(1);
+    expect(cyclic.issues[0]?.message).toContain("Cyclic");
+    expect(flatten([cyclic.node]).map((node) => node.key)).toEqual([
+      "composition",
+      "composition/a",
+      "composition/b",
+      "composition/a/cycle",
+    ]);
+    proposal.composition.nodes = [
+      { ...graphNode("orphan", "missing", "component"), component: 0 },
+      { ...graphNode("text", "orphan", "text"), text: "SYNTHETIC recovered" },
+    ];
+    const recovered = compositionNodes(proposal, "composition", context.copy);
+    expect(recovered.issues).toEqual([]);
+    const nodes = flatten([recovered.node]);
+    expect(nodes).toHaveLength(3);
+    expect(nodes.find((node) => node.key === "composition/orphan")).toMatchObject({
+      children: [{ key: "composition/text", characters: "SYNTHETIC recovered" }],
+    });
+  });
+
   test("chooses display fonts for large steps and preserves family fallbacks", () => {
     const proposal = structuredClone(first.proposal);
     proposal.typeScale.families.push({
