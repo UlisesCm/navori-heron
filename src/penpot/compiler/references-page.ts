@@ -60,7 +60,7 @@ function referenceCard(reference: ResearchReference, copy: PenpotCopy): PenpotNo
 /** Select the longest active prefix that fits the exact writing payload, reserving a UUID target. */
 export function buildReferencesPage(
   references: readonly ResearchReference[],
-  context: { mode: HeronMode; copy: PenpotCopy; template: PenpotTemplate },
+  context: { mode: HeronMode; copy: PenpotCopy; template: PenpotTemplate; expectedFileId?: string },
 ): ReviewPage {
   const active = activeReferences(references);
   const { mode, copy, template } = context;
@@ -119,7 +119,8 @@ export function buildReferencesPage(
   };
   for (let count = cards.length; count > 0; count -= 1) {
     const page = candidate(count);
-    if (renderScript(template, reviewScriptData(page, RESERVED_TARGET)).ok) return page;
+    if (renderScript(template, reviewScriptData(page, RESERVED_TARGET, context.expectedFileId)).ok)
+      return page;
   }
   // Return even an oversized header: the final renderer rejects it before any write (DR11).
   return candidate(0);

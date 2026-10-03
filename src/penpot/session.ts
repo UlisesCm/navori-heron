@@ -1,7 +1,7 @@
 import { z } from "zod";
 import { renderScript, reviewScriptData } from "./compiler/script.ts";
 import { penpotTemplate, type PenpotTemplate } from "./compiler/templates.ts";
-import { InspectedFileSchema, WrittenPageSchema } from "./results.ts";
+import { InspectedFileSchema, ReviewExecutionSchema } from "./results.ts";
 import type {
   PenpotCodeRunner,
   PenpotConnectRequest,
@@ -71,18 +71,41 @@ function session(runner: PenpotCodeRunner): PenpotSession {
   };
   return {
     inspect: (timeoutMs) => execute(penpotTemplate("inspect"), {}, InspectedFileSchema, timeoutMs),
-    async apply(page, targetPageId, timeoutMs) {
+    async apply(page, targetPageId, timeoutMs, expectedFileId) {
+      if (
+        (page.template.version >= 4 &&
+          (expectedFileId === undefined || expectedFileId.length === 0)) ||
+        (page.template.version < 4 && expectedFileId !== undefined)
+      )
+        return {
+          ok: false,
+          failure: {
+            kind: "file-mismatch",
+            detail: "The requested template cannot enforce the supplied file binding.",
+          },
+        };
       const result = await execute(
         penpotTemplate("review-page", page.template.version),
-        reviewScriptData(page, targetPageId),
-        WrittenPageSchema.refine(
+        reviewScriptData(page, targetPageId, expectedFileId),
+        ReviewExecutionSchema.refine(
           (value) => value.heron === `review-page@v${page.template.version}`,
         ),
         timeoutMs,
       );
-      return result.ok && result.value.outcome === "conflict"
-        ? { ok: false, failure: { kind: "script-failed", detail: CONFLICT_DETAIL } }
-        : result;
+      if (!result.ok) return result;
+      const value = result.value;
+      if (value.outcome === "file-mismatch")
+        return {
+          ok: false,
+          failure: {
+            kind: "file-mismatch",
+            detail:
+              "The connected Penpot file does not match the bound file; no further writes were made.",
+          },
+        };
+      if (value.outcome === "conflict")
+        return { ok: false, failure: { kind: "script-failed", detail: CONFLICT_DETAIL } };
+      return { ok: true, value };
     },
     close: () => runner.close(),
   };

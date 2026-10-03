@@ -38,7 +38,7 @@ test("links the bound file and reports page statuses read-only", async () => {
   for (const page of desired.slice(0, 2)) {
     const script = renderScript(
       penpotTemplate("review-page", page.template.version),
-      reviewScriptData(page, null),
+      reviewScriptData(page, null, ws.project.penpot.fileId ?? undefined),
     );
     if (!script.ok) throw new Error("test page exceeded budget");
     await runPenpotScript(probe.fake, script.code);

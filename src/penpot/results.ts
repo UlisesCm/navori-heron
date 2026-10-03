@@ -20,7 +20,7 @@ export type InspectedFile = {
   unmanagedPages: number;
 };
 export type WrittenPage = {
-  heron: "review-page@v1" | "review-page@v2" | "review-page@v3";
+  heron: "review-page@v1" | "review-page@v2" | "review-page@v3" | "review-page@v4";
   pageId: string;
   outcome: "written" | "conflict" | "human-shapes";
   created: boolean;
@@ -55,7 +55,7 @@ export const InspectedFileSchema: z.ZodType<InspectedFile> = z.object({
   unmanagedPages: count,
 });
 export const WrittenPageSchema: z.ZodType<WrittenPage> = z.object({
-  heron: z.enum(["review-page@v1", "review-page@v2", "review-page@v3"]),
+  heron: z.enum(["review-page@v1", "review-page@v2", "review-page@v3", "review-page@v4"]),
   pageId: id,
   outcome: z.enum(["written", "conflict", "human-shapes"]),
   created: z.boolean(),
@@ -63,3 +63,9 @@ export const WrittenPageSchema: z.ZodType<WrittenPage> = z.object({
   fontFallbacks: z.array(name).max(500),
   humanShapes: z.array(name).max(10),
 });
+
+/** A precondition failure is not a written page and requires no invented page identity. */
+export const ReviewExecutionSchema = z.union([
+  WrittenPageSchema,
+  z.strictObject({ heron: z.literal("review-page@v4"), outcome: z.literal("file-mismatch") }),
+]);

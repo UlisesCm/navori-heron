@@ -288,6 +288,20 @@ Lotes de 1–3 tareas, **en serie** (cada tarea declara de qué depende y con qu
   - **Comparte archivos con:** T3, T13, T20 (`docs/penpot.md`, `tests/repo/docs.test.ts`).
   - **Fuera de alcance:** las 2 pantallas representativas en `full` (P5).
 
+## Lote 11 — Corrección de identidad durante escritura
+
+- [x] **T24** (R9, R12, R15, R17) — Vincular la identidad del archivo al script de escritura y cerrar la ventana TOCTOU.
+  - **Archivos:** `templates/penpot/review-page@v4.penpot.js` (nuevo), `src/penpot/compiler/{templates,script,references-page}.ts`, `src/penpot/{ports,results,session}.ts`, `src/app/{penpot-session,penpot-sync,penpot,penpot-doctor}.ts`, `tests/unit/penpot/{templates,session,script,references-page,proposals,inspect,transport}.test.ts`, `docs/penpot.md`
+  - **Interfaces:** ReviewScriptData; reviewScriptData; PenpotSession; PenpotFailureKind; WrittenPageSchema; penpotTemplate; buildReferencesPage
+  - **Patrón:** templates/penpot/review-page@v3.penpot.js
+  - **Lectura:** `design.md` DR48, `requirements.md` R9/R12/R15/R17, `src/app/penpot-sync.ts`, `src/penpot/{ports,results,session}.ts`, `src/penpot/compiler/{script,references-page,templates}.ts`, `src/app/penpot-session.ts`, `tests/helpers/{penpot,fake-penpot}.ts`, `.navori/state/handoffs/solution_p12-file-binding.md` y `solution_review_p12-file-binding.md`
+  - **Librerías:** ninguna
+  - **Contrato:** guards en v4 antes de mutar y tras navegación; identidad vinculada, no derivada del archivo conectado; mismatch estructurado no se cuenta como WrittenPage; legacy binding solicitado falla cerrado; presupuesto exacto de todos los destinos antes de dry-run o escritura; v1/v2/v3 y transporte intactos.
+  - **Done:** comando `bun test tests/unit/penpot && bun run check`, esperado exit 0; casos de test "refuses a file switch before the first write", "refuses a file switch during openPage", "checks every planned script before dry-run or writes", "keeps historical template hashes frozen". Cubren P12.A4 y P12.A5; incluir cambio entre páginas, recuperación sin duplicación y binding ausente/legacy solicitado. Todos los casos nuevos declaran `Covers: R12` o los requisitos relevantes; no aprueban manuales.
+  - **Depende de:** T23, T17.
+  - **Comparte archivos con:** T6, T7, T9, T10, T16, T17, T22, T23.
+  - **Fuera de alcance:** estética, contrato visual ampliado, nuevos proveedores, sync real, instalación o upgrade de Penpot, aprobaciones manuales, P5 y merge automático.
+
 ## Cobertura
 
 **Criterios → requisitos → tareas**
@@ -297,8 +311,8 @@ Lotes de 1–3 tareas, **en serie** (cada tarea declara de qué depende y con qu
 | P12.A1 | test | R1, R2, R21 | T1, T2 |
 | P12.A2 | comando | R2 | T1 |
 | P12.A3 | test | R4, R5, R6, R7, R22 | T10, T11, T14, T15, T16, T18, T19 |
-| P12.A4 | test | R9, R16, R19 | T6, T7, T9, T11, T20, T22, T23 |
-| P12.A5 | test | R8, R10, R11, R12, R13, R15, R17 | T4, T5, T7, T8, T9, T10, T16, T17, T19, T22, T23 |
+| P12.A4 | test | R9, R16, R19 | T6, T7, T9, T11, T20, T22, T23, T24 |
+| P12.A5 | test | R8, R10, R11, R12, R13, R15, R17 | T4, T5, T7, T8, T9, T10, T16, T17, T19, T22, T23, T24 |
 | P12.A6 | test | R14, R16 | T8, T9, T17, T19 |
 | P12.A7 | manual | R3, R18 | T3, T12, T13 |
 | P12.A8 | manual | R3, R5, R19, R20 | T3, T12, T16, T20, T21, T22, T23 |
@@ -307,8 +321,11 @@ Lotes de 1–3 tareas, **en serie** (cada tarea declara de qué depende y con qu
 
 **Components de `design.md` → tareas** (toda fila de § Components está en el campo **Archivos** de al menos una tarea)
 
+Extensión de requisitos para T24: R9, R12, R15 y R17 → T24, además de las tareas anteriores.
+
 | Componente | Tarea |
 |---|---|
+| `templates/penpot/review-page@v4.penpot.js` y guardas de identidad en payload, session y sync | T24 |
 | `infra/penpot/{fetch-compose,docker-compose.yaml,docker-compose.yaml.sha256,compose.override.yaml,.env.example}` | T1 |
 | `infra/penpot/{init-env,compose}`, `.gitignore` | T2 |
 | `bin/heron.ts` | T14 |

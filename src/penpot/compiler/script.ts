@@ -27,11 +27,20 @@ export type ReviewScriptData = {
     "heronId" | "kind" | "name" | "mode" | "sourceSha256" | "contentSha256"
   > & { template: string };
   targetPageId: string | null;
+  expectedFileId?: string;
   nodes: PenpotNode[] | PackedPenpotNode[];
 };
 
 /** Budgeting and session.apply must serialize exactly the same payload. */
-export function reviewScriptData(page: ReviewPage, targetPageId: string | null): ReviewScriptData {
+export function reviewScriptData(
+  page: ReviewPage,
+  targetPageId: string | null,
+  expectedFileId?: string,
+): ReviewScriptData {
+  if (page.template.version >= 4 && (expectedFileId === undefined || expectedFileId.length === 0))
+    throw new Error("The bound Penpot file identity is required for v4 writing payloads.");
+  if (page.template.version < 4 && expectedFileId !== undefined)
+    throw new Error("Historical Penpot templates cannot enforce a requested file binding.");
   return {
     page: {
       heronId: page.heronId,
@@ -43,6 +52,7 @@ export function reviewScriptData(page: ReviewPage, targetPageId: string | null):
       template: `${page.template.id}@v${page.template.version}`,
     },
     targetPageId,
+    ...(expectedFileId !== undefined ? { expectedFileId } : {}),
     nodes: page.template.version >= 2 ? page.nodes.map(packPenpotNode) : page.nodes,
   };
 }

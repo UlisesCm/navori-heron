@@ -7,7 +7,8 @@ export type PenpotFailureKind =
   | "incompatible"
   | "plugin-not-connected"
   | "timeout"
-  | "script-failed";
+  | "script-failed"
+  | "file-mismatch";
 export type PenpotFailure = { kind: PenpotFailureKind; detail: string };
 export type PenpotExecution =
   | { ok: true; text: string; durationMs: number }
@@ -39,6 +40,7 @@ export interface PenpotSession {
     page: ReviewPage,
     targetPageId: string | null,
     timeoutMs: number,
+    expectedFileId?: string,
   ): Promise<SessionResult<WrittenPage>>;
   close(): Promise<void>;
 }

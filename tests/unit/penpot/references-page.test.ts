@@ -222,3 +222,20 @@ describe("references page compiler", () => {
     expect(shapes.some((shape) => shape.characters === origin)).toBe(true);
   });
 });
+
+// Covers: R9, R16
+test("includes the literal bound identity when selecting the v4 reference prefix", () => {
+  const boundTemplate = penpotTemplate("review-page", 4);
+  const expectedFileId = 'SYNTHETIC\\"😀'.repeat(100);
+  const refs = Array.from({ length: 48 }, (_, index) =>
+    sampleReference({ id: `REF-${index + 1}`, reason: "😀".repeat(300) }),
+  );
+  const page = buildReferencesPage(refs, { ...context, template: boundTemplate, expectedFileId });
+  const rendered = renderScript(boundTemplate, reviewScriptData(page, uuid, expectedFileId));
+  expect(rendered.ok).toBe(true);
+  expect(gridOf(page).children.length).toBeGreaterThan(0);
+  expect(gridOf(page).children.length).toBeLessThan(48);
+  expect(page).toEqual(
+    buildReferencesPage(refs, { ...context, template: boundTemplate, expectedFileId }),
+  );
+});

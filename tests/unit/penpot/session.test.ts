@@ -206,3 +206,52 @@ describe("Penpot session", () => {
     expect(calls).toEqual([]);
   });
 });
+
+// Covers: R12, R17
+test("fails closed on absent v4 binding, requested legacy binding and malformed mismatch envelopes", async () => {
+  const { session, calls, setReply } = await setup();
+  const bound = buildReferencesPage([sampleReference()], {
+    mode: "reference-only",
+    copy: resolvePenpotCopy("en"),
+    template: penpotTemplate("review-page", 4),
+    expectedFileId: "file-1",
+  });
+  for (const binding of [undefined, ""])
+    expect(await session.apply(bound, null, 100, binding)).toMatchObject({
+      ok: false,
+      failure: { kind: "file-mismatch" },
+    });
+  for (const version of [1, 2, 3])
+    expect(
+      await session.apply(
+        { ...page, template: penpotTemplate("review-page", version).ref },
+        null,
+        100,
+        "file-1",
+      ),
+    ).toMatchObject({ ok: false, failure: { kind: "file-mismatch" } });
+  expect(calls).toHaveLength(0);
+  setReply({
+    ok: true,
+    text: JSON.stringify({
+      result: { heron: "review-page@v4", outcome: "file-mismatch" },
+      log: "",
+    }),
+    durationMs: 0,
+  });
+  expect(await session.apply(bound, null, 100, "file-1")).toMatchObject({
+    ok: false,
+    failure: { kind: "file-mismatch" },
+  });
+  for (const result of [
+    { heron: "review-page@v3", outcome: "file-mismatch" },
+    { heron: "review-page@v4" },
+    { heron: "review-page@v4", outcome: "file-mismatch", pageId: "invented" },
+  ]) {
+    setReply({ ok: true, text: JSON.stringify({ result, log: "" }), durationMs: 0 });
+    expect(await session.apply(bound, null, 100, "file-1")).toMatchObject({
+      ok: false,
+      failure: { kind: "incompatible" },
+    });
+  }
+});

@@ -3,6 +3,16 @@ import { afterEach, expect, test } from "bun:test";
 import { existsSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import { runPenpotSync } from "../../../src/app/penpot-sync.ts";
+import { desiredReviewPages } from "../../../src/app/penpot.ts";
+import { buildProposalPage } from "../../../src/penpot/compiler/proposal-page.ts";
+import { resolvePenpotCopy } from "../../../src/penpot/compiler/copy.ts";
+import { penpotTemplate } from "../../../src/penpot/compiler/templates.ts";
+import {
+  renderScript,
+  reviewScriptData,
+  MAX_SCRIPT_BYTES,
+} from "../../../src/penpot/compiler/script.ts";
+import { VISUAL_DIRECTIONS_DOCUMENT } from "../../../src/core/contracts/index.ts";
 import { collectPenpotFacts } from "../../../src/app/facts.ts";
 import { PENPOT_SYNC_STATE_DOCUMENT, type HeronState } from "../../../src/core/contracts/index.ts";
 import { runPenpotScript, type FakeShape } from "../../helpers/fake-penpot.ts";
@@ -318,4 +328,196 @@ test("refreshes file metadata and tracks duplicates without rewriting confirmed 
       PENPOT_SYNC_STATE_DOCUMENT,
     )?.file.name,
   ).toBe("Renamed file");
+});
+
+// Covers: R12
+test("refuses a file switch before the first write", async () => {
+  const probe = await linkedWorkspace();
+  roots.push(probe.root);
+  const revision = openWorkspace(probe.ctx, probe.root).state.stateRevision;
+  probe.controls.beforeExecute = async (_code, timeoutMs) => {
+    if (timeoutMs === probe.ctx.penpot.writeTimeoutMs)
+      probe.fake.penpot.currentFile = { id: "other-file", name: "SYNTHETIC other", pages: [] };
+    return null;
+  };
+  expect(await runPenpotSync(probe.ctx, syncInput(probe.root))).toMatchObject({
+    ok: false,
+    code: 3,
+    findings: [{ code: "PENPOT_FILE_MISMATCH" }],
+  });
+  expect(probe.fake.penpot.currentFile?.pages).toHaveLength(0);
+  expect(probe.fake.counters.mutations).toBe(0);
+  expect(openWorkspace(probe.ctx, probe.root).state.stateRevision).toBe(revision);
+  expect(existsSync(join(probe.root, ".heron/penpot/review-sync.json"))).toBe(false);
+});
+
+// Covers: R12, R15, R17
+test("stops a switch between pages and recovers only freshly confirmed bound pages", async () => {
+  const probe = await linkedWorkspace();
+  roots.push(probe.root);
+  const bound = probe.fake.penpot.currentFile;
+  if (!bound) throw new Error("fixture file missing");
+  const other = { id: "other-file", name: "SYNTHETIC other", pages: [] };
+  let writes = 0;
+  probe.controls.beforeExecute = async (_code, timeoutMs) => {
+    if (timeoutMs === probe.ctx.penpot.writeTimeoutMs && ++writes === 2)
+      probe.fake.penpot.currentFile = other;
+    if (timeoutMs === probe.ctx.penpot.readTimeoutMs && writes === 2)
+      probe.fake.penpot.currentFile = bound;
+    return null;
+  };
+  const result = await runPenpotSync(probe.ctx, syncInput(probe.root));
+  expect(result).toMatchObject({ ok: false, code: 3, data: { writes: 1 } });
+  expect(result.findings.map((finding) => finding.code)).toEqual(
+    expect.arrayContaining(["PENPOT_FILE_MISMATCH", "PENPOT_SYNC_PARTIAL"]),
+  );
+  expect(other.pages).toHaveLength(0);
+  expect(bound.pages).toHaveLength(1);
+  expect(
+    openWorkspace(probe.ctx, probe.root).store.readDocument(
+      "penpot/review-sync.json",
+      PENPOT_SYNC_STATE_DOCUMENT,
+    )?.entries,
+  ).toHaveLength(1);
+  probe.controls.beforeExecute = null;
+  expect(await runPenpotSync(probe.ctx, syncInput(probe.root))).toMatchObject({
+    ok: true,
+    data: { writes: 2 },
+  });
+  expect(bound.pages).toHaveLength(3);
+  expect(await runPenpotSync(probe.ctx, syncInput(probe.root))).toMatchObject({
+    ok: true,
+    data: { writes: 0 },
+  });
+});
+
+// Covers: R12, R15, R17
+test("reuses a bound page interrupted during navigation without marking it confirmed", async () => {
+  const probe = await linkedWorkspace();
+  roots.push(probe.root);
+  const bound = probe.fake.penpot.currentFile;
+  if (!bound) throw new Error("fixture file missing");
+  let atSwitch = -1;
+  probe.fake.controls.beforeOpen = async () => {
+    atSwitch = probe.fake.counters.mutations;
+    probe.fake.penpot.currentFile = { id: "other-file", name: "SYNTHETIC other", pages: [] };
+  };
+  const revision = openWorkspace(probe.ctx, probe.root).state.stateRevision;
+  expect(await runPenpotSync(probe.ctx, syncInput(probe.root))).toMatchObject({
+    ok: false,
+    code: 3,
+  });
+  expect(probe.fake.counters.mutations).toBe(atSwitch);
+  expect(probe.fake.penpot.currentFile?.pages).toHaveLength(0);
+  expect(bound.pages).toHaveLength(1);
+  expect(bound.pages[0]?.getSharedPluginData("heron", "content")).toBeNull();
+  expect(openWorkspace(probe.ctx, probe.root).state.stateRevision).toBe(revision);
+  expect(existsSync(join(probe.root, ".heron/penpot/review-sync.json"))).toBe(false);
+  const pageId = bound.pages[0]?.id;
+  probe.fake.penpot.currentFile = bound;
+  probe.fake.controls.beforeOpen = null;
+  expect(await runPenpotSync(probe.ctx, syncInput(probe.root))).toMatchObject({
+    ok: true,
+    data: { writes: 3 },
+  });
+  expect(bound.pages).toHaveLength(3);
+  expect(bound.pages[0]?.id).toBe(pageId);
+  expect(await runPenpotSync(probe.ctx, syncInput(probe.root))).toMatchObject({
+    ok: true,
+    data: { writes: 0 },
+  });
+});
+
+// Covers: R9, R15
+test("migrates historical v3 pages once to bound v4 then writes zero", async () => {
+  const probe = await linkedWorkspace();
+  roots.push(probe.root);
+  expect((await runPenpotSync(probe.ctx, syncInput(probe.root))).ok).toBe(true);
+  const ws = openWorkspace(probe.ctx, probe.root);
+  const direction = ws.store.readDocument(
+    "research/visual-directions.json",
+    VISUAL_DIRECTIONS_DOCUMENT,
+  )?.directions[0];
+  if (!direction) throw new Error("fixture direction missing");
+  const page = buildProposalPage(direction, {
+    mode: ws.mode,
+    copy: resolvePenpotCopy("en"),
+    template: penpotTemplate("review-page", 3),
+  });
+  const script = renderScript(
+    penpotTemplate("review-page", 3),
+    reviewScriptData(page, probe.fake.penpot.currentFile?.pages[0]?.id ?? null),
+  );
+  if (!script.ok) throw new Error("fixture script exceeds budget");
+  await runPenpotScript(probe.fake, script.code);
+  expect(await runPenpotSync(probe.ctx, syncInput(probe.root))).toMatchObject({
+    ok: true,
+    data: { writes: 1 },
+  });
+  expect(probe.fake.penpot.currentFile?.pages).toHaveLength(3);
+  expect(probe.fake.penpot.currentFile?.pages[0]?.getSharedPluginData("heron", "template")).toBe(
+    "review-page@v4",
+  );
+  expect(await runPenpotSync(probe.ctx, syncInput(probe.root))).toMatchObject({
+    ok: true,
+    data: { writes: 0 },
+  });
+});
+
+// Covers: R9, R17
+test("checks every planned script before dry-run or writes", async () => {
+  const probe = await linkedWorkspace();
+  roots.push(probe.root);
+  const template = penpotTemplate("review-page", 4);
+  const original = template.text;
+  const pages = desiredReviewPages(openWorkspace(probe.ctx, probe.root)).filter(
+    (page) => page.kind === "proposal-page",
+  );
+  const reservedSizes = pages.map((page) => {
+    const script = renderScript(template, reviewScriptData(page, "x".repeat(36), "file-1"));
+    if (!script.ok) throw new Error("fixture script exceeds budget");
+    return new TextEncoder().encode(script.code).byteLength;
+  });
+  const largest = pages[1];
+  expect(reservedSizes[1]).toBe(Math.max(...reservedSizes));
+  if (!largest) throw new Error("fixture proposal missing");
+  // Arrange the largest proposal as the second planned update, with an escaped 64-character target.
+  probe.controls.beforeExecute = async (_code, timeoutMs) => {
+    if (timeoutMs !== probe.ctx.penpot.readTimeoutMs) return null;
+    return {
+      ok: true,
+      durationMs: 0,
+      text: JSON.stringify({
+        log: "",
+        result: {
+          heron: "inspect@v1",
+          penpotVersion: "2.17.2",
+          file: { id: "file-1", name: "Test file" },
+          unmanagedPages: 0,
+          pages: pages.map((page) => ({
+            pageId: page === largest ? "\\".repeat(64) : "x".repeat(36),
+            name: page.name,
+            marks: { id: page.heronId, content: null, source: null, template: null, mode: null },
+          })),
+        },
+      }),
+    };
+  };
+  try {
+    template.text += " ".repeat(MAX_SCRIPT_BYTES - Math.max(...reservedSizes) - 10);
+    for (const dryRun of [false, true]) {
+      probe.calls.length = 0;
+      expect(await runPenpotSync(probe.ctx, { ...syncInput(probe.root), dryRun })).toMatchObject({
+        ok: false,
+        code: 4,
+        findings: [{ code: "PENPOT_SCRIPT_TOO_LARGE" }],
+      });
+      expect(
+        probe.calls.filter((call) => call.timeoutMs === probe.ctx.penpot.writeTimeoutMs),
+      ).toHaveLength(0);
+      expect(probe.fake.counters.mutations).toBe(0);
+    }
+  } finally {
+    template.text = original;
+  }
 });

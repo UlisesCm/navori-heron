@@ -27,6 +27,7 @@ const REMEDIES: Record<PenpotFailure["kind"], string> = {
     "Open the bound file and press Main menu → MCP Server → Connect (one tab only); check that the key matches.",
   timeout: "Keep the Penpot tab in the foreground and try again.",
   "script-failed": "Reconnect the bound file's MCP plugin and try again.",
+  "file-mismatch": "Open the bound Penpot file before synchronizing.",
 };
 
 /** Seven ordered checks; one handshake and one inspection; no logger, lock or local writes. */

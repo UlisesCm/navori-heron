@@ -15,6 +15,7 @@ const FAILURE_CODES: Record<PenpotFailure["kind"], FindingCode> = {
   "plugin-not-connected": "PENPOT_PLUGIN_NOT_CONNECTED",
   timeout: "PENPOT_TIMEOUT",
   "script-failed": "PENPOT_SCRIPT_FAILED",
+  "file-mismatch": "PENPOT_FILE_MISMATCH",
 };
 
 /** Map a sanitized session failure consistently in link/inspect/sync/doctor. */
@@ -42,12 +43,15 @@ export function penpotFailureResult<T>(
     case "timeout":
       message = `Penpot did not answer within ${options.timeoutMs} ms; keep the Penpot tab in the foreground and try again.`;
       break;
+    case "file-mismatch":
+      message = error.detail;
+      break;
     case "script-failed":
       message = `The ${options.template ?? "MCP"} script failed in Penpot: ${error.detail}.`;
       break;
   }
   return failure(
-    ExitCode.DependencyUnavailable,
+    error.kind === "file-mismatch" ? ExitCode.Blocked : ExitCode.DependencyUnavailable,
     makeFinding(FAILURE_CODES[error.kind], "error", message),
   );
 }
@@ -123,12 +127,15 @@ export async function withPenpotSession<T>(
         ? result
         : { ok: false, failure: observe(result.failure, "inspect@v1", started) };
     },
-    async apply(page, targetPageId, timeoutMs) {
+    async apply(page, targetPageId, timeoutMs, expectedFileId) {
       const started = ctx.clock.now().getTime();
-      const result = await connected.session.apply(page, targetPageId, timeoutMs);
+      const result = await connected.session.apply(page, targetPageId, timeoutMs, expectedFileId);
       return result.ok
         ? result
-        : { ok: false, failure: observe(result.failure, "review-page@v1", started) };
+        : {
+            ok: false,
+            failure: observe(result.failure, `review-page@v${page.template.version}`, started),
+          };
     },
     close: () => connected.session.close(),
   };

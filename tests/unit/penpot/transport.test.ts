@@ -71,7 +71,7 @@ test("keeps frozen v1 bytes and fingerprints while versioning transport", () => 
   expect(next.nodes).toEqual(old.nodes);
   expect(next.sourceSha256).toBe(old.sourceSha256);
   expect(next.contentSha256).not.toBe(old.contentSha256);
-  expect(() => penpotTemplate("review-page", 4)).toThrow("unknown Penpot template");
+  expect(() => penpotTemplate("review-page", 5)).toThrow("unknown Penpot template");
 });
 
 test("rejects unknown transport discriminants before any Penpot mutation", async () => {

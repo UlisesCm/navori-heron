@@ -43,11 +43,13 @@ function sourceFailure(message: string): UseCaseResult<never> {
 function syncPages(
   ws: Workspace,
   input: PenpotSyncInput,
+  fileId: string,
 ): { ok: true; pages: ReviewPage[] } | { ok: false; result: UseCaseResult<never> } {
   const context = {
     mode: ws.mode,
     copy: resolvePenpotCopy(ws.project.product?.locale ?? null),
-    template: penpotTemplate("review-page", 3),
+    template: penpotTemplate("review-page", 4),
+    expectedFileId: fileId,
   };
   const pages: ReviewPage[] = [];
   if (input.proposals) {
@@ -89,8 +91,8 @@ function syncPages(
   for (const page of pages) {
     // UUID target reservation matches the compiler's byte budget (DR11/DR30).
     const rendered = renderScript(
-      penpotTemplate("review-page", 3),
-      reviewScriptData(page, "x".repeat(36)),
+      penpotTemplate("review-page", 4),
+      reviewScriptData(page, "x".repeat(36), fileId),
     );
     if (!rendered.ok)
       return {
@@ -132,7 +134,7 @@ export async function runPenpotSync(
     if (!url.ok) return url.result;
     const key = resolvePenpotKey(ctx);
     if (!key.ok) return key.result;
-    const desired = syncPages(ws, input);
+    const desired = syncPages(ws, input, link.link.fileId);
     if (!desired.ok) return desired.result;
     // Flags select writes, not which confirmed pages remain tracked (R15).
     const recordPages = desiredReviewPages(ws).filter(
@@ -198,6 +200,22 @@ async function syncSession(
     return failure(ExitCode.Blocked, { ...finding, message: redact(finding.message) });
   }
   const plan = planReviewSync(desired, initial.value);
+  // Validate the entire planned batch with the actual destinations before dry-run or any write.
+  for (const write of plan.writes) {
+    const rendered = renderScript(
+      penpotTemplate("review-page", write.page.template.version),
+      reviewScriptData(write.page, write.targetPageId, fileId),
+    );
+    if (!rendered.ok)
+      return failure(
+        ExitCode.ValidationFailed,
+        makeFinding(
+          "PENPOT_SCRIPT_TOO_LARGE",
+          "error",
+          `${write.page.heronId} exceeds the 32768-byte Penpot script budget (${rendered.bytes} bytes).`,
+        ),
+      );
+  }
   const findings = [
     ...warnings,
     ...penpotVersionFindings(redact(initial.value.penpotVersion)),
@@ -242,7 +260,12 @@ async function syncSession(
   let attempted = false;
   for (const write of plan.writes) {
     attempted = true;
-    const result = await session.apply(write.page, write.targetPageId, ctx.penpot.writeTimeoutMs);
+    const result = await session.apply(
+      write.page,
+      write.targetPageId,
+      ctx.penpot.writeTimeoutMs,
+      fileId,
+    );
     if (!result.ok) {
       failed = { heronId: write.page.heronId, failure: result.failure };
       break;
@@ -302,7 +325,7 @@ async function syncSession(
   if (failed !== null)
     findings.push(
       ...penpotFailureResult<never>(failed.failure, {
-        template: "review-page@v1",
+        template: "review-page@v4",
         timeoutMs: ctx.penpot.writeTimeoutMs,
       }).findings,
     );
@@ -312,7 +335,10 @@ async function syncSession(
     human !== null || partial !== null
       ? {
           ok: false,
-          code: human !== null ? ExitCode.Blocked : ExitCode.DependencyUnavailable,
+          code:
+            human !== null || failed?.failure.kind === "file-mismatch"
+              ? ExitCode.Blocked
+              : ExitCode.DependencyUnavailable,
           message: (human ?? partial)?.message ?? "Penpot synchronization failed.",
           findings,
           data: finalData,

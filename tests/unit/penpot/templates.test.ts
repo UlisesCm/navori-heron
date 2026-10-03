@@ -68,7 +68,10 @@ const review = (nodes: PenpotNode[] = [boardNode()]): ReviewPage => ({
   issues: [],
 });
 function code(page: ReviewPage, target: string | null = null): string {
-  const result = renderScript(penpotTemplate("review-page"), reviewScriptData(page, target));
+  const result = renderScript(
+    penpotTemplate("review-page", page.template.version),
+    reviewScriptData(page, target, page.template.version >= 4 ? "file-1" : undefined),
+  );
   if (!result.ok) throw new Error(`fixture script exceeds budget: ${result.bytes}`);
   return result.code;
 }
@@ -319,49 +322,61 @@ describe("Penpot templates against the official API subset", () => {
   });
 
   test("leaves the page without a content mark when two writes interleave", async () => {
-    const fake = createFakePenpot();
-    const first = await write(fake, review());
-    const page = pageOf(fake, first.pageId);
-    const lateShapes = page.root.children;
-    // Fault injection: queued mutations of the earlier writer land during the new writer's final marks.
-    fake.controls.afterMutation = (operation): void => {
-      if (operation !== "mark:source") return;
-      fake.controls.afterMutation = null;
-      for (const late of lateShapes) page.root.appendChild(late);
-      page.setSharedPluginData("heron", "content", hash); // earlier writer completed its final mark late
-    };
-    const result = await write(fake, review(), page.id);
-    expect(result.outcome).toBe("conflict");
-    expect(page.getSharedPluginData("heron", "content")).toBe("");
-    expect(shapes(page.root)).toHaveLength(0);
-    expect((await write(fake, review(), page.id)).outcome).toBe("written");
-    expect(shapes(page.root)).toHaveLength(3);
-  });
-
-  test("detects replaced shapes with identical keys and preserves late human work", async () => {
-    for (const addHuman of [false, true]) {
+    for (const version of [1, 4]) {
+      const currentReview = (nodes: PenpotNode[] = [boardNode()]): ReviewPage => ({
+        ...review(nodes),
+        template: penpotTemplate("review-page", version).ref,
+      });
       const fake = createFakePenpot();
-      const first = await write(fake, review([rectNode()]));
+      const first = await write(fake, currentReview());
       const page = pageOf(fake, first.pageId);
+      const lateShapes = page.root.children;
+      // Fault injection: queued mutations of the earlier writer land during the new writer's final marks.
       fake.controls.afterMutation = (operation): void => {
         if (operation !== "mark:source") return;
         fake.controls.afterMutation = null;
-        if (addHuman) {
-          // Duplicate owned shape has a human descendant: conflict cleanup must not delete it.
-          const duplicate = fake.penpot.createBoard();
-          duplicate.setSharedPluginData("heron", "id", review().heronId + "/late");
-          const human = fake.penpot.createRectangle();
-          human.name = "Late human";
-          duplicate.appendChild(human);
-        } else {
-          shapeOf(page, "swatch").remove();
-          const replacement = fake.penpot.createRectangle();
-          replacement.setSharedPluginData("heron", "id", review().heronId + "/swatch");
-        }
+        for (const late of lateShapes) page.root.appendChild(late);
+        page.setSharedPluginData("heron", "content", hash); // earlier writer completed its final mark late
       };
-      expect((await write(fake, review([rectNode()]), page.id)).outcome).toBe("conflict");
+      const result = await write(fake, currentReview(), page.id);
+      expect(result.outcome).toBe("conflict");
       expect(page.getSharedPluginData("heron", "content")).toBe("");
-      expect(shapes(page.root).some((shape) => shape.name === "Late human")).toBe(addHuman);
+      expect(shapes(page.root)).toHaveLength(0);
+      expect((await write(fake, currentReview(), page.id)).outcome).toBe("written");
+      expect(shapes(page.root)).toHaveLength(3);
+    }
+  });
+
+  test("detects replaced shapes with identical keys and preserves late human work", async () => {
+    for (const version of [1, 4]) {
+      const currentReview = (nodes: PenpotNode[] = [boardNode()]): ReviewPage => ({
+        ...review(nodes),
+        template: penpotTemplate("review-page", version).ref,
+      });
+      for (const addHuman of [false, true]) {
+        const fake = createFakePenpot();
+        const first = await write(fake, currentReview([rectNode()]));
+        const page = pageOf(fake, first.pageId);
+        fake.controls.afterMutation = (operation): void => {
+          if (operation !== "mark:source") return;
+          fake.controls.afterMutation = null;
+          if (addHuman) {
+            // Duplicate owned shape has a human descendant: conflict cleanup must not delete it.
+            const duplicate = fake.penpot.createBoard();
+            duplicate.setSharedPluginData("heron", "id", currentReview().heronId + "/late");
+            const human = fake.penpot.createRectangle();
+            human.name = "Late human";
+            duplicate.appendChild(human);
+          } else {
+            shapeOf(page, "swatch").remove();
+            const replacement = fake.penpot.createRectangle();
+            replacement.setSharedPluginData("heron", "id", currentReview().heronId + "/swatch");
+          }
+        };
+        expect((await write(fake, currentReview([rectNode()]), page.id)).outcome).toBe("conflict");
+        expect(page.getSharedPluginData("heron", "content")).toBe("");
+        expect(shapes(page.root).some((shape) => shape.name === "Late human")).toBe(addHuman);
+      }
     }
   });
 
@@ -377,4 +392,69 @@ describe("Penpot templates against the official API subset", () => {
     fake.penpot.currentFile = null;
     await expect(write(fake, review())).rejects.toThrow("no Penpot file is open");
   });
+});
+
+// Covers: R12, R17
+test("refuses a file switch during openPage", async () => {
+  for (const existing of [false, true]) {
+    const fake = createFakePenpot();
+    const bound = fake.penpot.currentFile;
+    if (!bound) throw new Error("fixture file missing");
+    const page = { ...review(), template: penpotTemplate("review-page", 4).ref };
+    const rendered = (target: string | null): string => {
+      const script = renderScript(
+        penpotTemplate("review-page", 4),
+        reviewScriptData(page, target, bound.id),
+      );
+      if (!script.ok) throw new Error("fixture script exceeds budget");
+      return script.code;
+    };
+    let target: string | null = null;
+    if (existing) {
+      const first = WrittenPageSchema.parse(await runPenpotScript(fake, rendered(null)));
+      target = first.pageId;
+    }
+    const oldContent = bound.pages[0]?.getSharedPluginData("heron", "content") ?? null;
+    let mutationsAtSwitch = -1;
+    fake.controls.beforeOpen = async () => {
+      mutationsAtSwitch = fake.counters.mutations;
+      fake.penpot.currentFile = { id: "other", name: "SYNTHETIC other", pages: [] };
+    };
+    expect(await runPenpotScript(fake, rendered(target))).toEqual({
+      heron: "review-page@v4",
+      outcome: "file-mismatch",
+    });
+    expect(fake.counters.mutations).toBe(mutationsAtSwitch);
+    expect(fake.penpot.currentFile?.pages).toHaveLength(0);
+    expect(bound.pages).toHaveLength(1);
+    expect(bound.pages[0]?.getSharedPluginData("heron", "content")).toBe(oldContent);
+    fake.penpot.currentFile = bound;
+    fake.controls.beforeOpen = null;
+    expect(
+      WrittenPageSchema.parse(await runPenpotScript(fake, rendered(bound.pages[0]!.id))),
+    ).toMatchObject({ outcome: "written", created: false });
+    expect(bound.pages).toHaveLength(1);
+  }
+});
+
+// Covers: R12
+test("rejects absent file context and wrong active page before drawing", async () => {
+  const page = { ...review(), template: penpotTemplate("review-page", 4).ref };
+  const script = renderScript(
+    penpotTemplate("review-page", 4),
+    reviewScriptData(page, null, "file-1"),
+  );
+  if (!script.ok) throw new Error("fixture script exceeds budget");
+  const absent = createFakePenpot();
+  absent.penpot.currentFile = null;
+  expect(await runPenpotScript(absent, script.code)).toEqual({
+    heron: "review-page@v4",
+    outcome: "file-mismatch",
+  });
+  expect(absent.counters.mutations).toBe(0);
+  const fake = createFakePenpot();
+  fake.penpot.openPage = async () => {};
+  await expect(runPenpotScript(fake, script.code)).rejects.toThrow("active Penpot page");
+  expect(fake.penpot.currentFile?.pages[0]?.root.children).toHaveLength(0);
+  expect(fake.penpot.currentFile?.pages[0]?.getSharedPluginData("heron", "content")).toBeNull();
 });

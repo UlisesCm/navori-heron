@@ -6,6 +6,8 @@ import reviewPageV2 from "../../../templates/penpot/review-page@v2.penpot.js" wi
 
 import reviewPageV3 from "../../../templates/penpot/review-page@v3.penpot.js" with { type: "text" };
 
+import reviewPageV4 from "../../../templates/penpot/review-page@v4.penpot.js" with { type: "text" };
+
 export type PenpotTemplate = {
   id: "inspect" | "review-page";
   version: number;
@@ -30,6 +32,7 @@ export const PENPOT_TEMPLATES: readonly PenpotTemplate[] = [
   template("review-page", reviewPage),
   template("review-page", reviewPageV2, 2),
   template("review-page", reviewPageV3, 3),
+  template("review-page", reviewPageV4, 4),
 ];
 
 export function penpotTemplate(id: PenpotTemplate["id"], version = 1): PenpotTemplate {

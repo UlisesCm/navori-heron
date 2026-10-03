@@ -26,6 +26,7 @@ describe("Penpot scripts", () => {
       "review-page@v1",
       "review-page@v2",
       "review-page@v3",
+      "review-page@v4",
     ]);
     for (const entry of PENPOT_TEMPLATES) {
       expect(entry.sha256).toBe(sha256Hex(new TextEncoder().encode(entry.text)));
@@ -134,4 +135,59 @@ describe("Penpot scripts", () => {
     expect(canonicalJson(payload)).not.toContain("issues");
     expect(reviewScriptData(page, "a".repeat(36)).targetPageId).toBe("a".repeat(36));
   });
+});
+
+// Covers: R9
+test("keeps historical template hashes frozen", async () => {
+  const hashes = [
+    "ddf8f71c73de88dfbf65d4efd9c3f78bbddcd1d02ae8d7849ccc0832b17a8cb5",
+    "712e7d4db8df16f2c7aa48183d891023e1770bcc3170816afdc2593541eacb8d",
+    "b393585ab81a2776a7eeb37e89b7c00973e33fe2a933536412aaedcce57c40b9",
+  ];
+  for (const [index, baseline] of hashes.entries()) {
+    const physical = await Bun.file(
+      `templates/penpot/review-page@v${index + 1}.penpot.js`,
+    ).arrayBuffer();
+    expect(sha256Hex(new Uint8Array(physical))).toBe(baseline);
+    expect(penpotTemplate("review-page", index + 1).sha256).toBe(baseline);
+  }
+});
+
+// Covers: R9, R12
+test("serializes the bound file as literal data and rejects missing or legacy bindings", () => {
+  const hash = sha256Hex(new Uint8Array());
+  const page: ReviewPage = {
+    heronId: "heron:references",
+    kind: "references-page",
+    name: "References",
+    mode: "reference-only",
+    sourceSha256: hash,
+    contentSha256: hash,
+    nodes: [],
+    template: penpotTemplate("review-page", 4).ref,
+    issues: [],
+  };
+  const binding = 'SYNTHETIC "); throw new Error("injected"); // \n😀\u2028';
+  const payload = reviewScriptData(page, null, binding);
+  expect(payload.expectedFileId).toBe(binding);
+  expect(
+    new Function(
+      renderScript(echo, payload).ok ? `return ${safeJsonLiteral(payload)};` : "return null;",
+    )(),
+  ).toBe(JSON.stringify(JSON.parse(canonicalJson(payload))));
+  expect(renderScript(penpotTemplate("review-page", 4), payload)).toEqual(
+    renderScript(penpotTemplate("review-page", 4), reviewScriptData(page, null, binding)),
+  );
+  for (const missing of [undefined, ""])
+    expect(() => reviewScriptData(page, null, missing)).toThrow("bound Penpot file");
+  for (const version of [1, 2, 3]) {
+    const legacy = { ...page, template: penpotTemplate("review-page", version).ref };
+    const { expectedFileId: _binding, ...unbound } = payload;
+    expect(reviewScriptData(legacy, null)).toEqual({
+      ...unbound,
+      page: { ...payload.page, template: `review-page@v${version}` },
+    });
+    expect(Object.hasOwn(reviewScriptData(legacy, null), "expectedFileId")).toBe(false);
+    expect(() => reviewScriptData(legacy, null, "file-1")).toThrow("Historical");
+  }
 });

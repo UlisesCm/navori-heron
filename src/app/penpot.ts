@@ -39,7 +39,9 @@ export function desiredReviewPages(workspace: Workspace): ReviewPage[] {
   const context = {
     mode: workspace.mode,
     copy: resolvePenpotCopy(workspace.project.product?.locale ?? null),
-    template: penpotTemplate("review-page", 3),
+    template: penpotTemplate("review-page", 4),
+    // Read-only sizing without a link must never become an execution binding.
+    expectedFileId: workspace.project.penpot.fileId ?? "UNBOUND_READ_ONLY_SIZING",
   };
   const pages =
     sources.directions?.directions.map((direction) => buildProposalPage(direction, context)) ?? [];
