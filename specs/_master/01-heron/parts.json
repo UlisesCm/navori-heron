@@ -561,7 +561,13 @@
         {
           "id": "A1",
           "description": "El binario falso `claude` recibe `-p`, `--tools \"\"`, `--strict-mcp-config`, `--output-format json`, `--json-schema` y `--no-session-persistence`, con cwd en un directorio temporal vacío y sin `--bare`; el falso `codex` recibe `exec --sandbox read-only --ephemeral --skip-git-repo-check --output-schema`",
-          "evidence": null,
+          "evidence": {
+            "kind": "run",
+            "command": "bun 'test' 'tests/unit/agents/argv.test.ts' '--test-name-pattern' 'invokes agent CLIs isolated, tool-less and schema-bound'",
+            "result": "exit 0; 2 pass; 0 fail; selected case: invokes agent CLIs isolated, tool-less and schema-bound",
+            "commit": "207609dbb2987219c0978a7de03b52e6d94c7cdb",
+            "date": "2026-10-03"
+          },
           "method": "test",
           "test": {
             "file": "tests/unit/agents/argv.test.ts",
