@@ -241,10 +241,17 @@ Lotes de 1–3 tareas, **en serie** (cada tarea declara de qué depende y con qu
 
 ## Lote 9 — Documentación y aceptación
 
-- [x] **T20.V2** (R9, R17, R19) — Transporte reversible aprobado el 2026-10-02 para propuestas reales mayores a 32 KiB.
+- [x] **T22** (R9, R17, R19) — Transporte reversible aprobado el 2026-10-02 para propuestas reales mayores a 32 KiB.
   - **Archivos:** `src/penpot/compiler/{transport,script,templates}.ts`, `templates/penpot/review-page@v2.penpot.js`, `src/penpot/{session,results}.ts`, `src/app/{penpot,penpot-sync}.ts`, `tests/unit/penpot/{transport,script,session,inspect}.test.ts`, `docs/{penpot.md,adr/0007-penpot-boundary.md}`, `specs/0005-penpot-base/design.md`.
+  - **Interfaces:** PackedPenpotNode; packPenpotNode; renderScript; reviewScriptData; penpotTemplate; MAX_SCRIPT_BYTES
+  - **Patrón:** src/penpot/compiler/script.ts
+  - **Lectura:** `specs/0005-penpot-base/design.md` (DR11, DR13, DR44; § Contracts), `src/penpot/compiler/{nodes,script,templates}.ts`, `templates/penpot/review-page@v1.penpot.js`
+  - **Librerías:** ninguna
   - **Contrato:** v1 intacta; nodos completos restaurados antes de mutar; fuente sin cambios, contenido con versión/SHA v2; respuesta ligada a versión solicitada; presupuesto de 32 KiB conservado y medido por el mismo payload en preflight y sesión.
-  - **Done:** round-trip semántico, bytes congelados, guardas humanas, discriminantes inválidos sin mutación, límite y rechazo de respuesta de otra versión; `bun run check`. La sonda viva y la aceptación visual siguen pendientes en T21; no se registra P12.A8 con tests locales.
+  - **Done:** comando `bun test tests/unit/penpot/transport.test.ts tests/unit/penpot/script.test.ts tests/unit/penpot/session.test.ts && bun run check`, esperado exit 0; casos de test "round-trips every semantic field including aliases, nulls, layouts and hostile strings", "keeps frozen v1 bytes and fingerprints while versioning transport", "rejects unknown transport discriminants before any Penpot mutation", "fits complete repetitive node trees rejected by v1 and still blocks oversized v2", "executes the requested review version and rejects a mismatched result version". La sonda viva y la aceptación visual siguen pendientes en T21; no se registra P12.A8 con tests locales.
+  - **Depende de:** T7, T11, T19.
+  - **Comparte archivos con:** T6, T7, T11, T20, T23 (`src/penpot/compiler/{script,templates}.ts`, `docs/penpot.md`).
+  - **Fuera de alcance:** modificar nodos semánticos, ampliar el presupuesto de transporte y aprobar P12.A8.
 
 - [x] **T20** (R3, R19) — ADR 0007, `docs/penpot.md` completa con las órdenes `heron penpot`, secciones de arquitectura, seguridad y README, y skill actualizada.
   - **Archivos:** `docs/adr/0007-penpot-boundary.md`, `docs/penpot.md`, `docs/architecture.md`, `docs/security.md`, `README.md`, `.claude/skills/heron-architecture/references/layout.md`, `.claude/skills/heron-architecture/references/patterns.md`, `.claude/skills/heron-architecture/references/recipes.md`, `tests/repo/docs.test.ts`
@@ -257,9 +264,17 @@ Lotes de 1–3 tareas, **en serie** (cada tarea declara de qué depende y con qu
   - **Comparte archivos con:** T3, T13, T21 (`docs/penpot.md`, `tests/repo/docs.test.ts`).
   - **Fuera de alcance:** guía de self-host de Heron (P9).
 
-- [x] **T20.V3** (R9, R10, R17, R19) — Corrección de hijos grid sin celda detectada en la revisión real.
+- [x] **T23** (R9, R10, R17, R19) — Corrección de hijos grid sin celda detectada en la revisión real.
+  - **Archivos:** `templates/penpot/review-page@v3.penpot.js`, `src/penpot/compiler/templates.ts`, `tests/helpers/fake-penpot.ts`, `tests/unit/penpot/{grid-renderer,transport,script}.test.ts`, `docs/penpot.md`
+  - **Interfaces:** penpotTemplate; PENPOT_TEMPLATES; renderScript; reviewScriptData
+  - **Patrón:** templates/penpot/review-page@v2.penpot.js
+  - **Lectura:** `specs/0005-penpot-base/design.md` (DR11–DR13, DR44), `templates/penpot/review-page@v2.penpot.js`, `tests/helpers/fake-penpot.ts`
+  - **Librerías:** ninguna
   - **Contrato:** v1 y v2 intactas; v3 comparte el codec reversible de v2 y usa `GridLayout.appendChild` con índices de base cero, en orden por filas. Fuente sin cambios; contenido versionado; 32 KiB y guarda humana conservados.
   - **Evidencia:** contrafactual vivo en página SYNTHETIC; regresión falló antes con cinco celdas nulas y pasó después; tests de bytes v2 congelados y guarda humana v2/v3. Sync real de cuatro páginas Codex, verificación de celdas/posiciones y repetición sin escrituras documentadas en `docs/penpot.md`.
+  - **Done:** comando `bun test tests/unit/penpot/grid-renderer.test.ts tests/unit/penpot/transport.test.ts tests/unit/penpot/script.test.ts && bun run check`, esperado exit 0; casos de test "assigns every grid child to a distinct row-major cell", "keeps v2 frozen and shares its reversible transport with v3", "executes v3 with the official API subset and preserves human work on retries", "measures final UTF-8 bytes including the template and RPC escaping margin"; base de P12.A4 y P12.A5, sin aprobar P12.A8.
+  - **Depende de:** T22.
+  - **Comparte archivos con:** T22 (`src/penpot/compiler/templates.ts`, `tests/unit/penpot/{transport,script}.test.ts`); T20, T21 (`docs/penpot.md`).
   - **Fuera de alcance:** corregir copy confundido con referencia de color, migrar Claude sin revisión y aprobar P3.A12/P12.A8. La altura inicial de texto era medición diferida, no requiere parche.
 
 - [ ] **T21** (R20) — Aceptación manual de P12.A8 sobre `monorepo-fullstack` y su registro con fecha en `docs/penpot.md`.
@@ -282,13 +297,13 @@ Lotes de 1–3 tareas, **en serie** (cada tarea declara de qué depende y con qu
 | P12.A1 | test | R1, R2, R21 | T1, T2 |
 | P12.A2 | comando | R2 | T1 |
 | P12.A3 | test | R4, R5, R6, R7, R22 | T10, T11, T14, T15, T16, T18, T19 |
-| P12.A4 | test | R9, R16, R19 | T6, T7, T9, T11, T20 |
-| P12.A5 | test | R8, R10, R11, R12, R13, R15, R17 | T4, T5, T7, T8, T9, T10, T16, T17, T19 |
+| P12.A4 | test | R9, R16, R19 | T6, T7, T9, T11, T20, T22, T23 |
+| P12.A5 | test | R8, R10, R11, R12, R13, R15, R17 | T4, T5, T7, T8, T9, T10, T16, T17, T19, T22, T23 |
 | P12.A6 | test | R14, R16 | T8, T9, T17, T19 |
 | P12.A7 | manual | R3, R18 | T3, T12, T13 |
-| P12.A8 | manual | R3, R5, R19, R20 | T3, T12, T16, T20, T21 |
+| P12.A8 | manual | R3, R5, R19, R20 | T3, T12, T16, T20, T21, T22, T23 |
 
-**Requisitos → tareas:** R1 T1, T2 · R2 T1 · R3 T3, T20 · R4 T4, T10, T11, T15, T19 · R5 T4, T16, T19 · R6 T4, T11, T18, T19 · R7 T11, T15, T18 · R8 T4, T7, T10, T16, T19 · R9 T6, T7 · R10 T8, T17 · R11 T4, T9, T17, T19 · R12 T17 · R13 T4, T7, T10, T17 · R14 T8, T17 · R15 T4, T5, T9, T16, T17 · R16 T9, T17, T19 · R17 T7, T10, T11, T17 · R18 T3, T12, T13 · R19 T6, T11, T15, T20 · R20 T12, T21 · R21 T2, T3 · R22 T14.
+**Requisitos → tareas:** R1 T1, T2 · R2 T1 · R3 T3, T20 · R4 T4, T10, T11, T15, T19 · R5 T4, T16, T19 · R6 T4, T11, T18, T19 · R7 T11, T15, T18 · R8 T4, T7, T10, T16, T19 · R9 T6, T7, T22, T23 · R10 T8, T17, T23 · R11 T4, T9, T17, T19 · R12 T17 · R13 T4, T7, T10, T17 · R14 T8, T17 · R15 T4, T5, T9, T16, T17 · R16 T9, T17, T19 · R17 T7, T10, T11, T17, T22, T23 · R18 T3, T12, T13 · R19 T6, T11, T15, T20, T22, T23 · R20 T12, T21 · R21 T2, T3 · R22 T14.
 
 **Components de `design.md` → tareas** (toda fila de § Components está en el campo **Archivos** de al menos una tarea)
 

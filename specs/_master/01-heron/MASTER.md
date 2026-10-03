@@ -375,7 +375,7 @@ Grafo: P2 ← P1 · P3 ← P2 · P12 ← P3 · P4 ← P1 · P5 ← P3 + P4 + P12
 
 Desviaciones frente a context/md/PLAN.md §77: las fases 1–3 (research, propuesta de arquitectura, ADRs) quedan cubiertas por este plan maestro y los ADRs se escriben en la parte que toma cada decisión; los contratos se definen justo a tiempo por parte; la seguridad de ingesta llega en P2 y la de agentes en P3, no en el hardening final; Penpot va antes de generalizar para ver el slice en el canvas. (plan1)
 
-<!-- navori:master-parts hash="cbfe2a9c" -->
+<!-- navori:master-parts hash="867cab63" -->
 ### P1 — Núcleo, heron init y detección de modo
 
 Objetivo: El usuario corre `heron init <repo>` y en ≤ 2 s sabe qué modo aplica y por qué, con estado persistido, gates atados a hashes y guard de producción probado (primer slice de context/md/PLAN.md §80).
@@ -448,7 +448,7 @@ Requisitos semilla: RF-5, RN-6, RN-7, RN-8, RN-9, RN-38, RN-46, RNF-13, RNF-16
 - P4.A1 (test): `membership-product` produce un ProductContext v1 válido con los 19 bloques y `sourceRef` en cada elemento — tests/contracts/product-context.test.ts#maps membership-product into ProductContext v1 with its nineteen sections
 - P4.A2 (test): Con el mismo dato en varias fuentes gana la de mayor precedencia de RN-7 y se registra la fuente ganadora — tests/unit/intake/precedence.test.ts#applies source precedence and records the winning source
 - P4.A3 (test): Si un actor de `ux.json` contradice MASTER.md se crea `CONFLICT-001` con archivos, valores e impacto, sin elegir en silencio, y el gate `intake` no se aprueba hasta el `ack` — tests/unit/intake/precedence.test.ts#records a CONFLICT and blocks the intake gate until acknowledged
-- P4.A4 (test): `filesystem` llega a full solo con UX.md y ux.json válidos; `markdown` y `manual` quedan en reference-only — tests/unit/intake/adapters.test.ts#only the filesystem and navori-master adapters can reach full
+- P4.A4 (test): `filesystem` llega a full solo con UX.md y ux.json válidos; `markdown` y `manual` quedan en reference-only — tests/unit/mode.test.ts#only the filesystem and navori-master adapters can reach full
 - P4.A5 (test): Los campos desconocidos de `ux.json` conservan su clave, su orden y su valor en JSON canónico, los IDs no cambian y `ux.json` nunca se reescribe (sha256 igual) (D31) — tests/contracts/ux-contract.test.ts#preserves unknown ux.json fields and stable ids
 - P4.A6 (test): Los JSON Schemas emitidos validan todos los fixtures con ajv 2020-12 y todo archivo de datos de `fixtures/` declara SYNTHETIC — tests/contracts/json-schema.test.ts#emitted JSON Schemas validate every fixture and fixtures are marked SYNTHETIC
 - P4.A7 (comando): Intake sobre el fixture completo — d="$(mktemp -d)" && cp -R fixtures/membership-product/. "$d" && bun run heron init "$d" >/dev/null && bun run heron intake --json "$d"

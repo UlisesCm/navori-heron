@@ -577,7 +577,13 @@
         {
           "id": "A2",
           "description": "Una salida que no cumple el schema se repara como máximo 2 veces y luego el run queda `invalid-output` sin cambiar el estado de Heron",
-          "evidence": null,
+          "evidence": {
+            "kind": "run",
+            "command": "bun 'test' 'tests/unit/agents/invoke.test.ts' '--test-name-pattern' 'retries invalid output at most twice and keeps Heron state'",
+            "result": "exit 0; 1 pass; 0 fail; selected case: retries invalid output at most twice and keeps Heron state",
+            "commit": "8275c6779a643d951ae1ab1261d07ace6608a5db",
+            "date": "2026-10-03"
+          },
           "method": "test",
           "test": {
             "file": "tests/unit/agents/invoke.test.ts",
@@ -587,7 +593,13 @@
         {
           "id": "A3",
           "description": "Con timeout configurado de 2 s, un agente colgado termina y el run queda `timeout` en ≤ 7 s",
-          "evidence": null,
+          "evidence": {
+            "kind": "run",
+            "command": "bun 'test' 'tests/unit/agents/timeout.test.ts' '--test-name-pattern' 'kills a hung agent at the configured timeout'",
+            "result": "exit 0; 1 pass; 0 fail; selected case: kills a hung agent at the configured timeout",
+            "commit": "8275c6779a643d951ae1ab1261d07ace6608a5db",
+            "date": "2026-10-03"
+          },
           "method": "test",
           "test": {
             "file": "tests/unit/agents/timeout.test.ts",
@@ -597,7 +609,13 @@
         {
           "id": "A4",
           "description": "El context pack contiene solo los tipos de artefacto de la tarea, respeta el presupuesto con recorte determinista y marca `untrusted` el contenido externo",
-          "evidence": null,
+          "evidence": {
+            "kind": "run",
+            "command": "bun 'test' 'tests/unit/agents/context-pack.test.ts' '--test-name-pattern' 'builds task-scoped packs within budget and tags untrusted items'",
+            "result": "exit 0; 1 pass; 0 fail; selected case: builds task-scoped packs within budget and tags untrusted items",
+            "commit": "8275c6779a643d951ae1ab1261d07ace6608a5db",
+            "date": "2026-10-03"
+          },
           "method": "test",
           "test": {
             "file": "tests/unit/agents/context-pack.test.ts",
@@ -607,7 +625,13 @@
         {
           "id": "A5",
           "description": "El `AgentRun` registra proveedor, modelo, versión de CLI, plantilla@versión+sha256, hashes de entrada y salida, duración y costo si existe, con 0 secretos canario y entorno del hijo sin `HERON_*`/`PENPOT_*`",
-          "evidence": null,
+          "evidence": {
+            "kind": "run",
+            "command": "bun 'test' 'tests/unit/agents/run-record.test.ts' '--test-name-pattern' 'records reproducibility fields and never leaks secrets'",
+            "result": "exit 0; 1 pass; 0 fail; selected case: records reproducibility fields and never leaks secrets",
+            "commit": "8275c6779a643d951ae1ab1261d07ace6608a5db",
+            "date": "2026-10-03"
+          },
           "method": "test",
           "test": {
             "file": "tests/unit/agents/run-record.test.ts",
@@ -617,7 +641,13 @@
         {
           "id": "A6",
           "description": "El proveedor de cada rol sale solo de la configuración: intercambiar creator y reviewer no toca código",
-          "evidence": null,
+          "evidence": {
+            "kind": "run",
+            "command": "bun 'test' 'tests/unit/agents/roles.test.ts' '--test-name-pattern' 'resolves role providers from configuration'",
+            "result": "exit 0; 1 pass; 0 fail; selected case: resolves role providers from configuration",
+            "commit": "8275c6779a643d951ae1ab1261d07ace6608a5db",
+            "date": "2026-10-03"
+          },
           "method": "test",
           "test": {
             "file": "tests/unit/agents/roles.test.ts",
@@ -627,7 +657,13 @@
         {
           "id": "A7",
           "description": "Con el proveedor `fake` se producen 3 direcciones con los 13 atributos de §11, marcadas `reference-only` y citando solo `REF-*` existentes; `direction select` registra `preferred` y el estado nunca llega a `direction-selected`",
-          "evidence": null,
+          "evidence": {
+            "kind": "run",
+            "command": "bun 'test' 'tests/e2e/directions.test.ts' '--test-name-pattern' 'proposes three reference-only directions and records a preferred one'",
+            "result": "exit 0; 1 pass; 0 fail; selected case: proposes three reference-only directions and records a preferred one",
+            "commit": "8275c6779a643d951ae1ab1261d07ace6608a5db",
+            "date": "2026-10-03"
+          },
           "method": "test",
           "test": {
             "file": "tests/e2e/directions.test.ts",
@@ -637,7 +673,13 @@
         {
           "id": "A8",
           "description": "Una consulta de research sin faceta de trabajo de interfaz (p. ej. \"beautiful UI\") se rechaza",
-          "evidence": null,
+          "evidence": {
+            "kind": "run",
+            "command": "bun 'test' 'tests/unit/research/brief.test.ts' '--test-name-pattern' 'rejects research queries without an interface-job facet'",
+            "result": "exit 0; 1 pass; 0 fail; selected case: rejects research queries without an interface-job facet",
+            "commit": "8275c6779a643d951ae1ab1261d07ace6608a5db",
+            "date": "2026-10-03"
+          },
           "method": "test",
           "test": {
             "file": "tests/unit/research/brief.test.ts",
@@ -647,7 +689,13 @@
         {
           "id": "A9",
           "description": "`doctor` reporta disponibilidad, versión mínima y sesión de cada agente solo por exit codes, sin leer archivos de credenciales",
-          "evidence": null,
+          "evidence": {
+            "kind": "run",
+            "command": "bun 'test' 'tests/e2e/doctor.test.ts' '--test-name-pattern' 'reports agent availability from exit codes without reading credentials'",
+            "result": "exit 0; 1 pass; 0 fail; selected case: reports agent availability from exit codes without reading credentials",
+            "commit": "8275c6779a643d951ae1ab1261d07ace6608a5db",
+            "date": "2026-10-03"
+          },
           "method": "test",
           "test": {
             "file": "tests/e2e/doctor.test.ts",
@@ -657,7 +705,13 @@
         {
           "id": "A10",
           "description": "Cada una de las 3 direcciones trae su propuesta visual completa (paleta, escala tipográfica, hoja de componentes, composición SYNTHETIC); cada par texto/fondo de la paleta trae su contraste calculado de forma determinista y una propuesta sin esos datos se rechaza",
-          "evidence": null,
+          "evidence": {
+            "kind": "run",
+            "command": "bun 'test' 'tests/e2e/directions.test.ts' '--test-name-pattern' 'each direction carries a complete visual proposal with deterministic contrast'",
+            "result": "exit 0; 1 pass; 0 fail; selected case: each direction carries a complete visual proposal with deterministic contrast",
+            "commit": "8275c6779a643d951ae1ab1261d07ace6608a5db",
+            "date": "2026-10-03"
+          },
           "method": "test",
           "test": {
             "file": "tests/e2e/directions.test.ts",
@@ -728,7 +782,13 @@
         {
           "id": "A1",
           "description": "`membership-product` produce un ProductContext v1 válido con los 19 bloques y `sourceRef` en cada elemento",
-          "evidence": null,
+          "evidence": {
+            "kind": "run",
+            "command": "bun 'test' 'tests/contracts/product-context.test.ts' '--test-name-pattern' 'maps membership-product into ProductContext v1 with its nineteen sections'",
+            "result": "exit 0; 1 pass; 0 fail; selected case: maps membership-product into ProductContext v1 with its nineteen sections",
+            "commit": "8275c6779a643d951ae1ab1261d07ace6608a5db",
+            "date": "2026-10-03"
+          },
           "method": "test",
           "test": {
             "file": "tests/contracts/product-context.test.ts",
@@ -738,7 +798,13 @@
         {
           "id": "A2",
           "description": "Con el mismo dato en varias fuentes gana la de mayor precedencia de RN-7 y se registra la fuente ganadora",
-          "evidence": null,
+          "evidence": {
+            "kind": "run",
+            "command": "bun 'test' 'tests/unit/intake/precedence.test.ts' '--test-name-pattern' 'applies source precedence and records the winning source'",
+            "result": "exit 0; 1 pass; 0 fail; selected case: applies source precedence and records the winning source",
+            "commit": "8275c6779a643d951ae1ab1261d07ace6608a5db",
+            "date": "2026-10-03"
+          },
           "method": "test",
           "test": {
             "file": "tests/unit/intake/precedence.test.ts",
@@ -748,7 +814,13 @@
         {
           "id": "A3",
           "description": "Si un actor de `ux.json` contradice MASTER.md se crea `CONFLICT-001` con archivos, valores e impacto, sin elegir en silencio, y el gate `intake` no se aprueba hasta el `ack`",
-          "evidence": null,
+          "evidence": {
+            "kind": "run",
+            "command": "bun 'test' 'tests/unit/intake/precedence.test.ts' '--test-name-pattern' 'records a CONFLICT and blocks the intake gate until acknowledged'",
+            "result": "exit 0; 1 pass; 0 fail; selected case: records a CONFLICT and blocks the intake gate until acknowledged",
+            "commit": "8275c6779a643d951ae1ab1261d07ace6608a5db",
+            "date": "2026-10-03"
+          },
           "method": "test",
           "test": {
             "file": "tests/unit/intake/precedence.test.ts",
@@ -758,17 +830,29 @@
         {
           "id": "A4",
           "description": "`filesystem` llega a full solo con UX.md y ux.json válidos; `markdown` y `manual` quedan en reference-only",
-          "evidence": null,
+          "evidence": {
+            "kind": "run",
+            "command": "bun test tests/unit/mode.test.ts --test-name-pattern 'only the filesystem and navori-master adapters can reach full'",
+            "result": "exit 0; 1 pass; 0 fail; 6 expect() calls; selected case: only the filesystem and navori-master adapters can reach full",
+            "commit": "8275c6779a643d951ae1ab1261d07ace6608a5db",
+            "date": "2026-10-03"
+          },
           "method": "test",
           "test": {
-            "file": "tests/unit/intake/adapters.test.ts",
+            "file": "tests/unit/mode.test.ts",
             "case": "only the filesystem and navori-master adapters can reach full"
           }
         },
         {
           "id": "A5",
           "description": "Los campos desconocidos de `ux.json` conservan su clave, su orden y su valor en JSON canónico, los IDs no cambian y `ux.json` nunca se reescribe (sha256 igual) (D31)",
-          "evidence": null,
+          "evidence": {
+            "kind": "run",
+            "command": "bun 'test' 'tests/contracts/ux-contract.test.ts' '--test-name-pattern' 'preserves unknown ux\\.json fields and stable ids'",
+            "result": "exit 0; 1 pass; 0 fail; selected case: preserves unknown ux.json fields and stable ids",
+            "commit": "8275c6779a643d951ae1ab1261d07ace6608a5db",
+            "date": "2026-10-03"
+          },
           "method": "test",
           "test": {
             "file": "tests/contracts/ux-contract.test.ts",
@@ -778,7 +862,13 @@
         {
           "id": "A6",
           "description": "Los JSON Schemas emitidos validan todos los fixtures con ajv 2020-12 y todo archivo de datos de `fixtures/` declara SYNTHETIC",
-          "evidence": null,
+          "evidence": {
+            "kind": "run",
+            "command": "bun 'test' 'tests/contracts/json-schema.test.ts' '--test-name-pattern' 'emitted JSON Schemas validate every fixture and fixtures are marked SYNTHETIC'",
+            "result": "exit 0; 1 pass; 0 fail; selected case: emitted JSON Schemas validate every fixture and fixtures are marked SYNTHETIC",
+            "commit": "8275c6779a643d951ae1ab1261d07ace6608a5db",
+            "date": "2026-10-03"
+          },
           "method": "test",
           "test": {
             "file": "tests/contracts/json-schema.test.ts",
@@ -788,7 +878,13 @@
         {
           "id": "A7",
           "description": "Intake sobre el fixture completo",
-          "evidence": null,
+          "evidence": {
+            "kind": "run",
+            "command": "d=\"$(mktemp -d)\" && cp -R fixtures/membership-product/. \"$d\" && bun run heron init \"$d\" >/dev/null && bun run heron intake --json \"$d\"",
+            "result": "exit 0; ok=true; data.mode=full; conflicts=[]; surfaces=3, actors=3, journeys=3, flows=3, screens=6, functionalComponents=2, patterns=2, traceability=4 match ux.json; fixtures unchanged",
+            "commit": "8275c6779a643d951ae1ab1261d07ace6608a5db",
+            "date": "2026-10-03"
+          },
           "method": "comando",
           "command": {
             "run": "d=\"$(mktemp -d)\" && cp -R fixtures/membership-product/. \"$d\" && bun run heron init \"$d\" >/dev/null && bun run heron intake --json \"$d\"",
@@ -798,7 +894,13 @@
         {
           "id": "A8",
           "description": "Con un ProductContext válido y 0 conflictos, `heron gate intake approve --yes` sale con 0, registra `approvedBy`, fecha y sha256 de los artefactos atados, avanza a `intake-ready` y solo cambia `state.json` dentro de `.heron/`",
-          "evidence": null,
+          "evidence": {
+            "kind": "run",
+            "command": "bun 'test' 'tests/e2e/gate.test.ts' '--test-name-pattern' 'approves intake with valid context, recording approvedBy, artifact hashes, and committing only state\\.json'",
+            "result": "exit 0; 1 pass; 0 fail; selected case: approves intake with valid context, recording approvedBy, artifact hashes, and committing only state.json",
+            "commit": "8275c6779a643d951ae1ab1261d07ace6608a5db",
+            "date": "2026-10-03"
+          },
           "method": "test",
           "test": {
             "file": "tests/e2e/gate.test.ts",
@@ -1606,7 +1708,13 @@
         {
           "id": "A1",
           "description": "El YAML fusionado (upstream + override) fija `2.17.2` en las imágenes de Penpot, no usa `latest`, incluye `enable-mcp` y no contiene `change-this-insecure-key` ni `disable-secure-session-cookies`",
-          "evidence": null,
+          "evidence": {
+            "kind": "run",
+            "command": "bun 'test' 'tests/infra/penpot-compose.test.ts' '--test-name-pattern' 'override pins the version, keeps MCP and removes insecure defaults'",
+            "result": "exit 0; 1 pass; 0 fail; selected case: override pins the version, keeps MCP and removes insecure defaults",
+            "commit": "8275c6779a643d951ae1ab1261d07ace6608a5db",
+            "date": "2026-10-03"
+          },
           "method": "test",
           "test": {
             "file": "tests/infra/penpot-compose.test.ts",
@@ -1616,7 +1724,13 @@
         {
           "id": "A2",
           "description": "El compose oficial descargado coincide con su sha256 registrado",
-          "evidence": null,
+          "evidence": {
+            "kind": "run",
+            "command": "PENPOT_VERSION=2.17.2 infra/penpot/fetch-compose && shasum -a 256 -c infra/penpot/docker-compose.yaml.sha256",
+            "result": "exit 0; infra/penpot/docker-compose.yaml: OK; infra/penpot unchanged",
+            "commit": "8275c6779a643d951ae1ab1261d07ace6608a5db",
+            "date": "2026-10-03"
+          },
           "method": "comando",
           "command": {
             "run": "PENPOT_VERSION=2.17.2 infra/penpot/fetch-compose && shasum -a 256 -c infra/penpot/docker-compose.yaml.sha256",
@@ -1626,7 +1740,13 @@
         {
           "id": "A3",
           "description": "Contra un MCP falso: sin plugin conectado `doctor` falla en ≤ 10 s con instrucción; una key ausente o rechazada es FAIL; ninguna línea de log ni `.heron/` contiene el `userToken`",
-          "evidence": null,
+          "evidence": {
+            "kind": "run",
+            "command": "bun 'test' 'tests/unit/penpot/doctor.test.ts' '--test-name-pattern' 'fails fast without plugin and never leaks the MCP key'",
+            "result": "exit 0; 1 pass; 0 fail; selected case: fails fast without plugin and never leaks the MCP key",
+            "commit": "8275c6779a643d951ae1ab1261d07ace6608a5db",
+            "date": "2026-10-03"
+          },
           "method": "test",
           "test": {
             "file": "tests/unit/penpot/doctor.test.ts",
@@ -1636,7 +1756,13 @@
         {
           "id": "A4",
           "description": "Un nombre con `\"); malicious()` llega al script de `execute_code` solo como literal JSON, y el script generado es idéntico byte a byte entre dos corridas",
-          "evidence": null,
+          "evidence": {
+            "kind": "run",
+            "command": "bun 'test' 'tests/unit/penpot/script.test.ts' '--test-name-pattern' 'embeds untrusted strings as JSON data in deterministic scripts'",
+            "result": "exit 0; 1 pass; 0 fail; selected case: embeds untrusted strings as JSON data in deterministic scripts",
+            "commit": "8275c6779a643d951ae1ab1261d07ace6608a5db",
+            "date": "2026-10-03"
+          },
           "method": "test",
           "test": {
             "file": "tests/unit/penpot/script.test.ts",
@@ -1646,7 +1772,13 @@
         {
           "id": "A5",
           "description": "`penpot sync --proposals` escribe exactamente 3 páginas, una por dirección, con paleta, escala tipográfica, hoja de componentes y composición SYNTHETIC; una segunda corrida sin cambios hace 0 escrituras",
-          "evidence": null,
+          "evidence": {
+            "kind": "run",
+            "command": "bun 'test' 'tests/unit/penpot/proposals.test.ts' '--test-name-pattern' 'writes one idempotent page per direction with its visual proposal'",
+            "result": "exit 0; 1 pass; 0 fail; selected case: writes one idempotent page per direction with its visual proposal",
+            "commit": "8275c6779a643d951ae1ab1261d07ace6608a5db",
+            "date": "2026-10-03"
+          },
           "method": "test",
           "test": {
             "file": "tests/unit/penpot/proposals.test.ts",
@@ -1656,7 +1788,13 @@
         {
           "id": "A6",
           "description": "En reference-only las páginas de propuestas quedan marcadas `reference-only` y no se escribe ningún artefacto de producción",
-          "evidence": null,
+          "evidence": {
+            "kind": "run",
+            "command": "bun 'test' 'tests/unit/penpot/proposals.test.ts' '--test-name-pattern' 'marks proposal pages reference-only and writes no production artifacts'",
+            "result": "exit 0; 1 pass; 0 fail; selected case: marks proposal pages reference-only and writes no production artifacts",
+            "commit": "8275c6779a643d951ae1ab1261d07ace6608a5db",
+            "date": "2026-10-03"
+          },
           "method": "test",
           "test": {
             "file": "tests/unit/penpot/proposals.test.ts",
