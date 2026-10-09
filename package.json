@@ -20,8 +20,11 @@
     "test:perf": "bun test --path-ignore-patterns \"node_modules/**\" tests/perf",
     "test:coverage": "bun test --coverage && bun scripts/check-coverage.ts",
     "test:staged": "bun scripts/test-staged.ts",
-    "check:fast": "bun run format:check && bun run lint && bun run typecheck && bun run test:staged",
-    "check": "bun run format:check && bun run lint && bun run typecheck && bun run test:coverage"
+    "check:fast": "bun run check",
+    "check:duplicates": "jscpd --config .jscpd.json",
+    "check:ast": "ast-grep test --config sgconfig.yml --skip-snapshot-tests && ast-grep scan --config sgconfig.yml",
+    "check": "bun run format:check && bun run lint && bun run typecheck && bun run check:duplicates && bun run check:ast",
+    "prepare": "simple-git-hooks"
   },
   "dependencies": {
     "@modelcontextprotocol/sdk": "1.31.0",
@@ -29,12 +32,21 @@
     "zod": "4.6.5"
   },
   "devDependencies": {
+    "@ast-grep/cli": "0.45.3",
     "@types/bun": "1.4.2",
     "ajv": "8.20.0",
+    "jscpd": "5.4.0",
     "oxfmt": "0.71.0",
     "oxlint": "1.86.0",
+    "simple-git-hooks": "2.14.0",
     "typescript": "7.0.2"
   },
+  "simple-git-hooks": {
+    "pre-commit": "bun run check"
+  },
   "packageManager": "bun@1.4.2",
-  "trustedDependencies": []
+  "trustedDependencies": [
+    "@ast-grep/cli",
+    "simple-git-hooks"
+  ]
 }

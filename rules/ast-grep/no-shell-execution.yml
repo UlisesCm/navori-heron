@@ -1,0 +1,33 @@
+id: no-shell-execution
+language: TypeScript
+severity: error
+message: Do not enable shell execution; invoke an executable with an explicit argument array.
+files:
+  - src/**/*.ts
+  - bin/**/*.ts
+  - scripts/**/*.ts
+rule:
+  kind: pair
+  has:
+    field: key
+    regex: ^shell$
+  all:
+    - has:
+        field: value
+        pattern: "true"
+---
+id: no-shell-execution-tsx
+language: Tsx
+severity: error
+message: Do not enable shell execution; invoke an executable with an explicit argument array.
+files:
+  - src/**/*.tsx
+rule:
+  kind: pair
+  has:
+    field: key
+    regex: ^shell$
+  all:
+    - has:
+        field: value
+        pattern: "true"

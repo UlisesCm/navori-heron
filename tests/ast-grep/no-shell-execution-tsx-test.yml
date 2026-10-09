@@ -1,0 +1,5 @@
+id: no-shell-execution-tsx
+valid:
+  - 'const view = <div>{spawn("git", [], { shell: false })}</div>;'
+invalid:
+  - "const view = <div>{spawn(command, [], { shell: true })}</div>;"

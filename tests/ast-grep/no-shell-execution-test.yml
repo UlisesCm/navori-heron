@@ -1,0 +1,5 @@
+id: no-shell-execution
+valid:
+  - 'spawn("git", ["status"], { shell: false });'
+invalid:
+  - "spawn(command, [], { shell: true });"

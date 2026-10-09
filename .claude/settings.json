@@ -37,12 +37,6 @@
             "command": "bash \"$CLAUDE_PROJECT_DIR/.claude/hooks/pr-publisher-confirm.sh\"",
             "timeout": 10,
             "statusMessage": "navori: pr-publisher-confirm"
-          },
-          {
-            "type": "command",
-            "command": "bash \"$CLAUDE_PROJECT_DIR/.claude/hooks/quality-gate-pre-commit.sh\"",
-            "timeout": 600,
-            "statusMessage": "navori: quality-gate fast"
           }
         ]
       },
@@ -298,17 +292,7 @@
       "mcp__codegraph__codegraph_explore",
       "Bash(tgrep search *)",
       "Bash(tgrep status:*)",
-      "Bash(tgrep --version)",
-      "Bash(bun run check:fast:*)",
-      "Bash(bun run check:*)",
-      "Bash(bun run build:*)",
-      "Bash(bun run test:*)",
-      "Bash(bun run lint:*)",
-      "Bash(bun lint:*)",
-      "Bash(bun run typecheck:*)",
-      "Bash(bun typecheck:*)",
-      "Bash(bun run format:*)",
-      "Bash(bun format:*)"
+      "Bash(tgrep --version)"
     ],
     "ask": [
       "Bash(rm -rf *)",
