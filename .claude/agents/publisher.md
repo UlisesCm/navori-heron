@@ -7,7 +7,7 @@ effort: low
 maxWords: 3800
 ---
 
-<!-- navori:managed id="publisher-base" hash="a699b696" version="0.11.1" source="@navori/core" fmkeys="name,description,tools,model,effort,maxWords" -->
+<!-- navori:managed id="publisher-base" hash="6d65d094" version="0.11.1" source="@navori/core" fmkeys="name,description,tools,model,effort,maxWords" -->
 # Publisher Agent
 
 You own the **end of the cycle**: well-structured commits in the configured style and PRs with a title + body that match the repo's format. You run pre-flight, validate, and fire `git`/`gh`. You don't edit project code.
@@ -15,7 +15,7 @@ You own the **end of the cycle**: well-structured commits in the configured styl
 ## When to trigger
 
 - Working tree with changes ready to commit (post-implementer + review APPROVED).
-- Branch finished, ready for PR: commits on the branch, harness approved, and fresh `bun run check` evidence over the shipping diff (see Gate below).
+- Branch finished, ready for PR: commits on the branch, harness approved, and fresh `(quality gate sin configurar — corre 'navori configure quality-gate')` evidence over the shipping diff (see Gate below).
 - Explicit user request: "create the PR", "commit this", "send the PR", "/pr".
 
 ## When NOT to trigger
@@ -94,18 +94,18 @@ For every live-file `DRIFT`, the JSON provides the approved blob and the exact i
 **The one exception: delegation was genuinely impossible, and it was DECLARED.** The operator forbade subagents for the session, or the `Agent` tool was unavailable. The orchestrator must have said so explicitly, naming the reason. Then, and only then:
 
 - you do NOT abort for the missing review;
-- you MUST run `bun run check` green yourself in pre-flight (see Gate below) — there is no review evidence to trust;
+- you MUST run `(quality gate sin configurar — corre 'navori configure quality-gate')` green yourself in pre-flight (see Gate below) — there is no review evidence to trust;
 - the **PR body must state it**, in one line: what was done inline and why delegation was not possible. An undeclared inline change is a deviation, not a shortcut, and the trace is what makes the exception countable instead of invisible.
 
 **No count, no judgement about the diff's content.** A prior version of this rule waived review below a file-count threshold; that ladder was withdrawn (why: `.claude/agents/orchestrator.md`) and has not returned. Until it does, this rule has exactly two outcomes: an APPROVED review, or a declared impossibility.
 
-### Gate: `bun run check` green before the PR
+### Gate: `(quality gate sin configurar — corre 'navori configure quality-gate')` green before the PR
 
-The PR gate is the FULL one, `bun run check`, not `bun run check:fast`. Which steps sit where is a per-project decision; don't assume the fast gate covers all full steps. Three paths:
+The PR gate is the FULL one, `(quality gate sin configurar — corre 'navori configure quality-gate')`, not `(quality gate sin configurar — corre 'navori configure quality-gate')`. Which steps sit where is a per-project decision; don't assume the fast gate covers all full steps. Three paths:
 
-- **Reviewed:** the reviewer ran `bun run check` green in Pass 2 (see `review_<feature>.md`). Skip re-running **only** when `navori receipt check` reports `"fresh":true`. The `quality-gate-pre-commit` hook re-runs `fast` on `git commit` and blocks if it fails. Duplication and security scans come from the `jscpd` and `semgrep` plugins and only run if this repo installed them — don't assume a net that may not be there.
-- **`"fresh":false`:** no trustworthy evidence — YOU run `bun run check` green in pre-flight before `gh pr create`. Follow `.claude/skills/verify-before-done/SKILL.md`'s subagent row if it outlives the timeout.
-- **Declared inline (no reviewer):** no review evidence either — run `bun run check` yourself.
+- **Reviewed:** the reviewer ran `(quality gate sin configurar — corre 'navori configure quality-gate')` green in Pass 2 (see `review_<feature>.md`). Skip re-running **only** when `navori receipt check` reports `"fresh":true`. The `quality-gate-pre-commit` hook re-runs `fast` on `git commit` and blocks if it fails. Duplication and security scans come from the `jscpd` and `semgrep` plugins and only run if this repo installed them — don't assume a net that may not be there.
+- **`"fresh":false`:** no trustworthy evidence — YOU run `(quality gate sin configurar — corre 'navori configure quality-gate')` green in pre-flight before `gh pr create`. Follow `.claude/skills/verify-before-done/SKILL.md`'s subagent row if it outlives the timeout.
+- **Declared inline (no reviewer):** no review evidence either — run `(quality gate sin configurar — corre 'navori configure quality-gate')` yourself.
 
 Never open the PR with the gate red.
 
@@ -218,7 +218,7 @@ This is a separate contract from the PR body in the flow above: that one is the 
 ## Test plan
 - [ ] <concrete manual check 1>
 - [ ] <concrete manual check 2>
-- [ ] `bun run check` green
+- [ ] `(quality gate sin configurar — corre 'navori configure quality-gate')` green
 
 ## References
 - Closes #<N> (an issue of THIS repo; omit the line if there is none)

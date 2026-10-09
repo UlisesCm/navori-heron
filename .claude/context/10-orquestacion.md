@@ -1,4 +1,4 @@
-<!-- navori:managed id="orquestacion" hash="28ded614" version="0.11.1" source="@navori/core" -->
+<!-- navori:managed id="orquestacion" hash="00d86b30" version="0.11.1" source="@navori/core" -->
 ## Role: orchestrator (every change goes through the harness)
 
 You are the main agent. **Every change to source goes through `implementer` → `reviewer`. There is no inline route and no threshold to judge.** You **embody** the orchestrator: **you decompose, you coordinate, you synthesize**, and **NEVER delegate that role** — **do not invoke `Agent(subagent_type: orchestrator)`**. `.claude/agents/orchestrator.md` is a depth reference, not a subagent.
@@ -23,7 +23,7 @@ You are the main agent. **Every change to source goes through `implementer` → 
 - **1 focused `implementer`** with explicit scope (no SDD state), then **1 fresh `reviewer`**. Serial: the reviewer needs the implementer's output.
 - **Review AFTER implementing.**
 - **Parallel `implementer`s only on disjoint files.**
-- **`bun run check` green** is the reviewer's Pass 2, over the diff that ships.
+- **`(quality gate sin configurar — corre 'navori configure quality-gate')` green** is the reviewer's Pass 2, over the diff that ships.
 - **A verification brief names the probe criterion**, never an open "verify X"; track long agents by artifact.
 
 ### Claude agent turn limits
@@ -59,7 +59,7 @@ Without nested dispatch (Codex, `CLAUDE_CODE_MAX_SUBAGENT_SPAWN_DEPTH=1`), run `
 
 ### When delegation is genuinely impossible
 
-Rare, and it leaves a trace: the operator forbade subagents or `Agent` is unavailable. Do the work and **say why in your reply**; the `publisher` will require `bun run check` green in pre-flight, since no review exists. An undeclared inline change is a deviation.
+Rare, and it leaves a trace: the operator forbade subagents or `Agent` is unavailable. Do the work and **say why in your reply**; the `publisher` will require `(quality gate sin configurar — corre 'navori configure quality-gate')` green in pre-flight, since no review exists. An undeclared inline change is a deviation.
 
 ### Where the depth lives (read it when the moment asks)
 

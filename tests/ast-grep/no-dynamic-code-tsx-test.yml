@@ -1,0 +1,7 @@
+id: no-dynamic-code-tsx
+valid:
+  - "const view = <div>{JSON.parse(input).name}</div>;"
+invalid:
+  - "const view = <div>{eval(input)}</div>;"
+  - "const handler = new Function(input);"
+  - "const handler = Function(input);"

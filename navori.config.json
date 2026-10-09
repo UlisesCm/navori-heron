@@ -12,10 +12,6 @@
   "gitignoreHarness": "off",
   "prTarget": "develop",
   "commits": "conventional-es",
-  "qualityGate": {
-    "fast": "bun run check:fast",
-    "full": "bun run check"
-  },
   "audit": {
     "mode": "opt-in"
   },
@@ -60,12 +56,6 @@
     },
     "codegraph": {
       "enabled": true
-    },
-    "jscpd": {
-      "enabled": false
-    },
-    "semgrep": {
-      "enabled": false
     },
     "tgrep": {
       "enabled": true

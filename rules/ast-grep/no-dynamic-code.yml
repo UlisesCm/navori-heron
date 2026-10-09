@@ -1,0 +1,25 @@
+id: no-dynamic-code
+language: TypeScript
+severity: error
+message: Do not evaluate code from strings; use validated data and deterministic functions.
+files:
+  - src/**/*.ts
+  - bin/**/*.ts
+  - scripts/**/*.ts
+rule:
+  any:
+    - pattern: eval($$$ARGS)
+    - pattern: new Function($$$ARGS)
+    - pattern: Function($$$ARGS)
+---
+id: no-dynamic-code-tsx
+language: Tsx
+severity: error
+message: Do not evaluate code from strings; use validated data and deterministic functions.
+files:
+  - src/**/*.tsx
+rule:
+  any:
+    - pattern: eval($$$ARGS)
+    - pattern: new Function($$$ARGS)
+    - pattern: Function($$$ARGS)

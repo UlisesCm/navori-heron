@@ -10,7 +10,7 @@ metadata:
   maxWordsComposed: 1450
 ---
 
-<!-- navori:managed id="review-diff-base" hash="7ef223de" version="0.11.1" source="@navori/core" fmkeys="name,description,metadata" -->
+<!-- navori:managed id="review-diff-base" hash="ffc12445" version="0.11.1" source="@navori/core" fmkeys="name,description,metadata" -->
 # Code review — checklist for a diff
 
 Apply this checklist to a diff (staged, branch vs `develop`, or a PR). The skeleton is stack-agnostic; repo-specific rules live in the user-section below.
@@ -102,7 +102,7 @@ Rule: if removing the abstraction leaves the code **as correct** and shorter, re
 
 ## 9. Quality gate (run this turn, not assumed)
 
-- `bun run check` passes → CRITICAL if it fails; this is the same gate the `reviewer` owns in Pass 2, never re-defined here.
+- `(quality gate sin configurar — corre 'navori configure quality-gate')` passes → CRITICAL if it fails; this is the same gate the `reviewer` owns in Pass 2, never re-defined here.
 - Failure attribution (per `verify-before-done`): a failure classified *introduced (demonstrated)* → HIGH; never classify one by diff location alone.
 
 ## 10. Commit and PR

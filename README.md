@@ -210,8 +210,11 @@ $ heron init --dry-run --json fixtures/no-ux
 - **Master-plan** en `specs/_master/` (`MASTER.md`, `DECISIONS.md`, `parts.json`, `STATUS.md`): define las partes P1-P12.
 - **Specs SDD** en `specs/NNNN-*` (p. ej. `specs/0001-heron-core`): una por parte, con requisitos `R<n>` trazables a tests.
 - **Harness navori** (`.claude/agents/`): `orchestrator` coordina, `implementer` implementa, `reviewer` revisa, `publisher` abre el PR.
-- **Quality gate:** `bun run check` (`format:check` + `lint` + `typecheck` + `test:coverage`); lo corren los revisores y el CI de `main`. El pre-commit (hook de Claude Code) corre solo `bun run check:fast`: `format:check` + `lint` + `typecheck` + los tests `tests/**/*.test.ts` incluidos en el commit (`scripts/test-staged.ts`; nada si no hay ninguno). `bun run test:perf` (latencias p95) va aparte. Otros scripts: `bun test`, `bun run gen:schemas`.
-- **CI:** `.github/workflows/ci.yml`. PR a `develop`: solo jscpd 5.4.0 y semgrep 1.179.0 sobre los `.ts` cambiados (mismos umbrales que tenían los hooks). PR a `main` y push a `main`: `format:check`, `lint`, `typecheck`, `test:coverage` y `test:perf` como pasos separados, tras `bun install --frozen-lockfile`.
+- **Quality gate por commit y CI:** `bun run check` (`format:check` + `lint` + `typecheck` + `check:duplicates` + `check:ast`). `simple-git-hooks` instala el pre-commit al instalar dependencias; para reinstalarlo: `bun run prepare`. `check:fast` es un alias del mismo gate. Los controles usan dependencias locales, no plugins ni hooks del harness.
+- **Duplicación:** jscpd, umbral 0%, bloques de al menos 10 líneas y 100 tokens en `src/`, `bin/` y `scripts/`; configuración en `.jscpd.json`.
+- **Reglas AST:** ast-grep valida casos positivos/negativos y bloquea evaluación dinámica de código y `shell: true` en TS/TSX; reglas en `rules/ast-grep/`. No sustituye una auditoría de seguridad completa.
+- **Tests:** `bun test`, `bun run test:coverage` y `bun run test:perf` siguen disponibles por separado, fuera del gate automático de commits/CI.
+- **CI:** `.github/workflows/ci.yml` ejecuta `bun install --frozen-lockfile` y `bun run check` en PRs a `develop`/`main` y push a `main`.
 - **Git:** las ramas parten de `develop` y los PR apuntan a `develop`. Commits Conventional en español, **un commit por tarea y un PR por parte**.
 
 ## 6. Skills del proyecto
@@ -241,6 +244,6 @@ docs/          arquitectura, contratos, integración con el harness, research, s
 
 ## 8. Contribuir y licencia
 
-Trabaja en una rama desde `develop`, corre `bun run check` antes de abrir el PR (el pre-commit solo hace `check:fast`; jscpd y semgrep corren en el CI del PR a `develop`) y apunta el PR a `develop`. Más contexto en [docs/architecture.md](docs/architecture.md) y [fixtures/README.md](fixtures/README.md).
+Trabaja en una rama desde `develop`, corre `bun run check` antes de abrir el PR (el pre-commit y CI ejecutan el mismo gate con herramientas locales) y apunta el PR a `develop`. Más contexto en [docs/architecture.md](docs/architecture.md) y [fixtures/README.md](fixtures/README.md).
 
 Licencia: por definir.

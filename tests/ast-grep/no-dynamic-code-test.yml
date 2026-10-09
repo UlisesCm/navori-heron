@@ -1,0 +1,8 @@
+id: no-dynamic-code
+valid:
+  - "const result = JSON.parse(input);"
+  - "const result = evaluator.evaluate(input);"
+invalid:
+  - "eval(input);"
+  - "new Function(input);"
+  - 'Function("return 1");'
